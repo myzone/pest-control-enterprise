@@ -11,6 +11,8 @@
 
     <properties>
         <guava.version>14.0.1</guava.version>
+        <netty.version>5.0.0.Alpha1</netty.version>
+        <gson.version>2.2.4</gson.version>
     </properties>
 
 	<modules>
