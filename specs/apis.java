@@ -115,7 +115,7 @@ interface AdminsSession extends UserSession {
 	void closeTaks(Task task, String comment);
 
 	/**
-	 * TODO: consider about filters
+	 * @todo consider about filters
 	 */
 	ImmutableSet<Task> getTasks(Filter filter);
 
