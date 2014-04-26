@@ -74,11 +74,12 @@ public class Endpoint<I, O> {
     }
 
     public Host<I, O> bind(final short port) throws InterruptedException {
-        final EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
+        final EventLoopGroup bossGroup = new NioEventLoopGroup();
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
-        ServerBootstrap b = new ServerBootstrap(); // (2)
-        b.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class) // (3)
+
+        final ChannelFuture f = new ServerBootstrap()
+                .group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
@@ -97,11 +98,10 @@ public class Endpoint<I, O> {
                         });
                     }
                 })
-                .option(ChannelOption.SO_BACKLOG, 128)          // (5)
-                .childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
-
-        // Bind and start to accept incoming connections.
-        final ChannelFuture f = b.bind(port).sync(); // (7)
+                .option(ChannelOption.SO_BACKLOG, 128)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
+                .bind(port)
+                .sync();
 
         return new Host<I, O>() {
             @Override
@@ -112,9 +112,6 @@ public class Endpoint<I, O> {
             @Override
             public void close() throws Exception {
                 try {
-                    // Wait until the server socket is closed.
-                    // In this example, this does not happen, but you can do that to gracefully
-                    // shut down your server.
                     f.channel().closeFuture().sync();
                 } finally {
                     workerGroup.shutdownGracefully();
@@ -128,31 +125,31 @@ public class Endpoint<I, O> {
         final Queue<Consumer<O>> consumersQueue = new ConcurrentLinkedQueue<Consumer<O>>();
 
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
-        Bootstrap b = new Bootstrap(); // (1)
-        b.group(workerGroup); // (2)
-        b.channel(NioSocketChannel.class); // (3)
-        b.option(ChannelOption.SO_KEEPALIVE, true); // (4)
-        b.handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            public void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast("framer", new JsonBasedFrameDecoder());
-                ch.pipeline().addLast("decoder", new StringDecoder());
-                ch.pipeline().addLast("encoder", new StringEncoder());
-                ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<String>() {
+        final Channel channel = new Bootstrap()
+                .group(workerGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    protected void messageReceived(ChannelHandlerContext channelHandlerContext, String s) {
-                        try {
-                            consumersQueue.poll().accept(gson.<O>fromJson(s, outputType.getType()));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    public void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast("framer", new JsonBasedFrameDecoder());
+                        ch.pipeline().addLast("decoder", new StringDecoder());
+                        ch.pipeline().addLast("encoder", new StringEncoder());
+                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<String>() {
+                            @Override
+                            protected void messageReceived(ChannelHandlerContext channelHandlerContext, String s) {
+                                try {
+                                    consumersQueue.poll().accept(gson.<O>fromJson(s, outputType.getType()));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
                     }
-                });
-            }
-        });
-
-        // Wait until the connection is closed.
-        final Channel channel =  b.connect(host, port).sync().channel();
+                })
+                .connect(host, port)
+                .sync()
+                .channel();
 
         return new Client<I, O>() {
             @Override
