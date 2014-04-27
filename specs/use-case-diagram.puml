@@ -1,0 +1,107 @@
+@startuml
+
+left to right direction
+
+
+:User: as u
+:Worker: as w
+:Admin: as a
+
+:Mobile app: as m
+:Admin web-app: as s
+:Backend: as b
+
+u <|-- w
+u <|-- a
+
+u -- (auth)
+(auth) -- m 
+(auth) -- s
+(auth) -- b 
+
+u -- (getTaskInfo)
+(getTaskInfo) -- m 
+(getTaskInfo) -- s
+(getTaskInfo) -- b 
+
+w -- (getOpenTasks)
+(getOpenTasks) -- m 
+(getOpenTasks) -- b 
+
+w -- (getAssignedTasks)
+(getAssignedTasks) -- m 
+(getAssignedTasks) -- b 
+
+w -- (getCurrentTasks)
+(getCurrentTasks) -- m 
+(getCurrentTasks) -- b 
+
+
+w -- (assignTask)
+(assignTask) -- m 
+(assignTask) -- b 
+
+w -- (discardTask)
+(discardTask) -- m 
+(discardTask) -- b 
+
+w -- (startTask)
+(startTask) -- m 
+(startTask) -- b 
+
+w -- (finishTask)
+(finishTask) -- m 
+(finishTask) -- b 
+
+(commentTask) -- b
+(commentTask) -- m
+(commentTask) -- s
+
+(commentTask) <|--  (assignTask)
+(commentTask) <|--  (discardTask)
+(commentTask) <|--  (startTask)
+(commentTask) <|--  (finishTask)
+
+a -- (allocateTask)
+(allocateTask) -- s 
+(allocateTask) -- b 
+
+a -- (editTask)
+(editTask) -- s 
+(editTask) -- b 
+
+a -- (closeTask)
+(closeTask) -- s 
+(closeTask) -- b 
+
+(commentTask) <|--  (allocateTask)
+(commentTask) <|--  (editTask)
+(commentTask) <|--  (closeTask)
+
+a -- (registerConsumer)
+(registerConsumer) -- s 
+(registerConsumer) -- b 
+
+a -- (editConsumer)
+(editConsumer) -- s 
+(editConsumer) -- b 
+
+a -- (getConsumers)
+(getConsumers) -- s 
+(getConsumers) -- b 
+
+a -- (registerWorker)
+(registerWorker) -- s 
+(registerWorker) -- b 
+
+a -- (editWorker)
+(editWorker) -- s 
+(editWorker) -- b 
+
+a -- (getWorkers)
+(getWorkers) -- s 
+(getWorkers) -- b 
+ 
+
+@enduml
+            
