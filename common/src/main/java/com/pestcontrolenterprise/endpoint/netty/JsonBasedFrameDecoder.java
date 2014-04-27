@@ -3,7 +3,6 @@ package com.pestcontrolenterprise.endpoint.netty;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
-import java.io.StringWriter;
 import java.util.List;
 
 /**
@@ -12,7 +11,7 @@ import java.util.List;
  */
 public class JsonBasedFrameDecoder extends MessageToMessageDecoder<CharSequence> {
 
-    private StringWriter stringWriter = new StringWriter();
+    private StringBuilder stringBuilder = new StringBuilder();
     private int level = 0;
 
     @Override
@@ -20,7 +19,7 @@ public class JsonBasedFrameDecoder extends MessageToMessageDecoder<CharSequence>
         for (int i = 0; i < msg.length(); i++) {
             char c = msg.charAt(i);
 
-            stringWriter.append(c);
+            stringBuilder.append(c);
 
             switch (c) {
                 case '{':
@@ -32,9 +31,9 @@ public class JsonBasedFrameDecoder extends MessageToMessageDecoder<CharSequence>
             }
 
             if (level == 0) {
-                out.add(stringWriter);
+                out.add(stringBuilder.toString());
 
-                stringWriter = new StringWriter();
+                stringBuilder = new StringBuilder();
             }
         }
     }
