@@ -1,4 +1,4 @@
-package com.pestcontrolenterprise;
+package com.pestcontrolenterprise.api;
 
 import java.util.stream.Stream;
 
