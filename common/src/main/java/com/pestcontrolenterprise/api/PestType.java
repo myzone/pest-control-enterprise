@@ -6,4 +6,8 @@ package com.pestcontrolenterprise.api;
  */
 public interface PestType {
 
+    String getName();
+
+    String getDescribtion();
+
 }

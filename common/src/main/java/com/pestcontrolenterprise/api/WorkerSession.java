@@ -12,11 +12,6 @@ public interface WorkerSession extends UserSession {
     Worker getUser();
 
     /**
-     * Returns set of tasks which could be proceed by current worker
-     */
-    Stream<Task> getOpenTasks();
-
-    /**
      * Returns set of tasks which are assigned to current worker
      */
     Stream<Task> getAssignedTasks();
@@ -25,12 +20,6 @@ public interface WorkerSession extends UserSession {
      * Returns set of tasks which are currently in progress by current worker
      */
     Stream<Task> getCurrentTasks();
-
-
-    /**
-     * Sets task's status to ASSIGNED
-     */
-    void assignTask(Task task, String comment) throws IllegalStateException;
 
     /**
      * Sets task's status to OPEN
@@ -46,6 +35,5 @@ public interface WorkerSession extends UserSession {
      * Sets task's status to RESOLVED
      */
     void finishTask(Task task, String comment) throws IllegalStateException;
-
 
 }

@@ -5,4 +5,7 @@ package com.pestcontrolenterprise.api;
  * @date 4/25/14
  */
 public interface EquipmentType {
+
+    String getName();
+
 }

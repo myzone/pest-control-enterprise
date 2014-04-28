@@ -1,6 +1,9 @@
 package com.pestcontrolenterprise.api;
 
-import java.time.Period;
+import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.util.Segment;
+
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -15,9 +18,9 @@ public interface AdminSession extends UserSession {
     Admin getUser();
 
     Task allocateTask(
-            Task.Status status,
+            ReadonlyTask.Status status,
             Optional<Worker> worker,
-            Set<Period> availabilityTime,
+            ImmutableSet<Segment<Instant>> availabilityTime,
             Consumer consumer,
             PestType pestType,
             String problemDescription,
@@ -27,8 +30,8 @@ public interface AdminSession extends UserSession {
     Task editTask(
             Task task,
             Optional<Optional<Worker>> worker,
-            Optional<Task.Status> status,
-            Optional<Set<Period>> availabilityTime,
+            Optional<ReadonlyTask.Status> status,
+            Optional<ImmutableSet<Segment<Instant>>> availabilityTime,
             Optional<Consumer> consumer,
             Optional<PestType> pestType,
             Optional<String> problemDescription,
@@ -38,7 +41,6 @@ public interface AdminSession extends UserSession {
     void closeTask(Task task, String comment);
 
     Stream<Task> getTasks();
-
 
     Consumer registerConsumer(
             String name,
@@ -56,7 +58,6 @@ public interface AdminSession extends UserSession {
     );
 
     Stream<Consumer> getConsumers();
-
 
     Worker registerWorker(
             String name,

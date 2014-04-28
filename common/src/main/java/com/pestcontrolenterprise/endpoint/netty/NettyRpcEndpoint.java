@@ -163,8 +163,8 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
     }
 
     @Override
-    public RpcClient<P> client(String host, short port) {
-        final Map<String, Consumer<RemoteResult<P, ?>>> consumersMap = new ConcurrentHashMap<>();
+    public RpcClient<P> client(final String host, final short port) {
+        final Map<String, Consumer<RemoteResult<P, ?>>> consumersMap = new ConcurrentHashMap<String, Consumer<RemoteResult<P, ?>>>();
 
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
         final Channel channel = new Bootstrap()

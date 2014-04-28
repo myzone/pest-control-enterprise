@@ -1,59 +1,27 @@
 package com.pestcontrolenterprise.api;
 
-import java.time.Period;
-import java.util.List;
+import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.util.Segment;
+
+import java.time.Instant;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * @author myzone
- * @date 4/25/14
+ * @date 4/29/14
  */
-public interface Task {
+public interface Task extends ReadonlyTask {
 
-    Status getStatus();
+    void setStatus(UserSession causer, Status status, String comment) throws IllegalStateException;
 
-    Optional<Worker> getCurrentWorker();
+    void setCurrentWorker(UserSession causer, Optional<Worker> currentWorker, String comment) throws IllegalStateException;
 
-    Set<Period> getAvailabilityTime();
+    void setAvailabilityTime(UserSession causer, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException;
 
-    Consumer getConsumer();
+    void setConsumer(UserSession causer, Consumer consumer, String comment) throws IllegalStateException;
 
-    PestType getPestType();
+    void setPestType(UserSession causer, PestType pestType, String comment) throws IllegalStateException;
 
-    String getProblemDescription();
-
-    List<TaskHistoryEntry> getTaskHistory();
-
-    enum Status {
-        OPEN,
-        ASSIGNED,
-        IN_PROGRESS,
-        RESOLVED,
-        CLOSED
-    }
-
-    interface TaskHistoryEntry {
-
-        long getTimeStamp();
-
-        User getCauser();
-
-        String getComment();
-
-    }
-
-    interface StatusChangeHistoryEntry extends TaskHistoryEntry {
-
-        Status getOldStatus();
-
-        Status getNewStatus();
-
-    }
-
-    interface DataChangeHistoryEntry extends TaskHistoryEntry {
-
-    }
+    void setProblemDescription(UserSession causer, String problemDescription, String comment) throws IllegalStateException;
 
 }

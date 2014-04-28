@@ -13,8 +13,8 @@ import java.util.stream.Stream;
 public interface PestControlEnterprise {
 
     /**
-	 * Workers are stored in DB, admins entries are stored separately in configs
-	 */
+     * Workers are stored in DB, admins entries are stored separately in configs
+     */
     Stream<User> getUsers();
 
     ImmutableSet<EquipmentType> getEquipment(PestType pestType);
@@ -30,7 +30,7 @@ public interface PestControlEnterprise {
 
         private FastPredicates() {}
 
-        private static class UserByNamePredicate implements Predicate<User>{
+        private static class UserByNamePredicate implements Predicate<User> {
 
             private final String username;
 
