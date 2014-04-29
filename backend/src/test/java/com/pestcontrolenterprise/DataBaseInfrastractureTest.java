@@ -20,9 +20,8 @@ public class DataBaseInfrastractureTest {
 
     @Rule
     public H2SessionFactoryProvider sessionFactory = new H2SessionFactoryProvider(
-            "file:D://test.db",
-//            "mem:db1",
-            PersistentAddress.class,
+//            "file:D://test.db",
+            "mem:db1",
             PersistentConsumer.class,
             PersistentEquipmentType.class,
             PersistentPestType.class,

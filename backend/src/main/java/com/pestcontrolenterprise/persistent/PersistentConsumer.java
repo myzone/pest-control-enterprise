@@ -16,7 +16,8 @@ public class PersistentConsumer implements Consumer {
     @Id
     protected volatile String name;
 
-    @ManyToOne(targetEntity = PersistentAddress.class)
+    @Embedded
+    @Column
     protected volatile Address address;
 
     @Column

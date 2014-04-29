@@ -25,9 +25,8 @@ public class SomeApiTest {
 
     @Rule
     public H2SessionFactoryProvider sessionFactory = new H2SessionFactoryProvider(
-            "file:D://test.db",
-//            "mem:db1",
-            PersistentAddress.class,
+//            "file:D://test.db",
+            "mem:db1",
             PersistentConsumer.class,
             PersistentEquipmentType.class,
             PersistentPestType.class,
@@ -60,7 +59,6 @@ public class SomeApiTest {
         session.save(admin);
 
         PersistentAddress address = new PersistentAddress("some street");
-        session.save(address);
 
         PersistentConsumer consumer = new PersistentConsumer(UUID.randomUUID().toString() , address, "asd", "asd");
         session.save(consumer);

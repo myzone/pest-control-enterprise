@@ -4,19 +4,10 @@ import com.google.common.base.Objects;
 import com.pestcontrolenterprise.api.Address;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
-/**
- * @author myzone
- * @date 4/28/14
- */
-@Entity
-public class PersistentAddress implements Address {
+public class PersistentAddress implements Address, Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-
-    @Column
     protected volatile String representation;
 
     public PersistentAddress() {
@@ -38,7 +29,6 @@ public class PersistentAddress implements Address {
 
         PersistentAddress that = (PersistentAddress) o;
 
-        if (id != that.id) return false;
         if (!representation.equals(that.representation)) return false;
 
         return true;
@@ -46,9 +36,7 @@ public class PersistentAddress implements Address {
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + representation.hashCode();
-        return result;
+        return representation.hashCode();
     }
 
     @Override

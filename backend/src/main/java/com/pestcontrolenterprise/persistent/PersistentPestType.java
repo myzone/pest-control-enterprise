@@ -1,9 +1,12 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.api.EquipmentType;
 import com.pestcontrolenterprise.api.PestType;
 
 import javax.persistence.*;
+import java.util.Set;
 
 /**
  * @author myzone
@@ -22,6 +25,9 @@ public class PersistentPestType implements PestType {
     @Column
     protected volatile String describtion;
 
+    @ManyToMany(targetEntity = PersistentEquipmentType.class)
+    protected volatile Set<EquipmentType> requiredEquipmentTypes;
+
     public PersistentPestType() {
     }
 
@@ -38,6 +44,11 @@ public class PersistentPestType implements PestType {
     @Override
     public String getDescribtion() {
         return describtion;
+    }
+
+    @Override
+    public ImmutableSet<EquipmentType> getRequiredEquipmentTypes() {
+        return ImmutableSet.copyOf(requiredEquipmentTypes);
     }
 
     @Override

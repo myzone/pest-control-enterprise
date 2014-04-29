@@ -12,12 +12,9 @@ import java.util.stream.Stream;
  */
 public interface PestControlEnterprise {
 
-    /**
-     * Workers are stored in DB, admins entries are stored separately in configs
-     */
     Stream<User> getUsers();
 
-    ImmutableSet<EquipmentType> getEquipment(PestType pestType);
+    Stream<PestType> getPestTypes();
 
     Optional<Address> getAddress(String textAddress);
 

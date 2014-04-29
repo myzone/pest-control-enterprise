@@ -119,11 +119,11 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
                     .toString();
         }
 
-        public static <E extends Enum<E>, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
+        public static <E, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
             return new Procedure<E, A, R>(procedureType, argumentType, returnType);
         }
 
-        protected static <E extends Enum<E>, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType, Object argumentTypeAdapter, Object returnTypeAdapter) {
+        public static <E, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType, Object argumentTypeAdapter, Object returnTypeAdapter) {
             return new Procedure<E, A, R>(procedureType, argumentType, returnType, argumentTypeAdapter, returnTypeAdapter);
         }
 
