@@ -40,9 +40,9 @@ public abstract class RpcEndpointTest {
         Consumer<String> stringConsumer = mock(Consumer.class);
 
         client.call(ServiceSignature.SET, value, voidConsumer);
-        client.call(ServiceSignature.GET, null, stringConsumer);
-
         verify(voidConsumer, timeout(100)).accept(null);
+
+        client.call(ServiceSignature.GET, null, stringConsumer);
         verify(stringConsumer, timeout(100)).accept(value);
     }
 

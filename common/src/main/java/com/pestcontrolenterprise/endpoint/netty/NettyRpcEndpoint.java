@@ -6,15 +6,26 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.endpoint.RpcEndpoint;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpMethod;
 
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,6 +33,9 @@ import java.util.function.Supplier;
 
 import static com.pestcontrolenterprise.endpoint.RpcEndpoint.RemoteCall;
 import static com.pestcontrolenterprise.endpoint.RpcEndpoint.RemoteResult;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
  * @author myzone
@@ -55,8 +69,7 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                               ((Function) handlerPair.getHandler()).apply(remoteCall.getArgument())
                       );
                   }
-              }, new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?>>(){}, createGsonBuilder(procedureTypeClass, handlerPairsMap, new GsonBuilder()
-                      .serializeNulls()));
+              }, new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?>>(){}, createGsonBuilder(procedureTypeClass, handlerPairsMap, gsonBuilder.serializeNulls()));
 
         this.idSupplier = idSupplier;
     }
@@ -80,9 +93,9 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
             Procedure<P, ?, ?> procedure = handlerPair.getProcedure();
 
             if (procedure.getArgumentTypeAdapter().isPresent())
-                gsonBuilder.registerTypeHierarchyAdapter(procedure.getArgumentType().getRawType(), procedure.getArgumentTypeAdapter());
+                gsonBuilder.registerTypeHierarchyAdapter(procedure.getArgumentType().getRawType(), procedure.getArgumentTypeAdapter().get());
             if (procedure.getReturnTypeAdapter().isPresent())
-                gsonBuilder.registerTypeHierarchyAdapter(procedure.getReturnType().getRawType(), procedure.getReturnTypeAdapter());
+                gsonBuilder.registerTypeHierarchyAdapter(procedure.getReturnType().getRawType(), procedure.getReturnTypeAdapter().get());
         }
 
         gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteCall<P, ?>>() {}.getRawType(), new JsonDeserializer<RemoteCall<P, ?>>() {
@@ -167,38 +180,30 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
         final Map<String, Consumer<RemoteResult<P, ?>>> consumersMap = new ConcurrentHashMap<String, Consumer<RemoteResult<P, ?>>>();
 
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
-        final Channel channel = new Bootstrap()
+        final Bootstrap bootstrap = new Bootstrap()
                 .group(workerGroup)
                 .channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast("decoder", new StringDecoder());
-                        ch.pipeline().addLast("framer", new JsonBasedFrameDecoder());
-                        ch.pipeline().addLast("encoder", new StringEncoder());
-                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<String>() {
-                            @Override
-                            protected void messageReceived(ChannelHandlerContext channelHandlerContext, String s) {
-                                try {
-                                    RemoteResult<P, ?> result = gson.<RemoteResult<P, ?>>fromJson(s, outputType.getType());
+                        ch.pipeline().addLast("encoder", new HttpClientCodec());
+                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<HttpContent>() {
+                                    @Override
+                                    protected void messageReceived(ChannelHandlerContext channelHandlerContext, HttpContent httpResponse) throws Exception {
+                                        RemoteResult<P, ?> result = gson.<RemoteResult<P, ?>>fromJson(new InputStreamReader(new ByteBufInputStream(httpResponse.content())), outputType.getType());
 
-                                    consumersMap.getOrDefault(result.getIdentifier(), new Consumer<RemoteResult<P, ?>>() {
-                                        @Override
-                                        public void accept(RemoteResult<P, ?> pRemoteResult) {
-                                            // just do noting here
-                                        }
-                                    }).accept(result);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                        consumersMap.getOrDefault(result.getIdentifier(), new Consumer<RemoteResult<P, ?>>() {
+                                            @Override
+                                            public void accept(RemoteResult<P, ?> pRemoteResult) {
+                                                // just do noting here
+                                            }
+                                        }).accept(result);
+                                    }
                                 }
-                            }
-                        });
+                        );
                     }
-                })
-                .connect(host, port)
-                .syncUninterruptibly()
-                .channel();
+                });
+
 
         return new RpcClient<P>() {
             @SuppressWarnings("unchecked")
@@ -226,16 +231,21 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
             public void request(RemoteCall<P, ?> call, Consumer<RemoteResult<P, ?>> consumer) {
                 consumersMap.put(call.getIdentifier(), consumer);
 
-                channel.writeAndFlush(gson.toJson(call, inputType.getType()));
+                String content = gson.toJson(call, inputType.getType());
+
+                DefaultFullHttpRequest request = new DefaultFullHttpRequest(HTTP_1_1, HttpMethod.POST, "http://" + getHost() + ":" + getPort(), Unpooled.wrappedBuffer(content.getBytes()));
+                request.headers().set(CONTENT_TYPE, "application/json");
+                request.headers().set(CONTENT_LENGTH, request.content().readableBytes());
+
+                bootstrap.connect(host, port)
+                        .syncUninterruptibly()
+                        .channel()
+                        .writeAndFlush(request);
             }
 
             @Override
             public void close() {
-                try {
-                    channel.closeFuture();
-                } finally {
-                    workerGroup.shutdownGracefully();
-                }
+                workerGroup.shutdownGracefully();
             }
         };
     }
@@ -269,6 +279,12 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
 
         public NettyRpcEndpointBuilder<P> withHandlerPair(NettyRpcEndpoint.HandlerPair<P, ?, ?> handlerPair) {
             this.handlerPairs.add(handlerPair);
+
+            return this;
+        }
+
+        public <A, R> NettyRpcEndpointBuilder<P> withHandlerPair(Procedure<P, A, R> procedure, Function<A, R> handler) {
+            this.handlerPairs.add(HandlerPair.of(procedure, handler));
 
             return this;
         }
@@ -334,7 +350,7 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                     .toString();
         }
 
-        public static <E extends Enum<E>, A, R> HandlerPair<E, A, R> of(Procedure<E, A, R> procedure, Function<A, R> handler) {
+        public static <E, A, R> HandlerPair<E, A, R> of(Procedure<E, A, R> procedure, Function<A, R> handler) {
             return new HandlerPair<E, A, R>(procedure, handler);
         }
 

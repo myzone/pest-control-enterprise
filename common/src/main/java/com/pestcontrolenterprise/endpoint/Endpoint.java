@@ -14,6 +14,8 @@ public interface Endpoint<I, O> {
 
     interface Host<I, O> extends AutoCloseable {
 
+        void waitForClose() throws InterruptedException;
+
         short getPort();
 
     }

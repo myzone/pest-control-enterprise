@@ -67,8 +67,8 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
             this.argumentType = argumentType;
             this.returnType = returnType;
 
-            this.argumentTypeAdapter = Optional.of(argumentTypeAdapter);
-            this.returnTypeAdapter = Optional.of(returnTypeAdapter);
+            this.argumentTypeAdapter = Optional.ofNullable(argumentTypeAdapter);
+            this.returnTypeAdapter = Optional.ofNullable(returnTypeAdapter);
         }
 
         public P getProcedureType() {

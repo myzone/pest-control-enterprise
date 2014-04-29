@@ -7,14 +7,18 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.codec.http.*;
 
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -22,6 +26,9 @@ import java.util.function.Function;
 
 import static com.pestcontrolenterprise.endpoint.Endpoint.Client;
 import static com.pestcontrolenterprise.endpoint.Endpoint.Host;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
  * @author myzone
@@ -77,30 +84,42 @@ public class NettyEndpoint<I, O> {
         final ChannelFuture f = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast("decoder", new StringDecoder());
-                        ch.pipeline().addLast("framer", new JsonBasedFrameDecoder());
-                        ch.pipeline().addLast("encoder", new StringEncoder());
-                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<String>() {
+                        ch.pipeline().addLast("encoder", new HttpServerCodec());
+                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<HttpContent>() {
                             @Override
-                            protected void messageReceived(ChannelHandlerContext channelHandlerContext, String s) {
+                            protected void messageReceived(ChannelHandlerContext channelHandlerContext,
+                                                           HttpContent httpRequest) {
                                 try {
-                                    channelHandlerContext.writeAndFlush(gson.toJson(function.apply(gson.<I>fromJson(s, inputType.getType())), outputType.getType()));
+                                    String responseContent = gson.toJson(function.apply(gson.<I>fromJson(new InputStreamReader(new ByteBufInputStream(httpRequest.content())), inputType.getType())), outputType.getType());
+
+                                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(responseContent.getBytes()));
+                                    response.headers().set(CONTENT_TYPE, "application/json");
+                                    response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+
+                                    channelHandlerContext.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    StringWriter stringWriter = new StringWriter();
+                                    e.printStackTrace(new PrintWriter(stringWriter));
+
+                                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.wrappedBuffer(stringWriter.getBuffer().toString().getBytes()));
+                                    channelHandlerContext.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
                                 }
                             }
                         });
                     }
                 })
-                .option(ChannelOption.SO_BACKLOG, 128)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .bind(port)
                 .syncUninterruptibly();
 
         return new Host<I, O>() {
+            @Override
+            public void waitForClose() throws InterruptedException {
+                f.sync();
+            }
+
             @Override
             public short getPort() {
                 return port;
@@ -122,31 +141,23 @@ public class NettyEndpoint<I, O> {
         final Queue<Consumer<O>> consumersQueue = new ConcurrentLinkedQueue<Consumer<O>>();
 
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
-        final Channel channel = new Bootstrap()
+        final Bootstrap bootstrap = new Bootstrap()
                 .group(workerGroup)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast("decoder", new StringDecoder());
-                        ch.pipeline().addLast("framer", new JsonBasedFrameDecoder());
-                        ch.pipeline().addLast("encoder", new StringEncoder());
-                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<String>() {
+                        ch.pipeline().addLast("encoder", new HttpClientCodec());
+                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<FullHttpResponse>() {
                             @Override
-                            protected void messageReceived(ChannelHandlerContext channelHandlerContext, String s) {
-                                try {
-                                    consumersQueue.poll().accept(gson.<O>fromJson(s, outputType.getType()));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                            protected void messageReceived(ChannelHandlerContext channelHandlerContext, FullHttpResponse httpResponse) throws Exception {
+                                consumersQueue.poll().accept(gson.<O>fromJson(new InputStreamReader(new ByteBufInputStream(httpResponse.content())), outputType.getType()));
                             }
                         });
                     }
-                })
-                .connect(host, port)
-                .syncUninterruptibly()
-                .channel();
+                });
+
 
         return new Client<I, O>() {
             @Override
@@ -163,16 +174,21 @@ public class NettyEndpoint<I, O> {
             public void request(I input, Consumer<O> consumer) {
                 consumersQueue.offer(consumer);
 
-                channel.writeAndFlush(gson.toJson(input, inputType.getType()));
+                String content = gson.toJson(input, inputType.getType());
+
+                DefaultFullHttpRequest request = new DefaultFullHttpRequest(HTTP_1_1, HttpMethod.POST, "http://" + getHost() + ":" + getPort(), Unpooled.wrappedBuffer(content.getBytes()));
+                request.headers().set(CONTENT_TYPE, "application/json");
+                request.headers().set(CONTENT_LENGTH, request.content().readableBytes());
+
+                bootstrap.connect(host, port)
+                        .syncUninterruptibly()
+                        .channel()
+                        .writeAndFlush(request);
             }
 
             @Override
             public void close() {
-                try {
-                    channel.closeFuture();
-                } finally {
-                    workerGroup.shutdownGracefully();
-                }
+                 workerGroup.shutdownGracefully();
             }
         };
     }
