@@ -37,12 +37,17 @@ public class PersistentPestType implements PestType {
     }
 
     @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
     public String getName() {
         return name;
     }
 
     @Override
-    public String getDescribtion() {
+    public String getDescription() {
         return describtion;
     }
 
@@ -54,13 +59,14 @@ public class PersistentPestType implements PestType {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof PersistentPestType)) return false;
 
         PersistentPestType that = (PersistentPestType) o;
 
         if (id != that.id) return false;
         if (!describtion.equals(that.describtion)) return false;
         if (!name.equals(that.name)) return false;
+        if (!requiredEquipmentTypes.equals(that.requiredEquipmentTypes)) return false;
 
         return true;
     }
@@ -70,6 +76,7 @@ public class PersistentPestType implements PestType {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + name.hashCode();
         result = 31 * result + describtion.hashCode();
+        result = 31 * result + requiredEquipmentTypes.hashCode();
         return result;
     }
 

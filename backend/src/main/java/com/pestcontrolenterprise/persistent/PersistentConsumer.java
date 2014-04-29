@@ -59,7 +59,7 @@ public class PersistentConsumer implements Consumer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof PersistentConsumer)) return false;
 
         PersistentConsumer that = (PersistentConsumer) o;
 

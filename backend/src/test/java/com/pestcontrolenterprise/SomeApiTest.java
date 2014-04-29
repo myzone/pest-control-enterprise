@@ -31,9 +31,12 @@ public class SomeApiTest {
             PersistentEquipmentType.class,
             PersistentPestType.class,
             PersistentUser.class,
+            PersistentUser.PersistentUserSession.class,
             PersistentWorker.class,
-            PersistentTask.class,
-            PersistentAdmin.class
+            PersistentWorker.PersistentWorkerSession.class,
+            PersistentAdmin.class,
+            PersistentAdmin.PersistentAdminSession.class,
+            PersistentTask.class
     );
 
     @Test

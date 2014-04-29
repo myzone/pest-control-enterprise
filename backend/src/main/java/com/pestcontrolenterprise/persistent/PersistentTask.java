@@ -76,6 +76,11 @@ public class PersistentTask implements Task {
     }
 
     @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
     public Status getStatus() {
         return status;
     }
@@ -173,14 +178,14 @@ public class PersistentTask implements Task {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof PersistentTask)) return false;
 
         PersistentTask that = (PersistentTask) o;
 
         if (id != that.id) return false;
         if (!availabilityTime.equals(that.availabilityTime)) return false;
         if (!consumer.equals(that.consumer)) return false;
-        if (currentWorker != null ? !currentWorker.equals(that.currentWorker) : that.currentWorker != null) return false;
+        if (!currentWorker.equals(that.currentWorker)) return false;
         if (!pestType.equals(that.pestType)) return false;
         if (!problemDescription.equals(that.problemDescription)) return false;
         if (status != that.status) return false;
@@ -193,7 +198,7 @@ public class PersistentTask implements Task {
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + status.hashCode();
-        result = 31 * result + (currentWorker != null ? currentWorker.hashCode() : 0);
+        result = 31 * result + currentWorker.hashCode();
         result = 31 * result + availabilityTime.hashCode();
         result = 31 * result + consumer.hashCode();
         result = 31 * result + pestType.hashCode();

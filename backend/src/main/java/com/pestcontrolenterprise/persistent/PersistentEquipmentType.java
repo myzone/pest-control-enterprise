@@ -27,6 +27,11 @@ public class PersistentEquipmentType implements EquipmentType {
     }
 
     @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
     public String getName() {
         return name;
     }
@@ -34,7 +39,7 @@ public class PersistentEquipmentType implements EquipmentType {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof PersistentEquipmentType)) return false;
 
         PersistentEquipmentType that = (PersistentEquipmentType) o;
 

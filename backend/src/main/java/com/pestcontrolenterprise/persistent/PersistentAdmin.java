@@ -18,6 +18,8 @@ import java.util.stream.Stream;
 @Entity
 public class PersistentAdmin extends PersistentUser implements Admin {
 
+    protected static final ImmutableSet<UserType> TYPES_SET = ImmutableSet.of(UserType.Admin);
+
     public PersistentAdmin() {
     }
 
@@ -30,8 +32,16 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         return new PersistentAdminSession(this);
     }
 
+    @Override
+    public ImmutableSet<UserType> getUserTypes() {
+        return TYPES_SET;
+    }
+
     @Entity
-    protected static class PersistentAdminSession extends PersistentUserSession implements AdminSession {
+    public static class PersistentAdminSession extends PersistentUserSession implements AdminSession {
+
+        public PersistentAdminSession() {
+        }
 
         public PersistentAdminSession(PersistentAdmin user) {
             super(user);
@@ -52,6 +62,8 @@ public class PersistentAdmin extends PersistentUser implements Admin {
                 String problemDescription,
                 String comment
         ) {
+            ensureAndHoldOpened();
+
             PersistentTask persistentTask = new PersistentTask(this, status, worker.orElse(null), availabilityTime, consumer, pestType, problemDescription, comment);
 
             Transaction transaction = getPersistenceSession().beginTransaction();
@@ -72,11 +84,15 @@ public class PersistentAdmin extends PersistentUser implements Admin {
                 Optional<String> problemDescription,
                 String comment
         ) {
+            ensureAndHoldOpened();
+
             throw new UnsupportedOperationException();
         }
 
         @Override
         public void closeTask(Task task, String comment) {
+            ensureAndHoldOpened();
+
             task.setStatus(this, ReadonlyTask.Status.CLOSED, comment);
 
             Transaction transaction = getPersistenceSession().beginTransaction();
@@ -86,39 +102,52 @@ public class PersistentAdmin extends PersistentUser implements Admin {
 
         @Override
         public Stream<Task> getTasks() {
+            ensureAndHoldOpened();
+
             return null;
         }
 
         @Override
         public Consumer registerConsumer(String name, Address address, String cellPhone, String email) {
+            ensureAndHoldOpened();
+
             return null;
         }
 
         @Override
         public Consumer editConsumer(Consumer consumer, Optional<String> name, Optional<Address> address, Optional<String> cellPhone, Optional<String> email) {
+            ensureAndHoldOpened();
+
             return null;
         }
 
         @Override
         public Stream<Consumer> getConsumers() {
+            ensureAndHoldOpened();
+
             return null;
         }
 
         @Override
         public Worker registerWorker(String name, String password, Set<PestType> workablePestTypes) {
+            ensureAndHoldOpened();
+
             return null;
         }
 
         @Override
         public Worker editWorker(Worker worker, Optional<String> name, Optional<String> password, Optional<Set<PestType>> workablePestTypes) {
+            ensureAndHoldOpened();
+
             return null;
         }
 
         @Override
         public Stream<Worker> getWorkers() {
+            ensureAndHoldOpened();
+
             return null;
         }
-
 
     }
 

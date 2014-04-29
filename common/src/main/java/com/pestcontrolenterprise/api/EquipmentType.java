@@ -6,6 +6,8 @@ package com.pestcontrolenterprise.api;
  */
 public interface EquipmentType {
 
+    long getId();
+
     String getName();
 
 }

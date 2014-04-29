@@ -8,9 +8,11 @@ import com.google.common.collect.ImmutableSet;
  */
 public interface PestType {
 
+    long getId();
+
     String getName();
 
-    String getDescribtion();
+    String getDescription();
 
     ImmutableSet<EquipmentType> getRequiredEquipmentTypes();
 

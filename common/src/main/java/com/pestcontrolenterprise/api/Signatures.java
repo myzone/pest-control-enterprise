@@ -1,9 +1,10 @@
-package com.pestcontrolenterprise.webapi;
+package com.pestcontrolenterprise.api;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.reflect.TypeToken;
-import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.util.RemoteStream;
 import com.pestcontrolenterprise.util.Segment;
+import org.javatuples.Pair;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,22 +17,27 @@ import static com.pestcontrolenterprise.endpoint.RpcEndpoint.Procedure;
 
 /**
  * @author myzone
- * @date 29-Apr-14
+ * @date 4/29/14
  */
 public interface Signatures {
 
+    // test
+    Procedure<String, Pair<Integer, Integer>, Integer> plus = Procedure.of("plus", new TypeToken<Pair<Integer, Integer>>(){}, new TypeToken<Integer>(){});
+
     // stream
-    Procedure<String, FilterStreamRequest<?>, Stream<?>> filterStream = Procedure.of("filterStream", new TypeToken<FilterStreamRequest<?>>() {}, new TypeToken<Stream<?>>() {});
-    Procedure<String, Stream<?>, List<?>> letStream = Procedure.of("letStream", new TypeToken<Stream<?>>() {}, new TypeToken<List<?>>() {});
+    Procedure<String, FilterStreamRequest<?>, RemoteStream<?>> filterStream = Procedure.of("filterStream", new TypeToken<FilterStreamRequest<?>>() {}, new TypeToken<RemoteStream<?>>() {});
+    Procedure<String, RemoteStream<?>, List<?>> letStream = Procedure.of("letStream", new TypeToken<RemoteStream<?>>() {}, new TypeToken<List<?>>() {});
 
     // common
-    Procedure<String, Void, Stream<User>> getUsers = Procedure.of("getUsers", new TypeToken<Void>() {}, new TypeToken<Stream<User>>() {});
-    Procedure<String, Void, Stream<User>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<Void>() {}, new TypeToken<Stream<User>>() {});
+    Procedure<String, Void, RemoteStream<User>> getUsers = Procedure.of("getUsers", new TypeToken<Void>() {}, new TypeToken<RemoteStream<User>>() {});
+    Procedure<String, Void, RemoteStream<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<Void>() {}, new TypeToken<RemoteStream<PestType>>() {});
+
     Procedure<String, BeginSessionRequest, UserSession> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {});
+    Procedure<String, UserSession, Void> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {});
 
     // worker
-    Procedure<String, WorkerSession, Stream<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<WorkerSession>() {}, new TypeToken<Stream<Task>>() {});
-    Procedure<String, WorkerSession, Stream<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<WorkerSession>() {}, new TypeToken<Stream<Task>>() {});
+    Procedure<String, WorkerSession, RemoteStream<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<WorkerSession>() {}, new TypeToken<RemoteStream<Task>>() {});
+    Procedure<String, WorkerSession, RemoteStream<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<WorkerSession>() {}, new TypeToken<RemoteStream<Task>>() {});
 
     Procedure<String, ModifyTaskRequest, RequestStatus> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<RequestStatus>() {});
     Procedure<String, ModifyTaskRequest, RequestStatus> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<RequestStatus>() {});
@@ -44,28 +50,28 @@ public interface Signatures {
 
     Procedure<String, RegisterConsumerRequest, Consumer> registerConsumer = Procedure.of("registerConsumer", new TypeToken<RegisterConsumerRequest>() {}, new TypeToken<Consumer>() {});
     Procedure<String, EditConsumerRequest, Consumer> editConsumer = Procedure.of("editConsumer", new TypeToken<EditConsumerRequest>() {}, new TypeToken<Consumer>() {});
-    Procedure<String, AdminSession, Stream<Consumer>> getConsumers = Procedure.of("getConsumers", new TypeToken<AdminSession>() {}, new TypeToken<Stream<Consumer>>() {});
+    Procedure<String, AdminSession, RemoteStream<Consumer>> getConsumers = Procedure.of("getConsumers", new TypeToken<AdminSession>() {}, new TypeToken<RemoteStream<Consumer>>() {});
 
     Procedure<String, RegisterWorkerRequest, Worker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<Worker>() {});
     Procedure<String, EditWorkerRequest, Worker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<Worker>() {});
-    Procedure<String, AdminSession, Stream<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AdminSession>() {}, new TypeToken<Stream<Worker>>() {});
+    Procedure<String, AdminSession, RemoteStream<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AdminSession>() {}, new TypeToken<RemoteStream<Worker>>() {});
 
 
     enum RequestStatus {
-        SUCCSEEDED,
+        SUCCEED,
         FAILED
     }
 
     class FilterStreamRequest<T> {
 
-        private Stream<Class<T>> stream;
+        private RemoteStream<Class<T>> stream;
         private Predicate<T> predicate;
 
         public Stream<Class<T>> getStream() {
             return stream;
         }
 
-        public void setStream(Stream<Class<T>> stream) {
+        public void setStream(RemoteStream<Class<T>> stream) {
             this.stream = stream;
         }
 
@@ -99,6 +105,7 @@ public interface Signatures {
         public void setPassword(String password) {
             this.password = password;
         }
+
     }
 
     class ModifyTaskRequest {

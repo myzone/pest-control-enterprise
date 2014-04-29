@@ -6,6 +6,4 @@ package com.pestcontrolenterprise.api;
  */
 public class AuthException extends Exception {
 
-
-
 }

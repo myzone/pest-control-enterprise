@@ -48,27 +48,11 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
         private final TypeToken<A> argumentType;
         private final TypeToken<R> returnType;
 
-        private final Optional<Object> argumentTypeAdapter;
-        private final Optional<Object> returnTypeAdapter;
-
         protected Procedure(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
             this.procedureType = procedureType;
 
             this.argumentType = argumentType;
             this.returnType = returnType;
-
-            this.argumentTypeAdapter = Optional.empty();
-            this.returnTypeAdapter = Optional.empty();
-        }
-
-        protected Procedure(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType, Object argumentTypeAdapter, Object returnTypeAdapter) {
-            this.procedureType = procedureType;
-
-            this.argumentType = argumentType;
-            this.returnType = returnType;
-
-            this.argumentTypeAdapter = Optional.ofNullable(argumentTypeAdapter);
-            this.returnTypeAdapter = Optional.ofNullable(returnTypeAdapter);
         }
 
         public P getProcedureType() {
@@ -81,14 +65,6 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
 
         public TypeToken<R> getReturnType() {
             return returnType;
-        }
-
-        public Optional<Object> getArgumentTypeAdapter() {
-            return argumentTypeAdapter;
-        }
-
-        public Optional<Object> getReturnTypeAdapter() {
-            return returnTypeAdapter;
         }
 
         @Override
@@ -114,17 +90,11 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
                     .add("procedureType", procedureType)
                     .add("argumentType", argumentType)
                     .add("returnType", returnType)
-                    .add("argumentTypeAdapter", argumentTypeAdapter)
-                    .add("returnTypeAdapter", returnTypeAdapter)
                     .toString();
         }
 
         public static <E, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
             return new Procedure<E, A, R>(procedureType, argumentType, returnType);
-        }
-
-        public static <E, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType, Object argumentTypeAdapter, Object returnTypeAdapter) {
-            return new Procedure<E, A, R>(procedureType, argumentType, returnType, argumentTypeAdapter, returnTypeAdapter);
         }
 
     }

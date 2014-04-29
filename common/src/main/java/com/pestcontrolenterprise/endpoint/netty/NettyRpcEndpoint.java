@@ -89,15 +89,6 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
     }
 
     private static <P> GsonBuilder createGsonBuilder(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?>> handlerPairsMap, GsonBuilder gsonBuilder) {
-        for (HandlerPair<P, ?, ?> handlerPair : handlerPairsMap.values()) {
-            Procedure<P, ?, ?> procedure = handlerPair.getProcedure();
-
-            if (procedure.getArgumentTypeAdapter().isPresent())
-                gsonBuilder.registerTypeHierarchyAdapter(procedure.getArgumentType().getRawType(), procedure.getArgumentTypeAdapter().get());
-            if (procedure.getReturnTypeAdapter().isPresent())
-                gsonBuilder.registerTypeHierarchyAdapter(procedure.getReturnType().getRawType(), procedure.getReturnTypeAdapter().get());
-        }
-
         gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteCall<P, ?>>() {}.getRawType(), new JsonDeserializer<RemoteCall<P, ?>>() {
             @Override
             public RemoteCall<P, ?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -194,7 +185,7 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
 
                                         consumersMap.getOrDefault(result.getIdentifier(), new Consumer<RemoteResult<P, ?>>() {
                                             @Override
-                                            public void accept(RemoteResult<P, ?> pRemoteResult) {
+                                            public void accept(RemoteResult<P, ?> remoteResult) {
                                                 // just do noting here
                                             }
                                         }).accept(result);

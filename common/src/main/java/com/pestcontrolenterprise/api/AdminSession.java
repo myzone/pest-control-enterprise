@@ -25,7 +25,7 @@ public interface AdminSession extends UserSession {
             PestType pestType,
             String problemDescription,
             String comment
-    );
+    ) throws IllegalStateException;
 
     Task editTask(
             Task task,
@@ -36,18 +36,18 @@ public interface AdminSession extends UserSession {
             Optional<PestType> pestType,
             Optional<String> problemDescription,
             String comment
-    );
+    ) throws IllegalStateException;
 
-    void closeTask(Task task, String comment);
+    void closeTask(Task task, String comment) throws IllegalStateException;
 
-    Stream<Task> getTasks();
+    Stream<Task> getTasks() throws IllegalStateException;
 
     Consumer registerConsumer(
             String name,
             Address address,
             String cellPhone,
             String email
-    );
+    ) throws IllegalStateException;
 
     Consumer editConsumer(
             Consumer consumer,
@@ -55,23 +55,23 @@ public interface AdminSession extends UserSession {
             Optional<Address> address,
             Optional<String> cellPhone,
             Optional<String> email
-    );
+    ) throws IllegalStateException;
 
-    Stream<Consumer> getConsumers();
+    Stream<Consumer> getConsumers() throws IllegalStateException;
 
     Worker registerWorker(
             String name,
             String password,
             Set<PestType> workablePestTypes
-    );
+    ) throws IllegalStateException;
 
     Worker editWorker(
             Worker worker,
             Optional<String> name,
             Optional<String> password,
             Optional<Set<PestType>> workablePestTypes
-    );
+    ) throws IllegalStateException;
 
-    Stream<Worker> getWorkers();
+    Stream<Worker> getWorkers() throws IllegalStateException;
 
 }

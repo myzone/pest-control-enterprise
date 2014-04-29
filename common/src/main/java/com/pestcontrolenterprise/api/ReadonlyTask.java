@@ -13,6 +13,8 @@ import java.util.Optional;
  */
 public interface ReadonlyTask {
 
+    long getId();
+
     Status getStatus();
 
     Optional<Worker> getCurrentWorker();
