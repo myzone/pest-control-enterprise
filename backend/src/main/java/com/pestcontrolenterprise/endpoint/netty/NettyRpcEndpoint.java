@@ -2,7 +2,10 @@ package com.pestcontrolenterprise.endpoint.netty;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.*;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.endpoint.RpcEndpoint;
 import io.netty.bootstrap.Bootstrap;
@@ -21,7 +24,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -43,12 +45,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  */
 public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteResult<P, ?>> implements RpcEndpoint<P> {
 
-    protected static final Supplier<String> DEFAULT_ID_SUPPLIER = new Supplier<String>() {
-        @Override
-        public String get() {
-            return UUID.randomUUID().toString();
-        }
-    };
+    protected static final Supplier<String> DEFAULT_ID_SUPPLIER = () -> UUID.randomUUID().toString();
 
     protected final Supplier<String> idSupplier;
 
@@ -89,79 +86,67 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
     }
 
     private static <P> GsonBuilder createGsonBuilder(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?>> handlerPairsMap, GsonBuilder gsonBuilder) {
-        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteCall<P, ?>>() {}.getRawType(), new JsonDeserializer<RemoteCall<P, ?>>() {
-            @Override
-            public RemoteCall<P, ?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                JsonObject jsonObject = (JsonObject) json;
+        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteCall<P, ?>>() {}.getRawType(), (JsonDeserializer<RemoteCall<P, ?>>) (json, typeOfT, context) -> {
+                    JsonObject jsonObject = (JsonObject) json;
 
-                final String id = context.deserialize(jsonObject.get("id"), String.class);
-                final P procedureType = context.deserialize(jsonObject.get("procedure"), procedureTypeClass);
-                final Object argument = context.deserialize(jsonObject.get("argument"), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
-                    @Override
-                    public HandlerPair<P, ?, ?> apply(P e) {
-                        throw new UnsupportedOperationException(procedureType + " is unsupported now.");
-                    }
-                }).getProcedure().getArgumentType().getType());
+                    final String id = context.deserialize(jsonObject.get("id"), String.class);
+                    final P procedureType = context.deserialize(jsonObject.get("procedure"), procedureTypeClass);
+                    final Object argument = context.deserialize(jsonObject.get("argument"), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
+                        @Override
+                        public HandlerPair<P, ?, ?> apply(P e) {
+                            throw new UnsupportedOperationException(procedureType + " is unsupported now.");
+                        }
+                    }).getProcedure().getArgumentType().getType());
 
-                return ImmutableRemoteCall.of(id, procedureType, argument);
-            }
-        });
-        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteResult<P, ?>>() {}.getRawType(), new JsonDeserializer<RemoteResult<P, ?>>() {
-            @Override
-            public RemoteResult<P, ?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                JsonObject jsonObject = (JsonObject) json;
+                    return ImmutableRemoteCall.of(id, procedureType, argument);
+                });
+        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteResult<P, ?>>() {}.getRawType(), (JsonDeserializer<RemoteResult<P, ?>>) (json, typeOfT, context) -> {
+                    JsonObject jsonObject = (JsonObject) json;
 
-                final String id = context.deserialize(jsonObject.get("id"), String.class);
-                final P procedureType = context.deserialize(jsonObject.get("procedure"), procedureTypeClass);
-                final Object result = context.deserialize(jsonObject.get("result"), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
-                    @Override
-                    public HandlerPair<P, ?, ?> apply(P e) {
-                        throw new UnsupportedOperationException(procedureType + " is unsupported now.");
-                    }
-                }).getProcedure().getReturnType().getType());
+                    final String id = context.deserialize(jsonObject.get("id"), String.class);
+                    final P procedureType = context.deserialize(jsonObject.get("procedure"), procedureTypeClass);
+                    final Object result = context.deserialize(jsonObject.get("result"), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
+                        @Override
+                        public HandlerPair<P, ?, ?> apply(P e) {
+                            throw new UnsupportedOperationException(procedureType + " is unsupported now.");
+                        }
+                    }).getProcedure().getReturnType().getType());
 
-                return ImmutableRemoteResult.of(id, procedureType, result);
-            }
-        });
+                    return ImmutableRemoteResult.of(id, procedureType, result);
+                });
 
-        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteCall<P, ?>>() {}.getRawType(), (JsonSerializer<RemoteCall<P, ?>>) new JsonSerializer<RemoteCall<P, ?>>() {
-            @Override
-            public JsonElement serialize(RemoteCall<P, ?> call, Type typeOfSrc, JsonSerializationContext context) {
-                final P procedureType = call.getProcedureType();
+        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteCall<P, ?>>() {}.getRawType(), (JsonSerializer<RemoteCall<P, ?>>) (call, typeOfSrc, context) -> {
+                    final P procedureType = call.getProcedureType();
 
-                JsonObject jsonObject = new JsonObject();
+                    JsonObject jsonObject = new JsonObject();
 
-                jsonObject.add("id", context.serialize(call.getIdentifier(), String.class));
-                jsonObject.add("procedure", context.serialize(call.getProcedureType(), procedureTypeClass));
-                jsonObject.add("argument", context.serialize(call.getArgument(), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
-                    @Override
-                    public HandlerPair<P, ?, ?> apply(P p) {
-                        throw new UnsupportedOperationException(procedureType + " is unsupported now.");
-                    }
-                }).getProcedure().getArgumentType().getType()));
+                    jsonObject.add("id", context.serialize(call.getIdentifier(), String.class));
+                    jsonObject.add("procedure", context.serialize(call.getProcedureType(), procedureTypeClass));
+                    jsonObject.add("argument", context.serialize(call.getArgument(), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
+                        @Override
+                        public HandlerPair<P, ?, ?> apply(P p) {
+                            throw new UnsupportedOperationException(procedureType + " is unsupported now.");
+                        }
+                    }).getProcedure().getArgumentType().getType()));
 
-                return jsonObject;
-            }
-        });
-        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteResult<P, ?>>() {}.getRawType(), (JsonSerializer<RemoteResult<P, ?>>) new JsonSerializer<RemoteResult<P, ?>>() {
-            @Override
-            public JsonElement serialize(RemoteResult<P, ?> result, Type typeOfSrc, JsonSerializationContext context) {
-                final P procedureType = result.getProcedureType();
+                    return jsonObject;
+                });
+        gsonBuilder.registerTypeHierarchyAdapter(new TypeToken<RemoteResult<P, ?>>() {}.getRawType(), (JsonSerializer<RemoteResult<P, ?>>) (result, typeOfSrc, context) -> {
+                    final P procedureType = result.getProcedureType();
 
-                JsonObject jsonObject = new JsonObject();
+                    JsonObject jsonObject = new JsonObject();
 
-                jsonObject.add("id", context.serialize(result.getIdentifier(), String.class));
-                jsonObject.add("procedure", context.serialize(procedureType, procedureTypeClass));
-                jsonObject.add("result", context.serialize(result.getReturnedResult(), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
-                    @Override
-                    public HandlerPair<P, ?, ?> apply(P p) {
-                        throw new UnsupportedOperationException(procedureType + " is unsupported now.");
-                    }
-                }).getProcedure().getReturnType().getType()));
+                    jsonObject.add("id", context.serialize(result.getIdentifier(), String.class));
+                    jsonObject.add("procedure", context.serialize(procedureType, procedureTypeClass));
+                    jsonObject.add("result", context.serialize(result.getReturnedResult(), getOrCompute(handlerPairsMap, procedureType, new Function<P, HandlerPair<P, ?, ?>>() {
+                        @Override
+                        public HandlerPair<P, ?, ?> apply(P p) {
+                            throw new UnsupportedOperationException(procedureType + " is unsupported now.");
+                        }
+                    }).getProcedure().getReturnType().getType()));
 
-                return jsonObject;
-            }
-        });
+                    return jsonObject;
+                });
 
         return gsonBuilder;
     }
@@ -183,11 +168,8 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                                     protected void messageReceived(ChannelHandlerContext channelHandlerContext, HttpContent httpResponse) throws Exception {
                                         RemoteResult<P, ?> result = gson.<RemoteResult<P, ?>>fromJson(new InputStreamReader(new ByteBufInputStream(httpResponse.content())), outputType.getType());
 
-                                        consumersMap.getOrDefault(result.getIdentifier(), new Consumer<RemoteResult<P, ?>>() {
-                                            @Override
-                                            public void accept(RemoteResult<P, ?> remoteResult) {
-                                                // just do noting here
-                                            }
+                                        consumersMap.getOrDefault(result.getIdentifier(), remoteResult -> {
+                                            // just do noting here
                                         }).accept(result);
                                     }
                                 }
@@ -200,11 +182,8 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
             @SuppressWarnings("unchecked")
             @Override
             public <A, R> void call(Procedure<P, A, R> procedure, A arg, final Consumer<R> consumer) {
-                request(ImmutableRemoteCall.of(idSupplier.get(), procedure.getProcedureType(), arg), new Consumer<RemoteResult<P, ?>>() {
-                    @Override
-                    public void accept(RemoteResult<P, ?> remoteResult) {
-                        consumer.accept((R) remoteResult.getReturnedResult());
-                    }
+                request(ImmutableRemoteCall.of(idSupplier.get(), procedure.getProcedureType(), arg), remoteResult -> {
+                    consumer.accept((R) remoteResult.getReturnedResult());
                 });
             }
 

@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.util.RemoteStream;
 import com.pestcontrolenterprise.util.Segment;
-import org.javatuples.Pair;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,7 +21,7 @@ import static com.pestcontrolenterprise.endpoint.RpcEndpoint.Procedure;
 public interface Signatures {
 
     // test
-    Procedure<String, Pair<Integer, Integer>, Integer> plus = Procedure.of("plus", new TypeToken<Pair<Integer, Integer>>(){}, new TypeToken<Integer>(){});
+    Procedure<String, List<Integer>, Integer> plus = Procedure.of("plus", new TypeToken<List<Integer>>(){}, new TypeToken<Integer>(){});
 
     // stream
     Procedure<String, FilterStreamRequest<?>, RemoteStream<?>> filterStream = Procedure.of("filterStream", new TypeToken<FilterStreamRequest<?>>() {}, new TypeToken<RemoteStream<?>>() {});

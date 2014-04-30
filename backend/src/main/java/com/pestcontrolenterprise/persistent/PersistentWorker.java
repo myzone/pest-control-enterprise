@@ -55,7 +55,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
 
     @Override
     public ImmutableSet<PestType> getWorkablePestTypes() {
-        return ImmutableSet.<PestType>copyOf(workablePestTypes);
+        return ImmutableSet.copyOf(workablePestTypes);
     }
 
     @Override

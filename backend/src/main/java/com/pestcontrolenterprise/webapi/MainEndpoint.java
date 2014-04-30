@@ -2,9 +2,11 @@ package com.pestcontrolenterprise.webapi;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationMediator;
-import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.api.AuthException;
+import com.pestcontrolenterprise.api.Signatures;
+import com.pestcontrolenterprise.api.User;
+import com.pestcontrolenterprise.api.UserSession;
 import com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint;
 import com.pestcontrolenterprise.json.*;
 import com.pestcontrolenterprise.persistent.*;
@@ -16,13 +18,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
-import org.javatuples.Pair;
 
-import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.pestcontrolenterprise.api.Signatures.BeginSessionRequest;
 
 /**
  * myzone
@@ -46,8 +43,8 @@ public class MainEndpoint {
                 PersistentAdmin.PersistentAdminSession.class,
                 PersistentTask.class
         );
-        final SessionFactory sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build());
-        final ApplicationMediator applicationMediator = new ApplicationMediator() {
+        SessionFactory sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build());
+        ApplicationMediator applicationMediator = new ApplicationMediator() {
 
             final Session session = sessionFactory.openSession();
 
@@ -55,9 +52,10 @@ public class MainEndpoint {
             public Session getPersistenceSession() {
                 return session ;
             }
+            
         };
-        final PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationMediator);
-        final RemoteStreamFactory remoteStreamFactory = new RemoteStreamFactory();
+        PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationMediator);
+        RemoteStreamFactory remoteStreamFactory = new RemoteStreamFactory();
 
         {
             PersistentWorker worker = new PersistentWorker("ololo", "fuck", ImmutableSet.<PersistentPestType>of());
@@ -73,7 +71,6 @@ public class MainEndpoint {
         NettyRpcEndpoint
                 .builder(String.class)
                 .withGsonBuilder(new GsonBuilder()
-                                .registerTypeAdapter(new TypeToken<Pair<Integer, Integer>>() {}.getType(), new PairJsonAdapter<Integer, Integer>(new TypeToken<Integer>() {}, new TypeToken<Integer>() {}))
                                 .registerTypeHierarchyAdapter(TaskJsonAdapter.class, new TaskJsonAdapter(applicationMediator))
                                 .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationMediator))
                                 .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationMediator))
@@ -81,94 +78,49 @@ public class MainEndpoint {
                                 .registerTypeHierarchyAdapter(PestTypeJsonAdapter.class, new PestTypeJsonAdapter(applicationMediator))
                                 .registerTypeAdapter(RemoteStream.class, remoteStreamFactory.getRemoteStreamJsonAdapter())
                 )
-                .withHandlerPair(Signatures.plus, new Function<Pair<Integer, Integer>, Integer>() {
-                    @Override
-                    public Integer apply(Pair<Integer, Integer> objects) {
-                        return objects.getValue0() + objects.getValue1();
-                    }
-                })
-                .withHandlerPair(Signatures.letStream, new Function<RemoteStream<?>, List<?>>() {
-                    @Override
-                    public List<?> apply(RemoteStream<?> remoteStream) {
-                        return remoteStream.collect(Collectors.toList());
-                    }
-                })
-                .withHandlerPair(Signatures.beginSession, new Function<BeginSessionRequest, UserSession>() {
-                    @Override
-                    public UserSession apply(final BeginSessionRequest beginSessionRequest) {
-                        try {
-                            return beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword());
-                        } catch (AuthException e) {
-                            return null;
-                        }
-                    }
-                })
-                .withHandlerPair(Signatures.endSession, new Function<UserSession, Void>() {
-                    @Override
-                    public Void apply(UserSession userSession) {
-                        userSession.close();
-
+                .withHandlerPair(Signatures.plus, integers -> integers.stream().reduce(Math::addExact).orElse(0))
+                .withHandlerPair(Signatures.letStream, remoteStream -> remoteStream.collect(Collectors.toList()))
+                .withHandlerPair(Signatures.beginSession, beginSessionRequest -> {
+                    try {
+                        return beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword());
+                    } catch (AuthException e) {
                         return null;
                     }
                 })
-                .withHandlerPair(Signatures.getUsers, new Function<Void, RemoteStream<User>>() {
-                    @Override
-                    public RemoteStream<User> apply(Void none) {
-                        return remoteStreamFactory.create(persistentPestControlEnterprise.getUsers());
-                    }
-                })
-                .withHandlerPair(Signatures.getPestTypes, new Function<Void, RemoteStream<PestType>>() {
-                    @Override
-                    public RemoteStream<PestType> apply(Void none) {
-                        return remoteStreamFactory.create(persistentPestControlEnterprise.getPestTypes());
-                    }
-                })
-                .withHandlerPair(Signatures.getAssignedTasks, new Function<WorkerSession, RemoteStream<Task>>() {
-                    @Override
-                    public RemoteStream<Task> apply(WorkerSession workerSession) {
-                        return remoteStreamFactory.create(workerSession.getAssignedTasks());
-                    }
-                })
-                .withHandlerPair(Signatures.getCurrentTasks, new Function<WorkerSession, RemoteStream<Task>>() {
-                    @Override
-                    public RemoteStream<Task> apply(WorkerSession workerSession) {
-                        return remoteStreamFactory.create(workerSession.getCurrentTasks());
-                    }
-                })
-                .withHandlerPair(Signatures.discardTask, new Function<Signatures.ModifyTaskRequest, Signatures.RequestStatus>() {
-                    @Override
-                    public Signatures.RequestStatus apply(Signatures.ModifyTaskRequest modifyTaskRequest) {
-                        try {
-                            modifyTaskRequest.getWorkerSession().discardTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                .withHandlerPair(Signatures.endSession, userSession -> {
+                    userSession.close();
 
-                            return Signatures.RequestStatus.SUCCEED;
-                        } catch (IllegalStateException e) {
-                            return Signatures.RequestStatus.FAILED;
-                        }
+                    return null;
+                })
+                .withHandlerPair(Signatures.getUsers, none -> remoteStreamFactory.create(persistentPestControlEnterprise.getUsers()))
+                .withHandlerPair(Signatures.getPestTypes, none -> remoteStreamFactory.create(persistentPestControlEnterprise.getPestTypes()))
+                .withHandlerPair(Signatures.getAssignedTasks, workerSession -> remoteStreamFactory.create(workerSession.getAssignedTasks()))
+                .withHandlerPair(Signatures.getCurrentTasks, workerSession -> remoteStreamFactory.create(workerSession.getCurrentTasks()))
+                .withHandlerPair(Signatures.discardTask, modifyTaskRequest -> {
+                    try {
+                        modifyTaskRequest.getWorkerSession().discardTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+
+                        return Signatures.RequestStatus.SUCCEED;
+                    } catch (IllegalStateException e) {
+                        return Signatures.RequestStatus.FAILED;
                     }
                 })
-                .withHandlerPair(Signatures.startTask, new Function<Signatures.ModifyTaskRequest, Signatures.RequestStatus>() {
-                    @Override
-                    public Signatures.RequestStatus apply(Signatures.ModifyTaskRequest modifyTaskRequest) {
-                        try {
-                            modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                .withHandlerPair(Signatures.startTask, modifyTaskRequest -> {
+                    try {
+                        modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
 
-                            return Signatures.RequestStatus.SUCCEED;
-                        } catch (IllegalStateException e) {
-                            return Signatures.RequestStatus.FAILED;
-                        }
+                        return Signatures.RequestStatus.SUCCEED;
+                    } catch (IllegalStateException e) {
+                        return Signatures.RequestStatus.FAILED;
                     }
                 })
-                .withHandlerPair(Signatures.finishTask, new Function<Signatures.ModifyTaskRequest, Signatures.RequestStatus>() {
-                    @Override
-                    public Signatures.RequestStatus apply(Signatures.ModifyTaskRequest modifyTaskRequest) {
-                        try {
-                            modifyTaskRequest.getWorkerSession().finishTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                .withHandlerPair(Signatures.finishTask, modifyTaskRequest -> {
+                    try {
+                        modifyTaskRequest.getWorkerSession().finishTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
 
-                            return Signatures.RequestStatus.SUCCEED;
-                        } catch (IllegalStateException e) {
-                            return Signatures.RequestStatus.FAILED;
-                        }
+                        return Signatures.RequestStatus.SUCCEED;
+                    } catch (IllegalStateException e) {
+                        return Signatures.RequestStatus.FAILED;
                     }
                 })
                 .build()

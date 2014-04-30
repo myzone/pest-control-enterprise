@@ -23,7 +23,6 @@
     </properties>
 
     <modules>
-        <module>common</module>
         <module>backend</module>
         <module>android-client</module>
         <module>admin-terminal</module>
