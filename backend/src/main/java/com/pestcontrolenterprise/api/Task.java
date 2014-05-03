@@ -14,7 +14,7 @@ public interface Task extends ReadonlyTask {
 
     void setStatus(UserSession causer, Status status, String comment) throws IllegalStateException;
 
-    void setCurrentWorker(UserSession causer, Optional<Worker> currentWorker, String comment) throws IllegalStateException;
+    void setExecutor(UserSession causer, Optional<Worker> currentWorker, String comment) throws IllegalStateException;
 
     void setAvailabilityTime(UserSession causer, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException;
 

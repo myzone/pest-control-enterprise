@@ -1,7 +1,6 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationMediator;
 import com.pestcontrolenterprise.api.User;
 import com.pestcontrolenterprise.api.UserSession;
@@ -109,13 +108,8 @@ public abstract class PersistentUser implements User {
         }
 
         @Override
-        public User getUser() {
+        public User getOwner() {
             return user;
-        }
-
-        @Override
-        public ImmutableSet<UserType> getUserTypes() {
-            return user.getUserTypes();
         }
 
         @Override
@@ -133,8 +127,7 @@ public abstract class PersistentUser implements User {
 
         @Override
         public void changePassword(String newPassword) throws IllegalStateException {
-            if (Clock.systemDefaultZone().instant().compareTo(closed) >= 0)
-                throw new IllegalStateException("Is already closed");
+            ensureAndHoldOpened();
 
             user.password = newPassword;
 
@@ -147,7 +140,7 @@ public abstract class PersistentUser implements User {
         public void close() throws IllegalStateException {
             Instant now = Clock.systemDefaultZone().instant();
 
-            if (now.compareTo(closed) >= 0)
+            if (! willBeActive(now))
                 throw new IllegalStateException("Is already closed");
 
             closed = now;
@@ -198,7 +191,7 @@ public abstract class PersistentUser implements User {
         protected void ensureAndHoldOpened() throws IllegalStateException {
             Instant now = Clock.systemDefaultZone().instant();
 
-            if (now.compareTo(closed) >= 0)
+            if (!willBeActive(now))
                 throw new IllegalStateException("Is already closed");
 
             closed = now.plus(DEFAULT_DELAY);

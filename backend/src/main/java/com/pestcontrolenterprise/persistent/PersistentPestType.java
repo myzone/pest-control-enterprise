@@ -17,13 +17,13 @@ public class PersistentPestType implements PestType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private volatile long id;
 
     @Column
     protected volatile String name;
 
     @Column
-    protected volatile String describtion;
+    protected volatile String description;
 
     @ManyToMany(targetEntity = PersistentEquipmentType.class)
     protected volatile Set<EquipmentType> requiredEquipmentTypes;
@@ -31,9 +31,10 @@ public class PersistentPestType implements PestType {
     public PersistentPestType() {
     }
 
-    public PersistentPestType(String name, String describtion) {
+    public PersistentPestType(String name, String description, Set<EquipmentType> requiredEquipmentTypes) {
         this.name = name;
-        this.describtion = describtion;
+        this.description = description;
+        this.requiredEquipmentTypes = requiredEquipmentTypes;
     }
 
     @Override
@@ -48,7 +49,7 @@ public class PersistentPestType implements PestType {
 
     @Override
     public String getDescription() {
-        return describtion;
+        return description;
     }
 
     @Override
@@ -64,7 +65,7 @@ public class PersistentPestType implements PestType {
         PersistentPestType that = (PersistentPestType) o;
 
         if (id != that.id) return false;
-        if (!describtion.equals(that.describtion)) return false;
+        if (!description.equals(that.description)) return false;
         if (!name.equals(that.name)) return false;
         if (!requiredEquipmentTypes.equals(that.requiredEquipmentTypes)) return false;
 
@@ -75,7 +76,7 @@ public class PersistentPestType implements PestType {
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + name.hashCode();
-        result = 31 * result + describtion.hashCode();
+        result = 31 * result + description.hashCode();
         result = 31 * result + requiredEquipmentTypes.hashCode();
         return result;
     }
@@ -84,7 +85,7 @@ public class PersistentPestType implements PestType {
     public String toString() {
         return Objects.toStringHelper(this)
                 .add("name", name)
-                .add("describtion", describtion)
+                .add("description", description)
                 .toString();
     }
 

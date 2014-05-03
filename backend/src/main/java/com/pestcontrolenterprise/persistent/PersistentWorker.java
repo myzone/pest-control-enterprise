@@ -21,27 +21,23 @@ import static org.hibernate.criterion.Restrictions.eq;
 @Entity
 public class PersistentWorker extends PersistentUser implements Worker {
 
-    protected static final ImmutableSet<UserType> TYPES_SET = ImmutableSet.of(UserType.Worker);
-
     @ManyToMany(targetEntity = PersistentPestType.class)
-    protected volatile Set<PersistentPestType> workablePestTypes;
+    protected volatile Set<PestType> workablePestTypes;
 
     public PersistentWorker() {
     }
 
-    public PersistentWorker(String name, String password, ImmutableSet<PersistentPestType> workablePestTypes) {
+    public PersistentWorker(String name, String password, ImmutableSet<PestType> workablePestTypes) {
         super(name, password);
 
         this.workablePestTypes = workablePestTypes;
     }
 
     @Override
-    public ImmutableSet<UserType> getUserTypes() {
-        return TYPES_SET;
-    }
-
-    @Override
     public WorkerSession beginSession(String password) throws AuthException, IllegalStateException {
+        if (!this.password.equals(password))
+            throw new AuthException();
+
         PersistentWorkerSession persistentWorkerSession = new PersistentWorkerSession(this);
 
         Session persistenceSession = application.getPersistenceSession();
@@ -56,6 +52,22 @@ public class PersistentWorker extends PersistentUser implements Worker {
     @Override
     public ImmutableSet<PestType> getWorkablePestTypes() {
         return ImmutableSet.copyOf(workablePestTypes);
+    }
+
+    @Override
+    public void setWorkablePestTypes(AdminSession session, ImmutableSet<PestType> workablePestTypes) throws IllegalStateException {
+        if (!session.isStillActive())
+            throw new IllegalStateException();
+
+        this.workablePestTypes = workablePestTypes;
+    }
+
+    @Override
+    public void setPassword(AdminSession session, String newPassword) throws IllegalStateException {
+        if (!session.isStillActive())
+            throw new IllegalStateException();
+
+        this.password = newPassword;
     }
 
     @Override
@@ -95,8 +107,8 @@ public class PersistentWorker extends PersistentUser implements Worker {
         }
 
         @Override
-        public Worker getUser() {
-            return (Worker) super.getUser();
+        public Worker getOwner() {
+            return (Worker) super.getOwner();
         }
 
         @SuppressWarnings("unchecked")
@@ -107,7 +119,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
             return getPersistenceSession()
                     .createCriteria(ReadonlyTask.class)
                     .add(eq("status", ReadonlyTask.Status.ASSIGNED))
-                    .add(eq("currentWorker", user))
+                    .add(eq("executor", user))
                     .list()
                     .stream();
         }
@@ -120,7 +132,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
             return getPersistenceSession()
                     .createCriteria(ReadonlyTask.class)
                     .add(eq("status", ReadonlyTask.Status.IN_PROGRESS))
-                    .add(eq("currentWorker", user))
+                    .add(eq("executor", user))
                     .list()
                     .stream();
         }
@@ -129,10 +141,10 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public void discardTask(Task task, String comment) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            if (!user.equals(task.getCurrentWorker().orElse(null))) throw new IllegalStateException("Worker is able to discard only his own tasks");
+            if (!user.equals(task.getExecutor().orElse(null))) throw new IllegalStateException("Worker is able to discard only his own tasks");
             if (task.getStatus() != ReadonlyTask.Status.ASSIGNED) throw new IllegalStateException("Task's status must be ASSIGNED");
 
-            task.setCurrentWorker(this, Optional.<Worker>empty(), comment);
+            task.setExecutor(this, Optional.<Worker>empty(), comment);
             task.setStatus(this, ReadonlyTask.Status.OPEN, comment);
 
             Transaction transaction = getPersistenceSession().beginTransaction();
@@ -144,7 +156,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public void startTask(Task task, String comment) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            if (!user.equals(task.getCurrentWorker().orElse(null))) throw new IllegalStateException("Worker is able to start only his own tasks");
+            if (!user.equals(task.getExecutor().orElse(null))) throw new IllegalStateException("Worker is able to start only his own tasks");
             if (task.getStatus() != ReadonlyTask.Status.ASSIGNED) throw new IllegalStateException("Task's status must be ASSIGNED");
 
             task.setStatus(this, ReadonlyTask.Status.IN_PROGRESS, comment);
@@ -158,7 +170,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public void finishTask(Task task, String comment) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            if (!user.equals(task.getCurrentWorker().orElse(null))) throw new IllegalStateException("Worker is able to finish only his own tasks");
+            if (!user.equals(task.getExecutor().orElse(null))) throw new IllegalStateException("Worker is able to finish only his own tasks");
             if (task.getStatus() != ReadonlyTask.Status.IN_PROGRESS) throw new IllegalStateException("Task's status must be IN_PROGRESS");
 
             task.setStatus(this, ReadonlyTask.Status.RESOLVED, comment);

@@ -4,7 +4,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.api.Admin;
 import com.pestcontrolenterprise.api.User;
+import com.pestcontrolenterprise.api.Worker;
 import com.pestcontrolenterprise.persistent.PersistentUser;
 
 import java.lang.reflect.Type;
@@ -26,18 +28,29 @@ public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<U
         JsonObject jsonObject = (JsonObject) jsonElement;
 
         String name = context.deserialize(jsonObject.get("name"), String.class);
+        PersistentUser user = (PersistentUser) applicationMediator.getPersistenceSession().get(PersistentUser.class, name);
+        user.setApplication(applicationMediator);
 
-        return (User) applicationMediator.getPersistenceSession().get(PersistentUser.class, name);
+        return user;
     }
 
     @Override
-    public JsonElement serialize(User userSession, Type type, JsonSerializationContext context) {
+    public JsonObject serialize(User user, Type type, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.add("name", context.serialize(userSession.getName(), String.class));
-        jsonObject.add("types", context.serialize(userSession.getUserTypes(), new TypeToken<ImmutableSet<User.UserType>>(){}.getType()));
+        jsonObject.add("name", context.serialize(user.getName(), String.class));
+        jsonObject.add("types", context.serialize(getUserTypes(user), new TypeToken<ImmutableSet<String>>(){}.getType()));
 
         return jsonObject;
+    }
+
+    protected ImmutableSet<String> getUserTypes(User user) {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+
+        if (user instanceof Worker) builder.add("Worker");
+        if (user instanceof Admin) builder.add("Admin");
+
+        return builder.build();
     }
 
 }

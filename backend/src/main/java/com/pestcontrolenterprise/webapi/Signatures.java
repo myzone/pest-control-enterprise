@@ -1,8 +1,7 @@
-package com.pestcontrolenterprise.api;
+package com.pestcontrolenterprise.webapi;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.reflect.TypeToken;
-import com.pestcontrolenterprise.util.RemoteStream;
+import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.Segment;
 
 import java.time.Instant;
@@ -23,63 +22,75 @@ public interface Signatures {
     // test
     Procedure<String, List<Integer>, Integer> plus = Procedure.of("plus", new TypeToken<List<Integer>>(){}, new TypeToken<Integer>(){});
 
-    // stream
-    Procedure<String, FilterStreamRequest<?>, RemoteStream<?>> filterStream = Procedure.of("filterStream", new TypeToken<FilterStreamRequest<?>>() {}, new TypeToken<RemoteStream<?>>() {});
-    Procedure<String, RemoteStream<?>, List<?>> letStream = Procedure.of("letStream", new TypeToken<RemoteStream<?>>() {}, new TypeToken<List<?>>() {});
-
     // common
-    Procedure<String, Void, RemoteStream<User>> getUsers = Procedure.of("getUsers", new TypeToken<Void>() {}, new TypeToken<RemoteStream<User>>() {});
-    Procedure<String, Void, RemoteStream<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<Void>() {}, new TypeToken<RemoteStream<PestType>>() {});
+    Procedure<String, GetRequest<User>, Stream<User>> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<Stream<User>>() {});
+    Procedure<String, GetRequest<PestType>, Stream<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<Stream<PestType>>() {});
+    Procedure<String, PestType, Set<EquipmentType>> getRequiredEquipmentTypes = Procedure.of("getRequiredEquipmentTypes", new TypeToken<PestType>() {}, new TypeToken<Set<EquipmentType>>() {});
 
     Procedure<String, BeginSessionRequest, UserSession> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {});
     Procedure<String, UserSession, Void> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {});
 
     // worker
-    Procedure<String, WorkerSession, RemoteStream<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<WorkerSession>() {}, new TypeToken<RemoteStream<Task>>() {});
-    Procedure<String, WorkerSession, RemoteStream<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<WorkerSession>() {}, new TypeToken<RemoteStream<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, Stream<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, Stream<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
 
-    Procedure<String, ModifyTaskRequest, RequestStatus> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<RequestStatus>() {});
-    Procedure<String, ModifyTaskRequest, RequestStatus> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<RequestStatus>() {});
-    Procedure<String, ModifyTaskRequest, RequestStatus> finishTask = Procedure.of("finishTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<RequestStatus>() {});
+    Procedure<String, ModifyTaskRequest, Void> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
+    Procedure<String, ModifyTaskRequest, Void> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
+    Procedure<String, ModifyTaskRequest, Void> finishTask = Procedure.of("finishTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
 
     // admin
     Procedure<String, AllocateTaskRequest, Task> allocateTask = Procedure.of("allocateTask", new TypeToken<AllocateTaskRequest>() {}, new TypeToken<Task>() {});
     Procedure<String, EditTaskRequest, Task> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {});
-    Procedure<String, AdminSession, Stream<Task>> getTasks = Procedure.of("getTasks", new TypeToken<AdminSession>() {}, new TypeToken<Stream<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, Stream<Task>> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
 
     Procedure<String, RegisterConsumerRequest, Consumer> registerConsumer = Procedure.of("registerConsumer", new TypeToken<RegisterConsumerRequest>() {}, new TypeToken<Consumer>() {});
     Procedure<String, EditConsumerRequest, Consumer> editConsumer = Procedure.of("editConsumer", new TypeToken<EditConsumerRequest>() {}, new TypeToken<Consumer>() {});
-    Procedure<String, AdminSession, RemoteStream<Consumer>> getConsumers = Procedure.of("getConsumers", new TypeToken<AdminSession>() {}, new TypeToken<RemoteStream<Consumer>>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Consumer>, Stream<Consumer>> getConsumers = Procedure.of("getConsumers", new TypeToken<AuthorizedGetRequest<AdminSession, Consumer>>() {}, new TypeToken<Stream<Consumer>>() {});
 
     Procedure<String, RegisterWorkerRequest, Worker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<Worker>() {});
     Procedure<String, EditWorkerRequest, Worker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<Worker>() {});
-    Procedure<String, AdminSession, RemoteStream<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AdminSession>() {}, new TypeToken<RemoteStream<Worker>>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, Stream<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<Stream<Worker>>() {});
 
+    class GetRequest<T> {
 
-    enum RequestStatus {
-        SUCCEED,
-        FAILED
+        private Set<Predicate<T>> filters;
+
+        public GetRequest() {
+        }
+
+        public GetRequest(Set<Predicate<T>> filters) {
+            this.filters = filters;
+        }
+
+        public Set<Predicate<T>> getFilters() {
+            return filters;
+        }
+
+        public void setFilters(Set<Predicate<T>> filters) {
+            this.filters = filters;
+        }
+
     }
 
-    class FilterStreamRequest<T> {
+    class AuthorizedGetRequest<S extends UserSession, T> extends GetRequest<T> {
 
-        private RemoteStream<Class<T>> stream;
-        private Predicate<T> predicate;
+        private S session;
 
-        public Stream<Class<T>> getStream() {
-            return stream;
+        public AuthorizedGetRequest() {
         }
 
-        public void setStream(RemoteStream<Class<T>> stream) {
-            this.stream = stream;
+        public AuthorizedGetRequest(Set<Predicate<T>> filters, S session) {
+            super(filters);
+
+            this.session = session;
         }
 
-        public Predicate<T> getPredicate() {
-            return predicate;
+        public S getSession() {
+            return session;
         }
 
-        public void setPredicate(Predicate<T> predicate) {
-            this.predicate = predicate;
+        public void setSession(S session) {
+            this.session = session;
         }
 
     }
@@ -141,21 +152,21 @@ public interface Signatures {
 
     class AllocateTaskRequest {
 
-        private AdminSession adminSession;
+        private AdminSession session;
         private ReadonlyTask.Status status;
-        private Optional<Worker> worker;
-        private ImmutableSet<Segment<Instant>> availabilityTime;
+        private Optional<Worker  > worker;
+        private Set<Segment<Instant>> availabilityTime;
         private Consumer consumer;
         private PestType pestType;
         private String problemDescription;
         private String comment;
 
-        public AdminSession getAdminSession() {
-            return adminSession;
+        public AdminSession getSession() {
+            return session;
         }
 
-        public void setAdminSession(AdminSession adminSession) {
-            this.adminSession = adminSession;
+        public void setSession(AdminSession session) {
+            this.session = session;
         }
 
         public ReadonlyTask.Status getStatus() {
@@ -174,11 +185,11 @@ public interface Signatures {
             this.worker = worker;
         }
 
-        public ImmutableSet<Segment<Instant>> getAvailabilityTime() {
+        public Set<Segment<Instant>> getAvailabilityTime() {
             return availabilityTime;
         }
 
-        public void setAvailabilityTime(ImmutableSet<Segment<Instant>> availabilityTime) {
+        public void setAvailabilityTime(Set<Segment<Instant>> availabilityTime) {
             this.availabilityTime = availabilityTime;
         }
 
@@ -218,22 +229,22 @@ public interface Signatures {
 
     class EditTaskRequest {
 
-        private AdminSession adminSession;
+        private AdminSession session;
         private Task task;
         private Optional<Optional<Worker>> worker;
         private Optional<ReadonlyTask.Status> status;
-        private Optional<ImmutableSet<Segment<Instant>>> availabilityTime;
+        private Optional<Set<Segment<Instant>>> availabilityTime;
         private Optional<Consumer> consumer;
         private Optional<PestType> pestType;
         private Optional<String> problemDescription;
         private String comment;
 
-        public AdminSession getAdminSession() {
-            return adminSession;
+        public AdminSession getSession() {
+            return session;
         }
 
-        public void setAdminSession(AdminSession adminSession) {
-            this.adminSession = adminSession;
+        public void setSession(AdminSession session) {
+            this.session = session;
         }
 
         public Task getTask() {
@@ -260,11 +271,11 @@ public interface Signatures {
             this.status = status;
         }
 
-        public Optional<ImmutableSet<Segment<Instant>>> getAvailabilityTime() {
+        public Optional<Set<Segment<Instant>>> getAvailabilityTime() {
             return availabilityTime;
         }
 
-        public void setAvailabilityTime(Optional<ImmutableSet<Segment<Instant>>> availabilityTime) {
+        public void setAvailabilityTime(Optional<Set<Segment<Instant>>> availabilityTime) {
             this.availabilityTime = availabilityTime;
         }
 
@@ -304,18 +315,18 @@ public interface Signatures {
 
     class RegisterConsumerRequest {
 
-        private AdminSession adminSession;
+        private AdminSession session;
         private String name;
         private Address address;
         private String cellPhone;
         private String email;
 
-        public AdminSession getAdminSession() {
-            return adminSession;
+        public AdminSession getSession() {
+            return session;
         }
 
-        public void setAdminSession(AdminSession adminSession) {
-            this.adminSession = adminSession;
+        public void setSession(AdminSession session) {
+            this.session = session;
         }
 
         public String getName() {
@@ -354,19 +365,19 @@ public interface Signatures {
 
     class EditConsumerRequest {
 
-        private AdminSession adminSession;
+        private AdminSession session;
         private Consumer consumer;
         private Optional<String> name;
         private Optional<Address> address;
         private Optional<String> cellPhone;
         private Optional<String> email;
 
-        public AdminSession getAdminSession() {
-            return adminSession;
+        public AdminSession getSession() {
+            return session;
         }
 
-        public void setAdminSession(AdminSession adminSession) {
-            this.adminSession = adminSession;
+        public void setSession(AdminSession session) {
+            this.session = session;
         }
 
         public Consumer getConsumer() {
@@ -413,17 +424,17 @@ public interface Signatures {
 
     class RegisterWorkerRequest {
 
-        private AdminSession adminSession;
+        private AdminSession session;
         private String name;
         private String password;
         private Set<PestType> workablePestTypes;
 
-        public AdminSession getAdminSession() {
-            return adminSession;
+        public AdminSession getSession() {
+            return session;
         }
 
-        public void setAdminSession(AdminSession adminSession) {
-            this.adminSession = adminSession;
+        public void setSession(AdminSession session) {
+            this.session = session;
         }
 
         public String getName() {
@@ -454,18 +465,17 @@ public interface Signatures {
 
     class EditWorkerRequest {
 
-        private AdminSession adminSession;
+        private AdminSession session;
         private Worker worker;
-        private Optional<String> name;
         private Optional<String> password;
         private Optional<Set<PestType>> workablePestTypes;
 
-        public AdminSession getAdminSession() {
-            return adminSession;
+        public AdminSession getSession() {
+            return session;
         }
 
-        public void setAdminSession(AdminSession adminSession) {
-            this.adminSession = adminSession;
+        public void setSession(AdminSession session) {
+            this.session = session;
         }
 
         public Worker getWorker() {
@@ -474,14 +484,6 @@ public interface Signatures {
 
         public void setWorker(Worker worker) {
             this.worker = worker;
-        }
-
-        public Optional<String> getName() {
-            return name;
-        }
-
-        public void setName(Optional<String> name) {
-            this.name = name;
         }
 
         public Optional<String> getPassword() {

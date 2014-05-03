@@ -1,13 +1,9 @@
 package com.pestcontrolenterprise.json;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationMediator;
 import com.pestcontrolenterprise.api.EquipmentType;
-import com.pestcontrolenterprise.api.PestType;
 import com.pestcontrolenterprise.persistent.PersistentEquipmentType;
-import com.pestcontrolenterprise.persistent.PersistentPestType;
 
 import java.lang.reflect.Type;
 
@@ -33,10 +29,11 @@ public class EquipmentTypeJsonAdapter implements JsonSerializer<EquipmentType>, 
     }
 
     @Override
-    public JsonElement serialize(EquipmentType equipmentType, Type type, JsonSerializationContext context) {
+    public JsonObject serialize(EquipmentType equipmentType, Type type, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.add("id", context.serialize(equipmentType.getId(), Long.TYPE));
+        jsonObject.add("name", context.serialize(equipmentType.getName(), String.class));
 
         return jsonObject;
     }

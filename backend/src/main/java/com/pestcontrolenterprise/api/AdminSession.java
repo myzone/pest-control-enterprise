@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public interface AdminSession extends UserSession {
 
     @Override
-    Admin getUser();
+    Admin getOwner();
 
     Task allocateTask(
             ReadonlyTask.Status status,
@@ -29,8 +29,8 @@ public interface AdminSession extends UserSession {
 
     Task editTask(
             Task task,
-            Optional<Optional<Worker>> worker,
             Optional<ReadonlyTask.Status> status,
+            Optional<Optional<Worker>> worker,
             Optional<ImmutableSet<Segment<Instant>>> availabilityTime,
             Optional<Consumer> consumer,
             Optional<PestType> pestType,
@@ -67,7 +67,6 @@ public interface AdminSession extends UserSession {
 
     Worker editWorker(
             Worker worker,
-            Optional<String> name,
             Optional<String> password,
             Optional<Set<PestType>> workablePestTypes
     ) throws IllegalStateException;

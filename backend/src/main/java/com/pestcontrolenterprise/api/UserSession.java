@@ -1,7 +1,6 @@
 package com.pestcontrolenterprise.api;
 
-import com.google.common.collect.ImmutableSet;
-
+import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -10,7 +9,7 @@ import java.time.Instant;
  */
 public interface UserSession extends AutoCloseable {
 
-    User getUser();
+    User getOwner();
 
     long getId();
 
@@ -20,9 +19,15 @@ public interface UserSession extends AutoCloseable {
 
     void changePassword(String newPassword) throws IllegalStateException;
 
-    ImmutableSet<User.UserType> getUserTypes();
-
     @Override
     void close() throws IllegalStateException;
+
+    default boolean isStillActive() {
+        return willBeActive(Clock.systemDefaultZone().instant());
+    }
+
+    default boolean willBeActive(Instant instant) {
+        return getOpened().isBefore(instant) && getClosed().isAfter(instant);
+    }
 
 }

@@ -7,12 +7,15 @@ import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationMediator;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.persistent.PersistentTask;
-import com.pestcontrolenterprise.persistent.PersistentUser;
 import com.pestcontrolenterprise.util.Segment;
+import org.javatuples.Pair;
 
 import java.lang.reflect.Type;
 import java.time.Instant;
-import java.util.Optional;
+import java.util.Map;
+
+import static com.pestcontrolenterprise.api.ReadonlyTask.DataChangeTaskHistoryEntry;
+import static com.pestcontrolenterprise.api.ReadonlyTask.TaskHistoryEntry;
 
 /**
  * @author myzone
@@ -39,16 +42,59 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
     public JsonElement serialize(Task task, Type type, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.add("id", context.serialize(task.getId(), String.class));
+        jsonObject.add("id", context.serialize(task.getId(), Long.TYPE));
         jsonObject.add("status", context.serialize(task.getStatus(), ReadonlyTask.Status.class));
-        jsonObject.add("currentWorker", context.serialize(task.getCurrentWorker().orElse(null), Worker.class));
-        jsonObject.add("availabilityTime", context.serialize(task.getAvailabilityTime(), new TypeToken<ImmutableSet<Segment<Instant>>>(){}.getType()));
+        jsonObject.add("executor", context.serialize(task.getExecutor().orElse(null), Worker.class));
+        jsonObject.add("availabilityTime", context.serialize(task.getAvailabilityTime(), new TypeToken<ImmutableSet<Segment<Instant>>>() {}.getType()));
         jsonObject.add("consumer", context.serialize(task.getConsumer(), Consumer.class));
         jsonObject.add("pestType", context.serialize(task.getPestType(), PestType.class));
         jsonObject.add("problemDescription", context.serialize(task.getProblemDescription(), String.class));
-        jsonObject.add("problemDescription", context.serialize(task.getTaskHistory(), new TypeToken<ImmutableList<ReadonlyTask.TaskHistoryEntry>>(){}.getType()));
+        jsonObject.add("taskHistory", context.serialize(task.getTaskHistory(), new TypeToken<ImmutableList<TaskHistoryEntry>>() {}.getType()));
 
         return jsonObject;
+    }
+
+    public enum  TaskHistoryEntryJsonAdapter implements JsonSerializer<TaskHistoryEntry> {
+
+        INSTANCE;
+
+        @Override
+        public JsonObject serialize(TaskHistoryEntry taskHistoryEntry, Type type, JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+
+            jsonObject.add("instant", context.serialize(taskHistoryEntry.getInstant().getEpochSecond(), Long.TYPE));
+            jsonObject.add("causer", context.serialize(taskHistoryEntry.getCauser(), User.class));
+            jsonObject.add("comment", context.serialize(taskHistoryEntry.getComment(), String.class));
+
+            return jsonObject;
+        }
+
+    }
+
+    public enum DataChangeTaskHistoryEntryJsonAdapter implements JsonSerializer<DataChangeTaskHistoryEntry> {
+
+        INSTANCE;
+
+        @Override
+        public JsonObject serialize(DataChangeTaskHistoryEntry taskHistoryEntry, Type type, JsonSerializationContext context) {
+            JsonObject jsonObject = TaskHistoryEntryJsonAdapter.INSTANCE.serialize(taskHistoryEntry, type, context);
+
+            JsonObject changesObject = new JsonObject();
+
+            for (Map.Entry<DataChangeTaskHistoryEntry.TaskField, Pair<?, ?>> taskFieldPairEntry : taskHistoryEntry.getChanges().entrySet()) {
+                JsonObject changeObject = new JsonObject();
+
+                changeObject.add("old", context.serialize(taskFieldPairEntry.getValue().getValue0()));
+                changeObject.add("new", context.serialize(taskFieldPairEntry.getValue().getValue1()));
+
+                changesObject.add(taskFieldPairEntry.getKey().name(), changeObject);
+            }
+
+            jsonObject.add("changes", changesObject);
+
+            return jsonObject;
+        }
+
     }
 
 }

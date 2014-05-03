@@ -14,7 +14,7 @@ public class PersistentEquipmentType implements EquipmentType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private volatile long id;
 
     @Column
     protected volatile String name;

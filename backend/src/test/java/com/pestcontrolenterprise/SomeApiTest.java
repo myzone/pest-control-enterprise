@@ -51,7 +51,7 @@ public class SomeApiTest {
 
         Transaction transaction1 = session.beginTransaction();
 
-        PersistentWorker worker = new PersistentWorker("ololo", "fuck", ImmutableSet.<PersistentPestType>of());
+        PersistentWorker worker = new PersistentWorker("ololo", "fuck", ImmutableSet.of());
         worker.setApplication(applicationMediator);
 
         session.save(worker);
@@ -66,7 +66,7 @@ public class SomeApiTest {
         PersistentConsumer consumer = new PersistentConsumer(UUID.randomUUID().toString() , address, "asd", "asd");
         session.save(consumer);
 
-        PersistentPestType pestType = new PersistentPestType("asd", "blah");
+        PersistentPestType pestType = new PersistentPestType("asd", "blah", ImmutableSet.of());
         session.save(pestType);
 
         transaction1.commit();

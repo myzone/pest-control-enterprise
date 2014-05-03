@@ -1,5 +1,6 @@
 package com.pestcontrolenterprise.persistent;
 
+import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationMediator;
 import com.pestcontrolenterprise.api.*;
 import org.hibernate.Session;
@@ -47,6 +48,11 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
     @Override
     public Optional<Address> getAddress(String textAddress) {
         return Optional.<Address>of(new PersistentAddress(textAddress));
+    }
+
+    @Override
+    public ImmutableSet<EquipmentType> getRequiredEquipmentTypes(PestType pestType) {
+        return pestType.getRequiredEquipmentTypes();
     }
 
     protected Session getPersistenceSession() {

@@ -1,8 +1,10 @@
 package com.pestcontrolenterprise.api;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.util.Segment;
+import org.javatuples.Pair;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -17,7 +19,7 @@ public interface ReadonlyTask {
 
     Status getStatus();
 
-    Optional<Worker> getCurrentWorker();
+    Optional<Worker> getExecutor();
 
     ImmutableSet<Segment<Instant>> getAvailabilityTime();
 
@@ -48,19 +50,18 @@ public interface ReadonlyTask {
 
     }
 
-    interface StatusChangeHistoryEntry extends TaskHistoryEntry {
+    interface DataChangeTaskHistoryEntry extends TaskHistoryEntry {
 
-        Status getOldStatus();
+        ImmutableMap<TaskField, Pair<?, ?>> getChanges();
 
-        Status getNewStatus();
-
-    }
-
-    interface ChangeHistoryEntry extends TaskHistoryEntry {
-
-        Optional<Worker> getOldWorker();
-
-        Optional<Worker> getNewWorker();
+        enum TaskField {
+            status,
+            executor,
+            availabilityTime,
+            consumer,
+            pestType,
+            problemDescription
+        }
 
     }
 

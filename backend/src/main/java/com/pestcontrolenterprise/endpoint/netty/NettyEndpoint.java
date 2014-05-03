@@ -7,6 +7,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -90,10 +91,23 @@ public class NettyEndpoint<I, O> {
                         ch.pipeline().addLast("encoder", new HttpServerCodec());
                         ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<HttpContent>() {
                             @Override
-                            protected void messageReceived(ChannelHandlerContext channelHandlerContext,
-                                                           HttpContent httpRequest) {
+                            protected void messageReceived(ChannelHandlerContext channelHandlerContext, HttpContent httpRequest) {
+                                ByteBuf byteBuf = Unpooled.wrappedBuffer(httpRequest.content());
+                                final byte[] bytes = new byte[byteBuf.readableBytes()];
+                                byteBuf.readBytes(bytes);
+
+                                /**
+                                 * @todo replace this logging with some external logging, it's just temp solution for debugging related stuff
+                                 */
+                                System.out.println(">>> " + new String(bytes));
+
                                 try {
                                     String responseContent = gson.toJson(function.apply(gson.<I>fromJson(new InputStreamReader(new ByteBufInputStream(httpRequest.content())), inputType.getType())), outputType.getType());
+
+                                    /**
+                                     * @todo replace this logging with some external logging, it's just temp solution for debugging related stuff
+                                     */
+                                    System.out.println("<<< " + responseContent);
 
                                     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(responseContent.getBytes()));
                                     response.headers().set(CONTENT_TYPE, "application/json");
@@ -188,7 +202,7 @@ public class NettyEndpoint<I, O> {
 
             @Override
             public void close() {
-                 workerGroup.shutdownGracefully();
+                workerGroup.shutdownGracefully();
             }
         };
     }

@@ -18,6 +18,7 @@ public interface PestControlEnterprise {
 
     Optional<Address> getAddress(String textAddress);
 
+    ImmutableSet<EquipmentType> getRequiredEquipmentTypes(PestType pestType);
 
     final class FastPredicates {
 

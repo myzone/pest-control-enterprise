@@ -13,4 +13,8 @@ public interface Worker extends User {
 
     ImmutableSet<PestType> getWorkablePestTypes();
 
+    void setWorkablePestTypes(AdminSession session, ImmutableSet<PestType> workablePestTypes) throws IllegalStateException;
+
+    void setPassword(AdminSession session, String newPassword) throws IllegalStateException;
+
 }
