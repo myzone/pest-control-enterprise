@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Admin terminal</title>
+        <meta charset="Windows-1251">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" type="text/css" href="themes/default/easyui.css">
+        <link rel="stylesheet" type="text/css" href="themes/icon.css">
+        <script type="text/javascript" src="jquery.min.js"></script>
+        <script type="text/javascript" src="jquery.easyui.min.js"></script>
+        <style type="text/css">
+            .header
+            {
+                height:105px;
+            }
+            .footer
+            {
+                height: 50px;
+            }
+            .right-panel
+            {
+                width:200px;
+            }
+            *{
+                font-size:12px;
+            }
+            body {
+                font-family:verdana,helvetica,arial,sans-serif;
+                padding:20px;
+                font-size:12px;
+                margin:0;
+            }
+            h2 {
+                font-size:18px;
+                font-weight:bold;
+                margin:0;
+                margin-bottom:15px;
+            }
+        </style>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $('#datagrid').datagrid({
+                    toolbar: '#toolbar',
+                    columns:[[
+                        {field:'ticketid',title:'Ticket #'},
+                        {field:'status',title:'Состояние'},
+                        {field:'age',title:'Возраст'},
+                        {field:'type',title:'Тип заявки'},
+                        {field:'worker',title:'Ответственный сотрудник'},
+                    ]],
+                    idField:'ticketid',
+                    data:[
+                        {ticketid:'156123',status:'opened',age:'1 h',type:'Mice threat',worker:'Arnaut Roman'},
+                        {ticketid:'200321',status:'opened',age:'1 h',type:'Mice threat',worker:'Arnaut Roman'},
+                        {ticketid:'151689',status:'opened',age:'1 h',type:'Mice threat',worker:'Arnaut Roman'}
+                    ],
+                    singleSelect:true,
+                    rownumbers:true,
+                    pagination:true
+                });
+            });
+        </script>
+    </head>
+    <body class="easyui-layout">
+        <div data-options="region:'center'">
+            <div class="easyui-layout" data-options="fit:true">
+                <div class="header" data-options="region:'north'">
+                    <img src="images/bug.png" width="100" height="100"/>
+                </div>
+                <div data-options="region:'center'">
+                    <div id="toolbar">
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                    </div>
+                    <table id="datagrid" data-options="fit:true"></table>
+                </div>
+                <div class="right-panel" data-options="region:'east',split:true">Right panel</div>
+            </div>
+        </div>
+        <div class="footer" data-options="region:'south'">
+            There is a footer
+        </div>
+    </body>
+</html>
