@@ -1,7 +1,7 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.collect.ImmutableSet;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import org.hibernate.Session;
 
@@ -15,10 +15,10 @@ import java.util.stream.Stream;
  */
 public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
-    private final ApplicationMediator applicationMediator;
+    private final ApplicationContext applicationContext;
 
-    public PersistentPestControlEnterprise(ApplicationMediator applicationMediator) {
-        this.applicationMediator = applicationMediator;
+    public PersistentPestControlEnterprise(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -26,15 +26,7 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
         return getPersistenceSession()
                 .createCriteria(PersistentUser.class)
                 .list()
-                .stream()
-                .map(new Function<PersistentUser, User>() {
-                    @Override
-                    public User apply(PersistentUser o) {
-                        o.setApplication(applicationMediator);
-
-                        return o;
-                    }
-                });
+                .stream();
     }
 
     @Override
@@ -56,7 +48,7 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
     }
 
     protected Session getPersistenceSession() {
-        return applicationMediator.getPersistenceSession();
+        return applicationContext.getPersistenceSession();
     }
 
 }

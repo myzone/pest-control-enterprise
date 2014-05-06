@@ -1,7 +1,9 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Address;
+import com.pestcontrolenterprise.api.AdminSession;
 import com.pestcontrolenterprise.api.Consumer;
 
 import javax.persistence.*;
@@ -11,10 +13,10 @@ import javax.persistence.*;
  * @date 4/28/14
  */
 @Entity
-public class PersistentConsumer implements Consumer {
+public class PersistentConsumer extends PersistentObject implements Consumer {
 
     @Id
-    protected volatile String name;
+    protected final String name;
 
     @Embedded
     @Column
@@ -26,10 +28,9 @@ public class PersistentConsumer implements Consumer {
     @Column
     protected volatile String email;
 
-    public PersistentConsumer() {
-    }
+    public PersistentConsumer(ApplicationContext applicationContext, String name, Address address, String cellPhone, String email) {
+        super(applicationContext);
 
-    public PersistentConsumer(String name, Address address, String cellPhone, String email) {
         this.name = name;
         this.address = address;
         this.cellPhone = cellPhone;
@@ -43,17 +44,53 @@ public class PersistentConsumer implements Consumer {
 
     @Override
     public Address getAddress() {
-        return address;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return address;
+        }
     }
 
     @Override
     public String getCellPhone() {
-        return cellPhone;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return cellPhone;
+        }
     }
 
     @Override
     public String getEmail() {
-        return email;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return email;
+        }
+    }
+
+    @Override
+    public void setAddress(AdminSession session, Address address) throws IllegalStateException {
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!session.isStillActive())
+                throw new IllegalStateException();
+
+            this.address = address;
+        }
+    }
+
+    @Override
+    public void setCellPhone(AdminSession session, String cellPhone) throws IllegalStateException {
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!session.isStillActive())
+                throw new IllegalStateException();
+
+            this.cellPhone = cellPhone;
+        }
+    }
+
+    @Override
+    public void setEmail(AdminSession session, String email) throws IllegalStateException {
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!session.isStillActive())
+                throw new IllegalStateException();
+
+            this.email = email;
+        }
     }
 
     @Override
@@ -75,12 +112,14 @@ public class PersistentConsumer implements Consumer {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("name", name)
-                .add("address", address)
-                .add("cellPhone", cellPhone)
-                .add("email", email)
-                .toString();
+        try (QuiteAutoCloseable lock = readLock()) {
+            return Objects.toStringHelper(this)
+                    .add("name", name)
+                    .add("address", address)
+                    .add("cellPhone", cellPhone)
+                    .add("email", email)
+                    .toString();
+        }
     }
 
 }

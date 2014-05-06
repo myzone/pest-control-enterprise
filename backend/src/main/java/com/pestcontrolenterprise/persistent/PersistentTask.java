@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.Segment;
 import org.javatuples.Pair;
@@ -12,10 +13,11 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.pestcontrolenterprise.api.ReadonlyTask.DataChangeTaskHistoryEntry.TaskField;
 import static java.util.Collections.emptyMap;
@@ -25,24 +27,24 @@ import static java.util.Collections.emptyMap;
  * @date 4/28/14
  */
 @Entity
-public class PersistentTask implements Task {
+public class PersistentTask extends PersistentObject implements Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private volatile long id;
+    private final long id = 0;
 
     @Column
     protected volatile Status status;
 
     @ManyToOne(targetEntity = PersistentWorker.class)
-    protected volatile Worker executor;
+    protected volatile ReadonlyWorker executor;
 
     @Embedded
     @Column
     protected volatile ImmutableSet<Segment<Instant>> availabilityTime;
 
     @ManyToOne(targetEntity = PersistentConsumer.class)
-    protected volatile Consumer consumer;
+    protected volatile ReadonlyConsumer consumer;
 
     @ManyToOne(targetEntity = PersistentPestType.class)
     protected volatile PestType pestType;
@@ -54,19 +56,19 @@ public class PersistentTask implements Task {
     @Column
     protected volatile Deque<TaskHistoryEntry> taskHistory;
 
-    public PersistentTask() {
-    }
-
     public PersistentTask(
+            ApplicationContext applicationContext,
             AdminSession causer,
             Status status,
-            Optional<Worker> executor,
+            Optional<? extends ReadonlyWorker> executor,
             ImmutableSet<Segment<Instant>>availabilityTime,
-            Consumer consumer,
+            ReadonlyConsumer consumer,
             PestType pestType,
             String problemDescription,
             String comment
     ) throws IllegalStateException {
+        super(applicationContext);
+
         if (!causer.isStillActive())
             throw new IllegalStateException("Session is inactive");
 
@@ -76,9 +78,11 @@ public class PersistentTask implements Task {
         this.consumer = consumer;
         this.pestType = pestType;
         this.problemDescription = problemDescription;
-        this.taskHistory = new ArrayDeque<>();
+        this.taskHistory = new ConcurrentLinkedDeque<>();
 
         persistHistoryEntry(new SimpleTaskHistoryEntry(Clock.systemDefaultZone().instant(), causer.getOwner(), comment));
+
+        save();
     }
 
     @Override
@@ -88,130 +92,170 @@ public class PersistentTask implements Task {
 
     @Override
     public Status getStatus() {
-        return status;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return status;
+        }
     }
 
     @Override
-    public Optional<Worker> getExecutor() {
-        return Optional.<Worker>ofNullable(executor);
+    public Optional<ReadonlyWorker> getExecutor() {
+        try (QuiteAutoCloseable lock = readLock()) {
+            return Optional.<ReadonlyWorker>ofNullable(executor);
+        }
     }
 
     @Override
     public ImmutableSet<Segment<Instant>> getAvailabilityTime() {
-        return availabilityTime;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return availabilityTime;
+        }
     }
 
     @Override
-    public Consumer getConsumer() {
-        return consumer;
+    public ReadonlyConsumer getConsumer() {
+        try (QuiteAutoCloseable lock = readLock()) {
+            return consumer;
+        }
     }
 
     @Override
     public PestType getPestType() {
-        return pestType;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return pestType;
+        }
     }
 
     @Override
     public String getProblemDescription() {
-        return problemDescription;
+        try (QuiteAutoCloseable lock = readLock()) {
+            return problemDescription;
+        }
     }
 
     @Override
     public ImmutableList<TaskHistoryEntry> getTaskHistory() {
-        return ImmutableList.copyOf(taskHistory);
+        try (QuiteAutoCloseable lock = readLock()) {
+            return ImmutableList.copyOf(taskHistory);
+        }
     }
 
     @Override
     public void setStatus(UserSession causerSession, Status status, String comment) throws IllegalStateException {
-        if (!causerSession.isStillActive())
-            throw new IllegalStateException("Session is inactive");
-        if (!isExecutorsSession(causerSession) && !isAdminSession(causerSession))
-            throw new IllegalStateException();
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!causerSession.isStillActive())
+                throw new IllegalStateException("Session is inactive");
+            if (!isExecutorsSession(causerSession) && !isAdminSession(causerSession))
+                throw new IllegalStateException();
 
-        persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.status, new Pair<>(this.status, status)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.status, new Pair<>(this.status, status)));
 
-        this.status = status;
+            this.status = status;
+
+            update();
+        }
     }
 
     @Override
-    public void setExecutor(UserSession causerSession, Optional<Worker> executor, String comment) throws IllegalStateException {
-        if (!causerSession.isStillActive())
-            throw new IllegalStateException("Session is inactive");
-        if ((!isExecutorsSession(causerSession) || !executor.isPresent()) && !isAdminSession(causerSession))
-            throw new IllegalStateException();
+    public void setExecutor(UserSession causerSession, Optional<? extends ReadonlyWorker> executor, String comment) throws IllegalStateException {
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!causerSession.isStillActive())
+                throw new IllegalStateException("Session is inactive");
+            if ((!isExecutorsSession(causerSession) || !executor.isPresent()) && !isAdminSession(causerSession))
+                throw new IllegalStateException();
 
-        persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.executor, new Pair<>(Optional.ofNullable(this.executor), executor)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.executor, new Pair<>(Optional.ofNullable(this.executor), executor)));
 
-        this.executor = executor.orElse(null);
+            this.executor = executor.orElse(null);
+
+            update();
+        }
     }
 
     @Override
     public void setAvailabilityTime(UserSession causerSession, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException {
-        if (!causerSession.isStillActive())
-            throw new IllegalStateException("Session is inactive");
-        if (!isAdminSession(causerSession))
-            throw new IllegalStateException();
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!causerSession.isStillActive())
+                throw new IllegalStateException("Session is inactive");
+            if (!isAdminSession(causerSession))
+                throw new IllegalStateException();
 
-        persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.availabilityTime, new Pair<>(this.availabilityTime, availabilityTime)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.availabilityTime, new Pair<>(this.availabilityTime, availabilityTime)));
 
-        this.availabilityTime = availabilityTime;
+            this.availabilityTime = availabilityTime;
+
+            update();
+        }
     }
 
     @Override
-    public void setConsumer(UserSession causerSession, Consumer consumer, String comment) throws IllegalStateException {
-        if (!causerSession.isStillActive())
-            throw new IllegalStateException("Session is inactive");
-        if (!isAdminSession(causerSession))
-            throw new IllegalStateException();
+    public void setConsumer(UserSession causerSession, ReadonlyConsumer consumer, String comment) throws IllegalStateException {
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!causerSession.isStillActive())
+                throw new IllegalStateException("Session is inactive");
+            if (!isAdminSession(causerSession))
+                throw new IllegalStateException();
 
-        persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.consumer, new Pair<>(this.consumer, consumer)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.consumer, new Pair<>(this.consumer, consumer)));
 
-        this.consumer = consumer;
+            this.consumer = consumer;
+
+            update();
+        }
     }
 
     @Override
     public void setPestType(UserSession causerSession, PestType pestType, String comment) throws IllegalStateException {
-        if (!causerSession.isStillActive())
-            throw new IllegalStateException("Session is inactive");
-        if (!isAdminSession(causerSession))
-            throw new IllegalStateException();
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!causerSession.isStillActive())
+                throw new IllegalStateException("Session is inactive");
+            if (!isAdminSession(causerSession))
+                throw new IllegalStateException();
 
-        persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.pestType, new Pair<>(this.pestType, pestType)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.pestType, new Pair<>(this.pestType, pestType)));
 
-        this.pestType = pestType;
+            this.pestType = pestType;
+
+            update();
+        }
     }
 
     @Override
     public void setProblemDescription(UserSession causerSession, String problemDescription, String comment) throws IllegalStateException {
-        if (!causerSession.isStillActive())
-            throw new IllegalStateException("Session is inactive");
-        if (!isAdminSession(causerSession))
-            throw new IllegalStateException();
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!causerSession.isStillActive())
+                throw new IllegalStateException("Session is inactive");
+            if (!isAdminSession(causerSession))
+                throw new IllegalStateException();
 
-        persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.problemDescription, new Pair<>(this.problemDescription, problemDescription)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.problemDescription, new Pair<>(this.problemDescription, problemDescription)));
 
-        this.problemDescription = problemDescription;
+            this.problemDescription = problemDescription;
+
+            update();
+        }
     }
 
     protected void persistHistoryEntry(TaskHistoryEntry taskHistoryEntry) {
-        TaskHistoryEntry peek = taskHistory.peek();
+        try (QuiteAutoCloseable lock = writeLock()) {
+            TaskHistoryEntry peek = taskHistory.peek();
 
-        if (peek != null) {
-            if (peek instanceof MergeableTaskTaskHistoryEntry) {
-                if (((MergeableTaskTaskHistoryEntry) peek).tryMerge(taskHistoryEntry)) {
-                    return;
-                }
-            } else {
-                MergeableTaskTaskHistoryEntry mergeable = new MergeableTaskTaskHistoryEntry(peek.getInstant(), peek.getCauser(), peek.getComment());
+            if (peek != null) {
+                if (peek instanceof MergeableTaskTaskHistoryEntry) {
+                    if (((MergeableTaskTaskHistoryEntry) peek).tryMerge(taskHistoryEntry)) {
+                        return;
+                    }
+                } else {
+                    MergeableTaskTaskHistoryEntry mergeable = new MergeableTaskTaskHistoryEntry(peek.getInstant(), peek.getCauser(), peek.getComment());
 
-                if (mergeable.tryMerge(peek) && mergeable.tryMerge(taskHistoryEntry)) {
-                    taskHistory.pop();
-                    taskHistoryEntry = mergeable;
+                    if (mergeable.tryMerge(peek) && mergeable.tryMerge(taskHistoryEntry)) {
+                        taskHistory.pop();
+                        taskHistoryEntry = mergeable;
+                    }
                 }
             }
-        }
 
-        taskHistory.push(taskHistoryEntry);
+            taskHistory.push(taskHistoryEntry);
+        }
     }
 
     protected boolean isAdminSession(UserSession userSession) {
@@ -219,52 +263,60 @@ public class PersistentTask implements Task {
     }
 
     protected boolean isExecutorsSession(UserSession userSession) {
-        return userSession instanceof WorkerSession && userSession.getOwner().equals(executor);
+        try (QuiteAutoCloseable lock = readLock()) {
+            return userSession instanceof WorkerSession && userSession.getOwner().equals(executor);
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PersistentTask)) return false;
+        try (QuiteAutoCloseable lock = readLock()) {
+            if (this == o) return true;
+            if (!(o instanceof PersistentTask)) return false;
 
-        PersistentTask that = (PersistentTask) o;
+            PersistentTask that = (PersistentTask) o;
 
-        if (id != that.id) return false;
-        if (!availabilityTime.equals(that.availabilityTime)) return false;
-        if (!consumer.equals(that.consumer)) return false;
-        if (!executor.equals(that.executor)) return false;
-        if (!pestType.equals(that.pestType)) return false;
-        if (!problemDescription.equals(that.problemDescription)) return false;
-        if (status != that.status) return false;
-        if (!taskHistory.equals(that.taskHistory)) return false;
+            if (id != that.id) return false;
+            if (!availabilityTime.equals(that.availabilityTime)) return false;
+            if (!consumer.equals(that.consumer)) return false;
+            if (!executor.equals(that.executor)) return false;
+            if (!pestType.equals(that.pestType)) return false;
+            if (!problemDescription.equals(that.problemDescription)) return false;
+            if (status != that.status) return false;
+            if (!taskHistory.equals(that.taskHistory)) return false;
 
-        return true;
+            return true;
+        }
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + status.hashCode();
-        result = 31 * result + executor.hashCode();
-        result = 31 * result + availabilityTime.hashCode();
-        result = 31 * result + consumer.hashCode();
-        result = 31 * result + pestType.hashCode();
-        result = 31 * result + problemDescription.hashCode();
-        result = 31 * result + taskHistory.hashCode();
-        return result;
+        try (QuiteAutoCloseable lock = readLock()) {
+            int result = (int) (id ^ (id >>> 32));
+            result = 31 * result + status.hashCode();
+            result = 31 * result + executor.hashCode();
+            result = 31 * result + availabilityTime.hashCode();
+            result = 31 * result + consumer.hashCode();
+            result = 31 * result + pestType.hashCode();
+            result = 31 * result + problemDescription.hashCode();
+            result = 31 * result + taskHistory.hashCode();
+            return result;
+        }
     }
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("status", status)
-                .add("executor", executor)
-                .add("availabilityTime", availabilityTime)
-                .add("consumer", consumer)
-                .add("pestType", pestType)
-                .add("problemDescription", problemDescription)
-                .add("taskHistory", taskHistory)
-                .toString();
+        try (QuiteAutoCloseable lock = readLock()) {
+            return Objects.toStringHelper(this)
+                    .add("status", status)
+                    .add("executor", executor)
+                    .add("availabilityTime", availabilityTime)
+                    .add("consumer", consumer)
+                    .add("pestType", pestType)
+                    .add("problemDescription", problemDescription)
+                    .add("taskHistory", taskHistory)
+                    .toString();
+        }
     }
 
     protected class SimpleTaskHistoryEntry implements TaskHistoryEntry, Serializable{
@@ -327,49 +379,53 @@ public class PersistentTask implements Task {
 
     protected class MergeableTaskTaskHistoryEntry extends SimpleTaskHistoryEntry implements DataChangeTaskHistoryEntry {
 
-        protected ImmutableMap<TaskField, Pair<?, ?>> changes;
+        protected AtomicReference<ImmutableMap<TaskField, Pair<?, ?>>> changes;
 
         public MergeableTaskTaskHistoryEntry(Instant instant, User causer, String comment) {
             super(instant, causer, comment);
 
-            changes = ImmutableMap.of();
+            changes = new AtomicReference<>(ImmutableMap.of());
         }
 
         public boolean tryMerge(TaskHistoryEntry taskHistoryEntry) {
-            Map<TaskField, Pair<?, ?>> addingChanges = getChanges(taskHistoryEntry);
+            while (true) {
+                ImmutableMap<TaskField, Pair<?, ?>> oldChanges = changes.get();
 
-            if (causer.equals(taskHistoryEntry.getCauser())
-                    && comment.equals(taskHistoryEntry.getComment())
-                    && addingChanges
-                            .entrySet()
-                            .stream()
-                            .map(entry -> {
-                                Pair<?, ?> objects = changes.get(entry.getKey());
+                Map<TaskField, Pair<?, ?>> addingChanges = getChanges(taskHistoryEntry);
 
-                                return objects == null || objects.getValue1().equals(entry.getValue().getValue0());
-                            })
-                            .reduce(true, Boolean::logicalAnd)) {
+                if (causer.equals(taskHistoryEntry.getCauser())
+                        && comment.equals(taskHistoryEntry.getComment())
+                        && addingChanges
+                        .entrySet()
+                        .stream()
+                        .map(entry -> {
+                            Pair<?, ?> objects = oldChanges.get(entry.getKey());
 
-                changes = ImmutableMap
-                        .<TaskField, Pair<?, ?>>builder()
-                        .putAll(changes)
-                        .putAll(addingChanges)
-                        .build();
+                            return objects == null || objects.getValue1().equals(entry.getValue().getValue0());
+                        })
+                        .reduce(true, Boolean::logicalAnd)) {
 
-                return true;
-            } else {
-                return false;
+                    if (changes.compareAndSet(oldChanges, ImmutableMap
+                            .<TaskField, Pair<?, ?>>builder()
+                            .putAll(oldChanges)
+                            .putAll(addingChanges)
+                            .build())) {
+                       return true;
+                    }
+                } else {
+                    return false;
+                }
             }
         }
 
         @Override
         public ImmutableMap<TaskField, Pair<?, ?>> getChanges() {
-            return changes;
+            return changes.get();
         }
 
         protected Objects.ToStringHelper toStringHelper() {
             return super.toStringHelper()
-                    .add("changes", changes);
+                    .add("changes", changes.get());
         }
 
         protected Map<TaskField, Pair<?, ?>> getChanges(TaskHistoryEntry taskHistoryEntry) {

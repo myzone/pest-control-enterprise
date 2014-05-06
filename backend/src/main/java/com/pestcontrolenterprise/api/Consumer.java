@@ -4,14 +4,14 @@ package com.pestcontrolenterprise.api;
  * @author myzone
  * @date 4/25/14
  */
-public interface Consumer {
+public interface Consumer extends ReadonlyConsumer {
 
     String getName();
 
-    Address getAddress();
+    void setAddress(AdminSession session, Address address) throws IllegalStateException;
 
-    String getCellPhone();
+    void setCellPhone(AdminSession session, String cellPhone) throws IllegalStateException;
 
-    String getEmail();
+    void setEmail(AdminSession session, String email) throws IllegalStateException;
 
 }

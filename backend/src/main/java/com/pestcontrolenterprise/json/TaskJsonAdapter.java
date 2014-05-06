@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.persistent.PersistentTask;
 import com.pestcontrolenterprise.util.Segment;
@@ -23,10 +23,10 @@ import static com.pestcontrolenterprise.api.ReadonlyTask.TaskHistoryEntry;
  */
 public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<Task> {
 
-    private final ApplicationMediator applicationMediator;
+    private final ApplicationContext applicationContext;
 
-    public TaskJsonAdapter(ApplicationMediator applicationMediator) {
-        this.applicationMediator = applicationMediator;
+    public TaskJsonAdapter(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
 
         long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
 
-        return (Task) applicationMediator.getPersistenceSession().get(PersistentTask.class, id);
+        return (Task) applicationContext.getPersistenceSession().get(PersistentTask.class, id);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
 
         jsonObject.add("id", context.serialize(task.getId(), Long.TYPE));
         jsonObject.add("status", context.serialize(task.getStatus(), ReadonlyTask.Status.class));
-        jsonObject.add("executor", context.serialize(task.getExecutor().orElse(null), Worker.class));
+        jsonObject.add("executor", context.serialize(task.getExecutor().orElse(null), ReadonlyWorker.class));
         jsonObject.add("availabilityTime", context.serialize(task.getAvailabilityTime(), new TypeToken<ImmutableSet<Segment<Instant>>>() {}.getType()));
         jsonObject.add("consumer", context.serialize(task.getConsumer(), Consumer.class));
         jsonObject.add("pestType", context.serialize(task.getPestType(), PestType.class));

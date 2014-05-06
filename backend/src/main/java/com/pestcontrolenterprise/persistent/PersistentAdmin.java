@@ -1,6 +1,7 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.Segment;
 import org.hibernate.Session;
@@ -20,39 +21,31 @@ import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
  * @date 4/28/14
  */
 @Entity
-public class PersistentAdmin extends PersistentUser implements Admin {
+public final class PersistentAdmin extends PersistentUser implements Admin {
 
-    public PersistentAdmin() {
-    }
+    public PersistentAdmin(ApplicationContext applicationContext, String name, String password) {
+        super(applicationContext, name, password);
 
-    public PersistentAdmin(String name, String password) {
-        super(name, password);
+        save();
     }
 
     @Override
     public AdminSession beginSession(String password) throws AuthException, IllegalStateException {
-        if (!this.password.equals(password))
-            throw new AuthException();
+        try (QuiteAutoCloseable lock = readLock()) {
+            if (!this.password.equals(password))
+                throw new AuthException();
 
-        PersistentAdminSession persistentWorkerSession = new PersistentAdminSession(this);
-
-        Session persistenceSession = application.getPersistenceSession();
-
-        Transaction transaction = persistenceSession.beginTransaction();
-        persistenceSession.save(persistentWorkerSession);
-        transaction.commit();
-
-        return persistentWorkerSession;
+            return new PersistentAdminSession(getApplicationContext(), this);
+        }
     }
 
     @Entity
     public static class PersistentAdminSession extends PersistentUserSession implements AdminSession {
 
-        public PersistentAdminSession() {
-        }
+        public PersistentAdminSession(ApplicationContext applicationContext, PersistentAdmin user) {
+            super(applicationContext, user);
 
-        public PersistentAdminSession(PersistentAdmin user) {
-            super(user);
+            save();
         }
 
         @Override
@@ -63,31 +56,25 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         @Override
         public Task allocateTask(
                 Status status,
-                Optional<Worker> worker,
+                Optional<? extends ReadonlyWorker> worker,
                 ImmutableSet<Segment<Instant>> availabilityTime,
-                Consumer consumer,
+                ReadonlyConsumer consumer,
                 PestType pestType,
                 String problemDescription,
                 String comment
         ) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            PersistentTask persistentTask = new PersistentTask(this, status, worker, availabilityTime, consumer, pestType, problemDescription, comment);
-
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().save(persistentTask);
-            transaction.commit();
-
-            return persistentTask;
+            return new PersistentTask(getApplicationContext(), this, status, worker, availabilityTime, consumer, pestType, problemDescription, comment);
         }
 
         @Override
         public Task editTask(
                 Task task,
                 Optional<Status> status,
-                Optional<Optional<Worker>> worker,
+                Optional<Optional<? extends ReadonlyWorker>> worker,
                 Optional<ImmutableSet<Segment<Instant>>> availabilityTime,
-                Optional<Consumer> consumer,
+                Optional<? extends ReadonlyConsumer> consumer,
                 Optional<PestType> pestType,
                 Optional<String> problemDescription,
                 String comment
@@ -101,10 +88,6 @@ public class PersistentAdmin extends PersistentUser implements Admin {
             if (pestType.isPresent()) task.setPestType(this, pestType.get(), comment);
             if (problemDescription.isPresent()) task.setProblemDescription(this, problemDescription.get(), comment);
 
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().update(task);
-            transaction.commit();
-
             return task;
         }
 
@@ -113,17 +96,14 @@ public class PersistentAdmin extends PersistentUser implements Admin {
             ensureAndHoldOpened();
 
             task.setStatus(this, Status.CLOSED, comment);
-
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().update(task);
-            transaction.commit();
         }
 
         @Override
         public Stream<Task> getTasks() throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return getPersistenceSession()
+            return getApplicationContext()
+                    .getPersistenceSession()
                     .createCriteria(PersistentTask.class)
                     .list()
                     .stream();
@@ -140,7 +120,7 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         public Consumer editConsumer(Consumer consumer, Optional<String> name, Optional<Address> address, Optional<String> cellPhone, Optional<String> email) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return null;
+            return consumer;
         }
 
         @Override
@@ -154,14 +134,7 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         public Worker registerWorker(String name, String password, Set<PestType> workablePestTypes) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            PersistentWorker persistentWorker = new PersistentWorker(name, password, ImmutableSet.copyOf(workablePestTypes));
-            persistentWorker.setApplication(user.application);
-
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().save(persistentWorker);
-            transaction.commit();
-
-            return persistentWorker;
+            return new PersistentWorker(getApplicationContext(), name, password, ImmutableSet.copyOf(workablePestTypes));
         }
 
         @Override
@@ -171,10 +144,6 @@ public class PersistentAdmin extends PersistentUser implements Admin {
             if (password.isPresent()) worker.setPassword(this, password.get());
             if (workablePestTypes.isPresent()) worker.setWorkablePestTypes(this, ImmutableSet.copyOf(workablePestTypes.get()));
 
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().update(worker);
-            transaction.commit();
-
             return worker;
         }
 
@@ -182,18 +151,11 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         public Stream<Worker> getWorkers() throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return getPersistenceSession()
+            return getApplicationContext()
+                    .getPersistenceSession()
                     .createCriteria(PersistentWorker.class)
                     .list()
-                    .stream()
-                    .map(new Function<PersistentWorker, PersistentWorker>() {
-                        @Override
-                        public PersistentWorker apply(PersistentWorker worker) {
-                            worker.setApplication(user.application);
-
-                            return worker;
-                        }
-                    });
+                    .stream();
         }
 
     }

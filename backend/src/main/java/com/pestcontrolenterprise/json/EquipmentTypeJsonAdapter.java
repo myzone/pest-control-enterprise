@@ -1,7 +1,7 @@
 package com.pestcontrolenterprise.json;
 
 import com.google.gson.*;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.EquipmentType;
 import com.pestcontrolenterprise.persistent.PersistentEquipmentType;
 
@@ -13,10 +13,10 @@ import java.lang.reflect.Type;
  */
 public class EquipmentTypeJsonAdapter implements JsonSerializer<EquipmentType>, JsonDeserializer<EquipmentType> {
 
-    private final ApplicationMediator applicationMediator;
+    private final ApplicationContext applicationContext;
 
-    public EquipmentTypeJsonAdapter(ApplicationMediator applicationMediator) {
-        this.applicationMediator = applicationMediator;
+    public EquipmentTypeJsonAdapter(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class EquipmentTypeJsonAdapter implements JsonSerializer<EquipmentType>, 
 
         long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
 
-        return (EquipmentType) applicationMediator.getPersistenceSession().get(PersistentEquipmentType.class, id);
+        return (EquipmentType) applicationContext.getPersistenceSession().get(PersistentEquipmentType.class, id);
     }
 
     @Override

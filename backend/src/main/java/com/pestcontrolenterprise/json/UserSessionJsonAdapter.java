@@ -3,7 +3,7 @@ package com.pestcontrolenterprise.json;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.AdminSession;
 import com.pestcontrolenterprise.api.UserSession;
 import com.pestcontrolenterprise.api.WorkerSession;
@@ -17,10 +17,10 @@ import java.lang.reflect.Type;
  */
 public class UserSessionJsonAdapter implements JsonSerializer<UserSession>, JsonDeserializer<UserSession> {
 
-    private final ApplicationMediator applicationMediator;
+    private final ApplicationContext applicationContext;
 
-    public UserSessionJsonAdapter(ApplicationMediator applicationMediator) {
-        this.applicationMediator = applicationMediator;
+    public UserSessionJsonAdapter(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class UserSessionJsonAdapter implements JsonSerializer<UserSession>, Json
 
         long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
 
-        return (UserSession) applicationMediator.getPersistenceSession().get(PersistentUser.PersistentUserSession.class, id);
+        return (UserSession) applicationContext.getPersistenceSession().get(PersistentUser.PersistentUserSession.class, id);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class UserSessionJsonAdapter implements JsonSerializer<UserSession>, Json
     protected ImmutableSet<String> getUserSessionTypes(UserSession userSession) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
 
-        if (userSession instanceof WorkerSession) builder.add("Worker");
+        if (userSession instanceof WorkerSession) builder.add("ReadonlyWorker");
         if (userSession instanceof AdminSession) builder.add("Admin");
 
         return builder.build();

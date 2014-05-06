@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 public interface WorkerSession extends UserSession {
 
     @Override
-    Worker getOwner();
+    ReadonlyWorker getOwner();
 
     /**
      * Returns set of tasks which are assigned to current worker

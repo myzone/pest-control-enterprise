@@ -34,21 +34,4 @@ public class DataBaseInfrastractureTest {
             PersistentTask.class
     );
 
-    @Test
-    public void testInfrastracture() throws Exception {
-        Session session = sessionFactory.getSessionFactory().openSession();
-
-        Transaction transaction1 = session.beginTransaction();
-        PersistentAddress persistentAddress = new PersistentAddress();
-        session.save(persistentAddress);
-        PersistentConsumer persistentConsumer = new PersistentConsumer(UUID.randomUUID().toString() , persistentAddress, "asd", "asd");
-        session.save(persistentConsumer);
-        transaction1.commit();
-
-        Transaction transaction2 = session.beginTransaction();
-        assertTrue(session.createCriteria(PersistentConsumer.class).list().contains(persistentConsumer));
-        transaction2.rollback();
-
-        session.flush();
-    }
 }

@@ -19,11 +19,11 @@ public interface ReadonlyTask {
 
     Status getStatus();
 
-    Optional<Worker> getExecutor();
+    Optional<ReadonlyWorker> getExecutor();
 
     ImmutableSet<Segment<Instant>> getAvailabilityTime();
 
-    Consumer getConsumer();
+    ReadonlyConsumer getConsumer();
 
     PestType getPestType();
 

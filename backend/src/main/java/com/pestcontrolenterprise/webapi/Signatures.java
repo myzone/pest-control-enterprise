@@ -47,8 +47,8 @@ public interface Signatures {
     Procedure<String, EditConsumerRequest, Consumer> editConsumer = Procedure.of("editConsumer", new TypeToken<EditConsumerRequest>() {}, new TypeToken<Consumer>() {});
     Procedure<String, AuthorizedGetRequest<AdminSession, Consumer>, Stream<Consumer>> getConsumers = Procedure.of("getConsumers", new TypeToken<AuthorizedGetRequest<AdminSession, Consumer>>() {}, new TypeToken<Stream<Consumer>>() {});
 
-    Procedure<String, RegisterWorkerRequest, Worker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<Worker>() {});
-    Procedure<String, EditWorkerRequest, Worker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<Worker>() {});
+    Procedure<String, RegisterWorkerRequest, ReadonlyWorker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
+    Procedure<String, EditWorkerRequest, ReadonlyWorker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
     Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, Stream<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<Stream<Worker>>() {});
 
     class GetRequest<T> {
@@ -154,9 +154,9 @@ public interface Signatures {
 
         private AdminSession session;
         private ReadonlyTask.Status status;
-        private Optional<Worker  > worker;
+        private Optional<ReadonlyWorker> worker;
         private Set<Segment<Instant>> availabilityTime;
-        private Consumer consumer;
+        private ReadonlyConsumer consumer;
         private PestType pestType;
         private String problemDescription;
         private String comment;
@@ -177,11 +177,11 @@ public interface Signatures {
             this.status = status;
         }
 
-        public Optional<Worker> getWorker() {
+        public Optional<ReadonlyWorker> getWorker() {
             return worker;
         }
 
-        public void setWorker(Optional<Worker> worker) {
+        public void setWorker(Optional<ReadonlyWorker> worker) {
             this.worker = worker;
         }
 
@@ -193,11 +193,11 @@ public interface Signatures {
             this.availabilityTime = availabilityTime;
         }
 
-        public Consumer getConsumer() {
+        public ReadonlyConsumer getConsumer() {
             return consumer;
         }
 
-        public void setConsumer(Consumer consumer) {
+        public void setConsumer(ReadonlyConsumer consumer) {
             this.consumer = consumer;
         }
 
@@ -231,10 +231,10 @@ public interface Signatures {
 
         private AdminSession session;
         private Task task;
-        private Optional<Optional<Worker>> worker;
+        private Optional<Optional<? extends ReadonlyWorker>> worker;
         private Optional<ReadonlyTask.Status> status;
         private Optional<Set<Segment<Instant>>> availabilityTime;
-        private Optional<Consumer> consumer;
+        private Optional<ReadonlyConsumer> consumer;
         private Optional<PestType> pestType;
         private Optional<String> problemDescription;
         private String comment;
@@ -255,11 +255,11 @@ public interface Signatures {
             this.task = task;
         }
 
-        public Optional<Optional<Worker>> getWorker() {
+        public Optional<Optional<? extends ReadonlyWorker>> getWorker() {
             return worker;
         }
 
-        public void setWorker(Optional<Optional<Worker>> worker) {
+        public void setWorker(Optional<Optional<? extends ReadonlyWorker>> worker) {
             this.worker = worker;
         }
 
@@ -279,11 +279,11 @@ public interface Signatures {
             this.availabilityTime = availabilityTime;
         }
 
-        public Optional<Consumer> getConsumer() {
+        public Optional<ReadonlyConsumer> getConsumer() {
             return consumer;
         }
 
-        public void setConsumer(Optional<Consumer> consumer) {
+        public void setConsumer(Optional<ReadonlyConsumer> consumer) {
             this.consumer = consumer;
         }
 

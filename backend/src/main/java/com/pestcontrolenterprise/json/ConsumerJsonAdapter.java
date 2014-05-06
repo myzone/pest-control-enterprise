@@ -1,7 +1,7 @@
 package com.pestcontrolenterprise.json;
 
 import com.google.gson.*;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Address;
 import com.pestcontrolenterprise.api.Consumer;
 import com.pestcontrolenterprise.persistent.PersistentConsumer;
@@ -14,10 +14,10 @@ import java.lang.reflect.Type;
  */
 public class ConsumerJsonAdapter implements JsonSerializer<Consumer>, JsonDeserializer<Consumer> {
 
-    private final ApplicationMediator applicationMediator;
+    private final ApplicationContext applicationContext;
 
-    public ConsumerJsonAdapter(ApplicationMediator applicationMediator) {
-        this.applicationMediator = applicationMediator;
+    public ConsumerJsonAdapter(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class ConsumerJsonAdapter implements JsonSerializer<Consumer>, JsonDeseri
 
         String name = context.deserialize(jsonObject.get("name"), String.class);
 
-        return (Consumer) applicationMediator.getPersistenceSession().get(PersistentConsumer.class, name);
+        return (Consumer) applicationContext.getPersistenceSession().get(PersistentConsumer.class, name);
     }
 
     @Override

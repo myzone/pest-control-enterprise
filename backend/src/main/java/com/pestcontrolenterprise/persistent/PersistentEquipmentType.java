@@ -2,6 +2,7 @@ package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
 import com.pestcontrolenterprise.api.EquipmentType;
+import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
 
@@ -9,18 +10,16 @@ import javax.persistence.*;
  * @author myzone
  * @date 4/28/14
  */
+@Immutable
 @Entity
 public class PersistentEquipmentType implements EquipmentType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private volatile long id;
+    private final long id = 0;
 
     @Column
-    protected volatile String name;
-
-    public PersistentEquipmentType() {
-    }
+    protected final String name;
 
     public PersistentEquipmentType(String name) {
         this.name = name;

@@ -3,10 +3,10 @@ package com.pestcontrolenterprise.json;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Admin;
+import com.pestcontrolenterprise.api.ReadonlyWorker;
 import com.pestcontrolenterprise.api.User;
-import com.pestcontrolenterprise.api.Worker;
 import com.pestcontrolenterprise.persistent.PersistentUser;
 
 import java.lang.reflect.Type;
@@ -17,10 +17,10 @@ import java.lang.reflect.Type;
  */
 public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<User> {
 
-    private final ApplicationMediator applicationMediator;
+    private final ApplicationContext applicationContext;
 
-    public UserJsonAdapter(ApplicationMediator applicationMediator) {
-        this.applicationMediator = applicationMediator;
+    public UserJsonAdapter(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -28,8 +28,7 @@ public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<U
         JsonObject jsonObject = (JsonObject) jsonElement;
 
         String name = context.deserialize(jsonObject.get("name"), String.class);
-        PersistentUser user = (PersistentUser) applicationMediator.getPersistenceSession().get(PersistentUser.class, name);
-        user.setApplication(applicationMediator);
+        PersistentUser user = (PersistentUser) applicationContext.getPersistenceSession().get(PersistentUser.class, name);
 
         return user;
     }
@@ -47,7 +46,7 @@ public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<U
     protected ImmutableSet<String> getUserTypes(User user) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
 
-        if (user instanceof Worker) builder.add("Worker");
+        if (user instanceof ReadonlyWorker) builder.add("ReadonlyWorker");
         if (user instanceof Admin) builder.add("Admin");
 
         return builder.build();

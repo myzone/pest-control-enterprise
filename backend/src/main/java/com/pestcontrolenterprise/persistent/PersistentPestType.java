@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.api.EquipmentType;
 import com.pestcontrolenterprise.api.PestType;
+import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -12,24 +13,22 @@ import java.util.Set;
  * @author myzone
  * @date 4/28/14
  */
+@Immutable
 @Entity
 public class PersistentPestType implements PestType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private volatile long id;
+    private final long id = 0;
 
     @Column
-    protected volatile String name;
+    protected final String name;
 
     @Column
-    protected volatile String description;
+    protected final String description;
 
     @ManyToMany(targetEntity = PersistentEquipmentType.class)
     protected volatile Set<EquipmentType> requiredEquipmentTypes;
-
-    public PersistentPestType() {
-    }
 
     public PersistentPestType(String name, String description, Set<EquipmentType> requiredEquipmentTypes) {
         this.name = name;

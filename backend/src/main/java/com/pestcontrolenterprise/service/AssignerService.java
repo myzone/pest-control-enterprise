@@ -45,12 +45,12 @@ public class AssignerService extends RecursiveAction {
                         try {
                             adminSession.editTask(
                                     task,
-                                    Optional.<Status>of(Status.ASSIGNED),
-                                    Optional.<Optional<Worker>>of(determineAppropriateExecutor(adminSession, task)),
-                                    Optional.<ImmutableSet<Segment<Instant>>>empty(),
-                                    Optional.<Consumer>empty(),
-                                    Optional.<PestType>empty(),
-                                    Optional.<String>empty(),
+                                    Optional.of(Status.ASSIGNED),
+                                    Optional.of(determineAppropriateExecutor(adminSession, task)),
+                                    Optional.empty(),
+                                    Optional.empty(),
+                                    Optional.empty(),
+                                    Optional.empty(),
                                     commentSupplier.get()
                             );
                         } catch (IllegalStateException ingored) {

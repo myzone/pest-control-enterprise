@@ -19,9 +19,9 @@ public interface AdminSession extends UserSession {
 
     Task allocateTask(
             ReadonlyTask.Status status,
-            Optional<Worker> worker,
+            Optional<? extends ReadonlyWorker> worker,
             ImmutableSet<Segment<Instant>> availabilityTime,
-            Consumer consumer,
+            ReadonlyConsumer consumer,
             PestType pestType,
             String problemDescription,
             String comment
@@ -30,9 +30,9 @@ public interface AdminSession extends UserSession {
     Task editTask(
             Task task,
             Optional<ReadonlyTask.Status> status,
-            Optional<Optional<Worker>> worker,
+            Optional<Optional<? extends ReadonlyWorker>> worker,
             Optional<ImmutableSet<Segment<Instant>>> availabilityTime,
-            Optional<Consumer> consumer,
+            Optional<? extends ReadonlyConsumer> consumer,
             Optional<PestType> pestType,
             Optional<String> problemDescription,
             String comment

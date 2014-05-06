@@ -1,7 +1,8 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
+import com.pestcontrolenterprise.api.AdminSession;
 import com.pestcontrolenterprise.api.User;
 import com.pestcontrolenterprise.api.UserSession;
 import org.hibernate.Session;
@@ -20,20 +21,17 @@ import static com.google.common.base.Objects.ToStringHelper;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class PersistentUser implements User {
-
-    protected transient ApplicationMediator application;
+public abstract class PersistentUser extends PersistentObject implements User {
 
     @Id
-    protected String name;
+    protected final String name;
 
     @Column
     protected volatile String password;
 
-    protected PersistentUser() {
-    }
+    public PersistentUser(ApplicationContext applicationContext, String name, String password) {
+        super(applicationContext);
 
-    public PersistentUser(String name, String password) {
         this.name = name;
         this.password = password;
     }
@@ -43,28 +41,39 @@ public abstract class PersistentUser implements User {
         return name;
     }
 
-    public void setApplication(ApplicationMediator application) {
-        this.application = application;
+    protected final void setPassword(UserSession session, String newPassword) throws IllegalStateException {
+        try (QuiteAutoCloseable lock = writeLock()) {
+            if (!session.isStillActive())
+                throw new IllegalStateException();
+
+            this.password = newPassword;
+
+            update();
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PersistentUser)) return false;
+        try (QuiteAutoCloseable lock = readLock()) {
+            if (this == o) return true;
+            if (!(o instanceof PersistentUser)) return false;
 
-        PersistentUser that = (PersistentUser) o;
+            PersistentUser that = (PersistentUser) o;
 
-        if (!name.equals(that.name)) return false;
-        if (!password.equals(that.password)) return false;
+            if (!name.equals(that.name)) return false;
+            if (!password.equals(that.password)) return false;
 
-        return true;
+            return true;
+        }
     }
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + password.hashCode();
-        return result;
+        try (QuiteAutoCloseable lock = readLock()) {
+            int result = name.hashCode();
+            result = 31 * result + password.hashCode();
+            return result;
+        }
     }
 
     @Override
@@ -80,27 +89,26 @@ public abstract class PersistentUser implements User {
     @Entity
     @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
     @DiscriminatorColumn(length = 100)
-    public abstract static class PersistentUserSession implements UserSession {
+    public abstract static class PersistentUserSession extends PersistentObject implements UserSession {
 
         protected static final Duration DEFAULT_DELAY = Duration.ofHours(1);
 
         @Id
         @GeneratedValue(strategy = GenerationType.AUTO)
-        protected long id;
+        protected final long id = 0;
 
         @ManyToOne
-        protected volatile PersistentUser user;
+        protected final PersistentUser user;
 
         @Column
-        protected volatile Instant opened;
+        protected final Instant opened;
 
         @Column
         protected volatile Instant closed;
 
-        protected PersistentUserSession() {
-        }
+        public PersistentUserSession(ApplicationContext applicationContext, PersistentUser user) {
+            super(applicationContext);
 
-        public PersistentUserSession(PersistentUser user) {
             this.user = user;
 
             opened = Clock.systemDefaultZone().instant();
@@ -117,37 +125,39 @@ public abstract class PersistentUser implements User {
             return id;
         }
 
+        @Override
         public Instant getOpened() {
             return opened;
         }
 
+        @Override
         public Instant getClosed() {
-            return closed;
+            try (QuiteAutoCloseable lock = readLock()) {
+                return closed;
+            }
         }
 
         @Override
         public void changePassword(String newPassword) throws IllegalStateException {
-            ensureAndHoldOpened();
+            try (QuiteAutoCloseable lock = readLock()) {
+                ensureAndHoldOpened();
 
-            user.password = newPassword;
-
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().update(user);
-            transaction.commit();
+                user.setPassword(this, newPassword);
+            }
         }
 
         @Override
-        public void close() throws IllegalStateException {
-            Instant now = Clock.systemDefaultZone().instant();
+        public final void close() throws IllegalStateException {
+            try (QuiteAutoCloseable lock = writeLock()) {
+                Instant now = Clock.systemDefaultZone().instant();
 
-            if (! willBeActive(now))
-                throw new IllegalStateException("Is already closed");
+                if (!willBeActive(now))
+                    throw new IllegalStateException("Is already closed");
 
-            closed = now;
+                closed = now;
 
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().update(this);
-            transaction.commit();
+                update();
+            }
         }
 
         @Override
@@ -184,21 +194,17 @@ public abstract class PersistentUser implements User {
                     .add("closed", closed);
         }
 
-        protected Session getPersistenceSession() {
-            return user.application.getPersistenceSession();
-        }
+        protected final void ensureAndHoldOpened() throws IllegalStateException {
+            try (QuiteAutoCloseable lock = writeLock()) {
+                Instant now = Clock.systemDefaultZone().instant();
 
-        protected void ensureAndHoldOpened() throws IllegalStateException {
-            Instant now = Clock.systemDefaultZone().instant();
+                if (!willBeActive(now))
+                    throw new IllegalStateException("Is already closed");
 
-            if (!willBeActive(now))
-                throw new IllegalStateException("Is already closed");
+                closed = now.plus(DEFAULT_DELAY);
 
-            closed = now.plus(DEFAULT_DELAY);
-
-            Transaction transaction = getPersistenceSession().beginTransaction();
-            getPersistenceSession().update(this);
-            transaction.commit();
+                update();
+            }
         }
 
     }

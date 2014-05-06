@@ -2,8 +2,8 @@ package com.pestcontrolenterprise;
 
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.api.ReadonlyTask;
+import com.pestcontrolenterprise.api.ReadonlyWorker;
 import com.pestcontrolenterprise.api.Task;
-import com.pestcontrolenterprise.api.Worker;
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.util.H2SessionFactoryProvider;
 import com.pestcontrolenterprise.util.Segment;
@@ -42,7 +42,7 @@ public class SomeApiTest {
     @Test
     public void testName() throws Exception {
         final Session session = sessionFactory.getSessionFactory().openSession();
-        ApplicationMediator applicationMediator = new ApplicationMediator() {
+        ApplicationContext applicationContext = new ApplicationContext() {
             @Override
             public Session getPersistenceSession() {
                 return session;
@@ -51,19 +51,15 @@ public class SomeApiTest {
 
         Transaction transaction1 = session.beginTransaction();
 
-        PersistentWorker worker = new PersistentWorker("ololo", "fuck", ImmutableSet.of());
-        worker.setApplication(applicationMediator);
-
+        PersistentWorker worker = new PersistentWorker(applicationContext, "ololo", "fuck", ImmutableSet.of());
         session.save(worker);
 
-        PersistentAdmin admin = new PersistentAdmin("asd", "asd");
-        admin.setApplication(applicationMediator);
-
+        PersistentAdmin admin = new PersistentAdmin(applicationContext, "asd", "asd");
         session.save(admin);
 
         PersistentAddress address = new PersistentAddress("some street");
 
-        PersistentConsumer consumer = new PersistentConsumer(UUID.randomUUID().toString() , address, "asd", "asd");
+        PersistentConsumer consumer = new PersistentConsumer(applicationContext, UUID.randomUUID().toString() , address, "asd", "asd");
         session.save(consumer);
 
         PersistentPestType pestType = new PersistentPestType("asd", "blah", ImmutableSet.of());
@@ -71,7 +67,7 @@ public class SomeApiTest {
 
         transaction1.commit();
 
-        admin.beginSession("asd").allocateTask(ReadonlyTask.Status.ASSIGNED, Optional.<Worker>of(worker), ImmutableSet.<Segment<Instant>>of(), consumer, pestType, "nothing", "ololo!!!!11");
+        admin.beginSession("asd").allocateTask(ReadonlyTask.Status.ASSIGNED, Optional.<ReadonlyWorker>of(worker), ImmutableSet.<Segment<Instant>>of(), consumer, pestType, "nothing", "ololo!!!!11");
 
 
         worker.beginSession("fuck").getAssignedTasks().forEach(new Consumer<Task>() {

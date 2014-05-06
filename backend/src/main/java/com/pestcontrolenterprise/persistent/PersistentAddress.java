@@ -2,6 +2,7 @@ package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
 import com.pestcontrolenterprise.api.Address;
+import org.hibernate.annotations.Immutable;
 
 import java.io.Serializable;
 
@@ -9,12 +10,10 @@ import java.io.Serializable;
  * @author myzone
  * @date 4/28/14
  */
+@Immutable
 public class PersistentAddress implements Address, Serializable {
 
-    protected volatile String representation;
-
-    public PersistentAddress() {
-    }
+    protected final String representation;
 
     public PersistentAddress(String representation) {
         this.representation = representation;

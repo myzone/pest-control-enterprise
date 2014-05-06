@@ -2,7 +2,7 @@ package com.pestcontrolenterprise.webapi;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.GsonBuilder;
-import com.pestcontrolenterprise.ApplicationMediator;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint;
 import com.pestcontrolenterprise.json.*;
@@ -35,8 +35,10 @@ public class MainEndpoint {
     private static final short port = 9292;
 
     public static void main(String[] args) throws Exception {
-        ApplicationMediator applicationMediator = buildApplicationMediator(buildConfiguration(
+        ApplicationContext applicationContext = buildApplicationContext(buildConfiguration(
                 "mem:db1",
+                PersistentObject.class,
+                PersistentApplicationContext.class,
                 PersistentConsumer.class,
                 PersistentEquipmentType.class,
                 PersistentPestType.class,
@@ -51,39 +53,39 @@ public class MainEndpoint {
 
         NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder = NettyRpcEndpoint.builder(String.class);
 
-        populateDbWithTestData(applicationMediator);
-        runServices(applicationMediator);
-        configureJson(endpointBuilder, applicationMediator);
-        configureHandlers(endpointBuilder, applicationMediator);
+        populateDbWithTestData(applicationContext);
+        runServices(applicationContext);
+        configureJson(endpointBuilder, applicationContext);
+        configureHandlers(endpointBuilder, applicationContext);
 
         endpointBuilder
                 .build()
                 .bind(port);
     }
 
-    private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationMediator applicationMediator) {
+    private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
         endpointBuilder.withGsonBuilder(new GsonBuilder()
                         .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
                         .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
-                        .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationMediator))
+                        .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
                         .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
-                        .registerTypeHierarchyAdapter(Consumer.class,new ConsumerJsonAdapter(applicationMediator))
+                        .registerTypeHierarchyAdapter(Consumer.class,new ConsumerJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(Address.class,new AddressJsonAdapter())
-                        .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationMediator))
-                        .registerTypeHierarchyAdapter(Worker.class, new WorkerJsonAdapter(applicationMediator))
-                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationMediator))
-                        .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationMediator))
-                        .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationMediator))
+                        .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
                         .setPrettyPrinting()
                         .generateNonExecutableJson()
         );
     }
 
-    private static ApplicationMediator buildApplicationMediator(Configuration configuration) {
+    private static PersistentApplicationContext buildApplicationContext(Configuration configuration) {
         Session session = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build()).openSession();
 
-        return () -> session;
+        return new PersistentApplicationContext(session);
     }
 
     private static Configuration buildConfiguration(String db, Class<?>... annotatedClasses) {
@@ -102,18 +104,17 @@ public class MainEndpoint {
         return configuration;
     }
 
-    private static void populateDbWithTestData(ApplicationMediator applicationMediator) throws AuthException {
+    private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException {
         PersistentEquipmentType trowel = new PersistentEquipmentType("trowel");
         PersistentPestType crap = new PersistentPestType("crap", "", ImmutableSet.of(trowel));
 
+        PersistentConsumer consumer = new PersistentConsumer(applicationContext, "asd", new PersistentAddress("asd"), "asd", "asd");
 
-        PersistentConsumer consumer = new PersistentConsumer("asd", new PersistentAddress("asd"), "asd", "asd");
+        PersistentAdmin admin = new PersistentAdmin(applicationContext, "myzone", "fuck");
 
-        PersistentAdmin admin = new PersistentAdmin("myzone", "fuck");
-        admin.setApplication(applicationMediator);
-
-        Session persistenceSession = applicationMediator.getPersistenceSession();
+        Session persistenceSession = applicationContext.getPersistenceSession();
         Transaction transaction = persistenceSession.beginTransaction();
+        persistenceSession.saveOrUpdate(applicationContext);
         persistenceSession.save(trowel);
         persistenceSession.save(crap);
         persistenceSession.save(admin);
@@ -126,8 +127,8 @@ public class MainEndpoint {
         adminSession.close();
     }
 
-    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationMediator applicationMediator) {
-        PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationMediator);
+    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) {
+        PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationContext);
 
         endpointBuilder
                 .withHandlerPair(plus, integers -> integers.stream().reduce(Math::addExact).orElse(0))
@@ -201,12 +202,11 @@ public class MainEndpoint {
                 ));
     }
 
-    private static void runServices(ApplicationMediator applicationMediator) {
-        Session persistenceSession = applicationMediator.getPersistenceSession();
+    private static void runServices(ApplicationContext applicationContext) {
+        Session persistenceSession = applicationContext.getPersistenceSession();
         String currentServicePassword = UUID.randomUUID().toString();
 
-        PersistentAdmin admin = new PersistentAdmin(AssignerService.class.getSimpleName(), currentServicePassword);
-        admin.setApplication(applicationMediator);
+        PersistentAdmin admin = new PersistentAdmin(applicationContext, AssignerService.class.getSimpleName(), currentServicePassword);
 
         Transaction transaction = persistenceSession.beginTransaction();
         persistenceSession.saveOrUpdate(admin);
