@@ -1,3 +1,5 @@
-/**
- * Created by gleab on 06.05.2014.
- */
+var PSE={}
+PSE.init=function(controls)
+{
+    PSE.controls=controls;
+}

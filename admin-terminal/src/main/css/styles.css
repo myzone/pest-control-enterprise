@@ -1,0 +1,73 @@
+.header
+{
+    height:80px;
+}
+.logo
+{
+    margin-left: 5px;
+    margin-top: 2px;
+    margin-right: 20px;
+    float: left;
+}
+.logo-text
+{
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 2em;
+}
+.footer
+{
+    height: 50px;
+}
+.right-panel
+{
+    width:200px;
+}
+.user-info-panel
+{
+    height: 125px;
+    padding: 5px;
+}
+.color-status
+{
+    width: 10px;
+    height: 10px;
+    margin: 3px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #cccccc;
+}
+.color-status.opened
+{
+    background-color: green;
+}
+.color-status.assigned
+{
+    background-color: greenyellow;
+}
+.color-status.started
+{
+    background-color: #ffab3f;
+}
+.color-status.finished
+{
+    background-color: cornflowerblue;
+}
+.color-status.closed
+{
+    background-color: #aaaaaa;
+}
+*{
+    font-size:12px;
+}
+body {
+    font-family:verdana,helvetica,arial,sans-serif;
+    padding:20px;
+    font-size:12px;
+    margin:0;
+}
+h2 {
+    font-size:18px;
+    font-weight:bold;
+    margin:0;
+    margin-bottom:15px;
+}
