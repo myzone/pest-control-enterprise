@@ -6,8 +6,10 @@ import com.pestcontrolenterprise.api.EquipmentType;
 import com.pestcontrolenterprise.api.PestType;
 import org.hibernate.annotations.Immutable;
 
+import javax.annotation.Generated;
 import javax.persistence.*;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author myzone
@@ -18,8 +20,7 @@ import java.util.Set;
 public class PersistentPestType implements PestType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private final long id = 0;
+    private final long id = UUID.randomUUID().getLeastSignificantBits();;
 
     @Column
     protected final String name;

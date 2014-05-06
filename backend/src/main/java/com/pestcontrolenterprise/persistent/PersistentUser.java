@@ -12,6 +12,7 @@ import javax.persistence.*;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 
 import static com.google.common.base.Objects.ToStringHelper;
 
@@ -94,8 +95,7 @@ public abstract class PersistentUser extends PersistentObject implements User {
         protected static final Duration DEFAULT_DELAY = Duration.ofHours(1);
 
         @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
-        protected final long id = 0;
+        protected final long id = UUID.randomUUID().getLeastSignificantBits();
 
         @ManyToOne
         protected final PersistentUser user;

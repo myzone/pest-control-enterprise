@@ -30,4 +30,5 @@ public class PersistentApplicationContext implements ApplicationContext {
     public Session getPersistenceSession() {
         return persistenceSession;
     }
+
 }

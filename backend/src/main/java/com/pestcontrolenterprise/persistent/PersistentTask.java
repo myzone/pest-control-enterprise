@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,8 +31,7 @@ import static java.util.Collections.emptyMap;
 public class PersistentTask extends PersistentObject implements Task {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private final long id = 0;
+    private final long id = UUID.randomUUID().getLeastSignificantBits();;
 
     @Column
     protected volatile Status status;

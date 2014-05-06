@@ -5,6 +5,7 @@ import com.pestcontrolenterprise.api.EquipmentType;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 /**
  * @author myzone
@@ -15,8 +16,7 @@ import javax.persistence.*;
 public class PersistentEquipmentType implements EquipmentType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private final long id = 0;
+    private final long id = UUID.randomUUID().getLeastSignificantBits();
 
     @Column
     protected final String name;
