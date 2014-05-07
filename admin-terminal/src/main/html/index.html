@@ -1,96 +1,45 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
         <title>Admin terminal</title>
-        <meta charset="Windows-1251">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" type="text/css" href="themes/default/easyui.css">
         <link rel="stylesheet" type="text/css" href="themes/icon.css">
         <link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.10.4.custom.css">
         <link rel="stylesheet" type="text/css" href="styles.css">
+
+        <script type="text/javascript" src="underscore.js"></script>
         <script type="text/javascript" src="jquery.min.js"></script>
         <script type="text/javascript" src="jquery.easyui.min.js"></script>
-        <script type="text/javascript" src="pse.terminal.strings.js"></script>
+        <script type="text/javascript" src="backbone.js"></script>
         <script type="text/javascript" src="pse.terminal.core.js"></script>
-        <script type="text/javascript">
-            $(document).ready(function(){
-                PSE.init({
-                    tabs:$('#tabs'),
-                    ticketsToolbar:$('#ticketsToolbar'),
-                    ticketsView:$('#ticketsView'),
-                    usersToolbar:$('#usersToolbar'),
-                    usersView:$('#usersView'),
-                    userInfoPanel:$('.user-info-panel')
-                });
-                $('#ticketsView').datagrid({
-                    toolbar: '#ticketsToolbar',
-                    columns:[[
-                        {field:'colorStatus',title:''},
-                        {field:'ticketid',title:'Заявка #'},
-                        {field:'status',title:'Состояние'},
-                        {field:'creationDate',title:'Создана'},
-                        {field:'age',title:'Возраст'},
-                        {field:'lastModified',title:'Последнее изменение'},
-                        {field:'type',title:'Тип заявки / Описание'},
-                        {field:'worker',title:'Ответственный сотрудник'},
-                    ]],
-                    idField:'ticketid',
-                    data:[
-                        {
-                            colorStatus:'<div class="color-status opened"></div>',
-                            ticketid:'156123',
-                            status:'Открыта',
-                            creationDate:'2014-05-06 10:40',
-                            age:'1 ч. 30 мин.',
-                            lastModified:'2014-05-06 10:40',
-                            type:'<b>Тараканы</b><br/><span>Они заполонили всю планету!</span>',
-                            worker:'-'
-                        },
-                        {
-                            colorStatus:'<div class="color-status started"></div>',
-                            ticketid:'156140',
-                            status:'Исполняется',
-                            creationDate:'2014-05-06 10:40',
-                            age:'1 ч. 30 мин.',
-                            lastModified:'2014-05-06 10:40',
-                            type:'<b>Мыши</b><br/><span>Очень моного мышей!</span>',
-                            worker:'Mr. Smith'
-                        }
-                    ],
-                    singleSelect:true,
-                    rownumbers:true,
-                    pagination:true
-                });
-            });
-        </script>
     </head>
     <body class="easyui-layout">
         <div data-options="region:'center'">
             <div class="easyui-layout" data-options="fit:true">
-                <!--<div class="header ui-widget-header" data-options="region:'north'">
-                    <img class="logo" src="images/bug.png" width="75" height="75"/>
-                    <p class="logo-text">Pest Control Enterprise - Terminal</p>
-                </div>-->
-                <div data-options="region:'center'" class="easyui-tabs" id="tabs">
-                    <div title="Заявки">
-                        <div id="ticketsToolbar">
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                <div data-options="region:'center'">
+                    <div class="easyui-tabs" id="tabs" data-options="fit:true">
+                        <div title="Р—Р°СЏРІРєРё" >
+                            <div id="ticketsToolbar">
+                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
+                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                            </div>
+                            <table id="ticketsView"></table>
                         </div>
-                        <table id="ticketsView" data-options="fit:true"></table>
-                    </div>
-                    <div title="Пользователи" class="easyui-layout">
-                        <div id="usersToolbar">
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                        <div title="РџРѕР»СЊР·РѕРІР°С‚РµР»Рё" class="easyui-layout">
+                            <div id="usersToolbar">
+                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
+                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                            </div>
+                            <table id="usersView" data-options="fit:true"></table>
                         </div>
-                        <table id="usersView" data-options="fit:true"></table>
                     </div>
                 </div>
                 <div class="right-panel" data-options="region:'east',split:true">
                     <div class="easyui-layout" data-options="fit:true">
-                        <div class="user-info-panel" data-options="region:'north',title:'Инфо',collapsible:false,iconCls:'icon-user'">
-                            <p>Вы вошли как:</p>
+                        <div class="user-info-panel" data-options="region:'north',title:'РРЅС„Рѕ',collapsible:false,iconCls:'icon-user'">
+                            <p>Р’С‹ РІРѕС€Р»Рё РєР°Рє:</p>
                         </div>
                     </div>
                 </div>
