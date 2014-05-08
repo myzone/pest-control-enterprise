@@ -9,11 +9,33 @@
         <link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.10.4.custom.css">
         <link rel="stylesheet" type="text/css" href="styles.css">
 
+        <script type="text/template" id="user-info-panel-template">
+            <div class="user-info-panel">
+                <p class="lbl-text"></p>
+                <a class="user-name" href="#"></a>
+                <a class="logout-button" href="#">Выйти</a>
+            </div>
+        </script>
+
+        <script type="text/template" id="login-form-template">
+            <div class="login-form">
+                <form style="padding:10px 20px 10px 40px;">
+                    <p><%= lblLogin %>: <input type="text"></p>
+                    <p><%= lblPassword %>: <input type="password"></p>
+                    <div style="padding:5px;text-align:center;">
+                        <a href="#" class="easyui-linkbutton" icon="icon-ok"><%= lblOk %></a>
+                        <a href="#" class="easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
+                    </div>
+                </form>
+            </div>
+        </script>
+
         <script type="text/javascript" src="underscore.js"></script>
         <script type="text/javascript" src="jquery.min.js"></script>
         <script type="text/javascript" src="jquery.easyui.min.js"></script>
         <script type="text/javascript" src="backbone.js"></script>
         <script type="text/javascript" src="pse.terminal.core.js"></script>
+
     </head>
     <body class="easyui-layout">
         <div data-options="region:'center'">
@@ -38,8 +60,8 @@
                 </div>
                 <div class="right-panel" data-options="region:'east',split:true">
                     <div class="easyui-layout" data-options="fit:true">
-                        <div class="user-info-panel" data-options="region:'north',title:'Инфо',collapsible:false,iconCls:'icon-user'">
-                            <p>Вы вошли как:</p>
+                        <div class="user-info-container" data-options="region:'north',title:'Инфо',collapsible:false,iconCls:'icon-user'">
+
                         </div>
                     </div>
                 </div>
@@ -47,6 +69,9 @@
         </div>
         <div class="footer ui-widget-header" data-options="region:'south'">
             &NonBreakingSpace;
+        </div>
+        <div class="windows">
+
         </div>
     </body>
 </html>

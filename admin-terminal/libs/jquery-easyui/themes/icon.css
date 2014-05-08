@@ -2,6 +2,10 @@
 {
     background:url('icons/user.png') no-repeat center center;
 }
+.icon-power
+{
+    background:url('icons/power.png') no-repeat center center;
+}
 .icon-blank{
 	background:url('icons/blank.gif') no-repeat center center;
 }
