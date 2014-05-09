@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.endpoint.RpcEndpoint.Procedure;
+import static java.util.Collections.emptySet;
 
 /**
  * @author myzone
@@ -23,16 +24,16 @@ public interface Signatures {
     Procedure<String, List<Integer>, Integer> plus = Procedure.of("plus", new TypeToken<List<Integer>>(){}, new TypeToken<Integer>(){});
 
     // common
-    Procedure<String, GetRequest<User>, Stream<User>> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<Stream<User>>() {});
-    Procedure<String, GetRequest<PestType>, Stream<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<Stream<PestType>>() {});
+    Procedure<String, GetRequest<User>, GetResponse<User>> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {});
+    Procedure<String, GetRequest<PestType>, GetResponse<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {});
     Procedure<String, PestType, Set<EquipmentType>> getRequiredEquipmentTypes = Procedure.of("getRequiredEquipmentTypes", new TypeToken<PestType>() {}, new TypeToken<Set<EquipmentType>>() {});
 
     Procedure<String, BeginSessionRequest, UserSession> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {});
     Procedure<String, UserSession, Void> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {});
 
     // worker
-    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, Stream<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
-    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, Stream<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {});
 
     Procedure<String, ModifyTaskRequest, Void> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
     Procedure<String, ModifyTaskRequest, Void> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
@@ -41,25 +42,50 @@ public interface Signatures {
     // admin
     Procedure<String, AllocateTaskRequest, Task> allocateTask = Procedure.of("allocateTask", new TypeToken<AllocateTaskRequest>() {}, new TypeToken<Task>() {});
     Procedure<String, EditTaskRequest, Task> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, Stream<Task>> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, GetResponse<Task>> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {});
 
     Procedure<String, RegisterCustomerRequest, Customer> registerCustomer = Procedure.of("registerCustomer", new TypeToken<RegisterCustomerRequest>() {}, new TypeToken<Customer>() {});
     Procedure<String, EditCustomerRequest, Customer> editCustomer = Procedure.of("editCustomer", new TypeToken<EditCustomerRequest>() {}, new TypeToken<Customer>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, Stream<Customer>> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<Stream<Customer>>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, GetResponse<Customer>> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<GetResponse<Customer>>() {});
 
     Procedure<String, RegisterWorkerRequest, ReadonlyWorker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
     Procedure<String, EditWorkerRequest, ReadonlyWorker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, Stream<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<Stream<Worker>>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, GetResponse<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<GetResponse<Worker>>() {});
 
     class GetRequest<T> {
 
         private Set<Predicate<T>> filters;
 
         public GetRequest() {
+            filters = emptySet();
         }
 
-        public GetRequest(Set<Predicate<T>> filters) {
+        public Set<Predicate<T>> getFilters() {
+            return filters;
+        }
+
+        public void setFilters(Set<Predicate<T>> filters) {
             this.filters = filters;
+        }
+
+    }
+
+    class GetResponse<T> {
+
+        private Stream<T> data;
+        private Set<Predicate<T>> filters;
+
+        public GetResponse() {
+            data = Stream.empty();
+            filters = emptySet();
+        }
+
+        public Stream<T> getData() {
+            return data;
+        }
+
+        public void setData(Stream<T> data) {
+            this.data = data;
         }
 
         public Set<Predicate<T>> getFilters() {
@@ -75,15 +101,6 @@ public interface Signatures {
     class AuthorizedGetRequest<S extends UserSession, T> extends GetRequest<T> {
 
         private S session;
-
-        public AuthorizedGetRequest() {
-        }
-
-        public AuthorizedGetRequest(Set<Predicate<T>> filters, S session) {
-            super(filters);
-
-            this.session = session;
-        }
 
         public S getSession() {
             return session;
@@ -161,6 +178,17 @@ public interface Signatures {
         private String problemDescription;
         private String comment;
 
+        public AllocateTaskRequest() {
+            session = null;
+            status = null;
+            worker = Optional.empty();
+            availabilityTime = emptySet();
+            customer = null;
+            pestType = null;
+            problemDescription = null;
+            comment = null;
+        }
+
         public AdminSession getSession() {
             return session;
         }
@@ -231,13 +259,25 @@ public interface Signatures {
 
         private AdminSession session;
         private Task task;
-        private Optional<Optional<? extends ReadonlyWorker>> worker;
         private Optional<ReadonlyTask.Status> status;
+        private Optional<Optional<? extends ReadonlyWorker>> worker;
         private Optional<Set<Segment<Instant>>> availabilityTime;
         private Optional<ReadonlyCustomer> customer;
         private Optional<PestType> pestType;
         private Optional<String> problemDescription;
         private String comment;
+
+        public EditTaskRequest() {
+            session = null;
+            task = null;
+            worker = Optional.empty();
+            status = Optional.empty();
+            availabilityTime = Optional.empty();
+            customer = Optional.empty();
+            pestType = Optional.empty();
+            problemDescription = Optional.empty();
+            comment = null;
+        }
 
         public AdminSession getSession() {
             return session;
@@ -372,6 +412,15 @@ public interface Signatures {
         private Optional<String> cellPhone;
         private Optional<String> email;
 
+        public EditCustomerRequest() {
+            session = null;
+            customer = null;
+            name = Optional.empty();
+            address = Optional.empty();
+            cellPhone = Optional.empty();
+            email = Optional.empty();
+        }
+
         public AdminSession getSession() {
             return session;
         }
@@ -429,6 +478,13 @@ public interface Signatures {
         private String password;
         private Set<PestType> workablePestTypes;
 
+        public RegisterWorkerRequest() {
+            session = null;
+            name = null;
+            password = null;
+            workablePestTypes = emptySet();
+        }
+
         public AdminSession getSession() {
             return session;
         }
@@ -469,6 +525,13 @@ public interface Signatures {
         private Worker worker;
         private Optional<String> password;
         private Optional<Set<PestType>> workablePestTypes;
+
+        public EditWorkerRequest() {
+            session = null;
+            worker = null;
+            password = Optional.empty();
+            workablePestTypes = Optional.empty();
+        }
 
         public AdminSession getSession() {
             return session;

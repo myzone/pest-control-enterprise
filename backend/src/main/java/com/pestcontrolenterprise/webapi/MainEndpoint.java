@@ -15,6 +15,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -25,6 +26,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.webapi.Signatures.*;
+import static java.util.Collections.emptySet;
 
 /**
  * @author myzone
@@ -226,12 +228,16 @@ public class MainEndpoint {
         }, 0, 10, TimeUnit.SECONDS);
     }
 
-    public static <T> Stream<T> applyFilters(Stream<T> stream, Iterable<Predicate<T>> predicates) {
-        for (Predicate<T> predicate : predicates) {
-            stream = stream.filter(predicate);
-        }
+    /**
+     * @todo filters ignoring is just for now. this feature will be implemented in following versions
+     */
+    public static <T> GetResponse<T> applyFilters(Stream<T> stream, Iterable<Predicate<T>> predicates) {
+        GetResponse<T> response = new GetResponse<>();
 
-        return stream;
+        response.setData(stream);
+        response.setFilters(emptySet());
+
+        return response;
     }
 
 }
