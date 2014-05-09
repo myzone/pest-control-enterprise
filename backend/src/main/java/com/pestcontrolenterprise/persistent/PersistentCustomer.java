@@ -4,7 +4,7 @@ import com.google.common.base.Objects;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Address;
 import com.pestcontrolenterprise.api.AdminSession;
-import com.pestcontrolenterprise.api.Consumer;
+import com.pestcontrolenterprise.api.Customer;
 
 import javax.persistence.*;
 
@@ -13,7 +13,7 @@ import javax.persistence.*;
  * @date 4/28/14
  */
 @Entity
-public class PersistentConsumer extends PersistentObject implements Consumer {
+public class PersistentCustomer extends PersistentObject implements Customer {
 
     @Id
     protected final String name;
@@ -28,7 +28,7 @@ public class PersistentConsumer extends PersistentObject implements Consumer {
     @Column
     protected volatile String email;
 
-    public PersistentConsumer(ApplicationContext applicationContext, String name, Address address, String cellPhone, String email) {
+    public PersistentCustomer(ApplicationContext applicationContext, String name, Address address, String cellPhone, String email) {
         super(applicationContext);
 
         this.name = name;
@@ -96,9 +96,9 @@ public class PersistentConsumer extends PersistentObject implements Consumer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof PersistentConsumer)) return false;
+        if (!(o instanceof PersistentCustomer)) return false;
 
-        PersistentConsumer that = (PersistentConsumer) o;
+        PersistentCustomer that = (PersistentCustomer) o;
 
         if (!name.equals(that.name)) return false;
 

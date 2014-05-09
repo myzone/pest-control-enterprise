@@ -18,7 +18,7 @@ public interface Task extends ReadonlyTask {
 
     void setAvailabilityTime(UserSession causer, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException;
 
-    void setConsumer(UserSession causer, ReadonlyConsumer consumer, String comment) throws IllegalStateException;
+    void setCustomer(UserSession causer, ReadonlyCustomer customer, String comment) throws IllegalStateException;
 
     void setPestType(UserSession causer, PestType pestType, String comment) throws IllegalStateException;
 

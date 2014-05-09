@@ -27,7 +27,7 @@ public class SomeApiTest {
     public H2SessionFactoryProvider sessionFactory = new H2SessionFactoryProvider(
 //            "file:D://test.db",
             "mem:db1",
-            PersistentConsumer.class,
+            PersistentCustomer.class,
             PersistentEquipmentType.class,
             PersistentPestType.class,
             PersistentUser.class,
@@ -59,15 +59,15 @@ public class SomeApiTest {
 
         PersistentAddress address = new PersistentAddress("some street");
 
-        PersistentConsumer consumer = new PersistentConsumer(applicationContext, UUID.randomUUID().toString() , address, "asd", "asd");
-        session.save(consumer);
+        PersistentCustomer customer = new PersistentCustomer(applicationContext, UUID.randomUUID().toString() , address, "asd", "asd");
+        session.save(customer);
 
         PersistentPestType pestType = new PersistentPestType("asd", "blah", ImmutableSet.of());
         session.save(pestType);
 
         transaction1.commit();
 
-        admin.beginSession("asd").allocateTask(ReadonlyTask.Status.ASSIGNED, Optional.<ReadonlyWorker>of(worker), ImmutableSet.<Segment<Instant>>of(), consumer, pestType, "nothing", "ololo!!!!11");
+        admin.beginSession("asd").allocateTask(ReadonlyTask.Status.ASSIGNED, Optional.<ReadonlyWorker>of(worker), ImmutableSet.<Segment<Instant>>of(), customer, pestType, "nothing", "ololo!!!!11");
 
 
         worker.beginSession("fuck").getAssignedTasks().forEach(new Consumer<Task>() {

@@ -46,7 +46,7 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
         jsonObject.add("status", context.serialize(task.getStatus(), ReadonlyTask.Status.class));
         jsonObject.add("executor", context.serialize(task.getExecutor().orElse(null), ReadonlyWorker.class));
         jsonObject.add("availabilityTime", context.serialize(task.getAvailabilityTime(), new TypeToken<ImmutableSet<Segment<Instant>>>() {}.getType()));
-        jsonObject.add("consumer", context.serialize(task.getConsumer(), Consumer.class));
+        jsonObject.add("customer", context.serialize(task.getCustomer(), Customer.class));
         jsonObject.add("pestType", context.serialize(task.getPestType(), PestType.class));
         jsonObject.add("problemDescription", context.serialize(task.getProblemDescription(), String.class));
         jsonObject.add("taskHistory", context.serialize(task.getTaskHistory(), new TypeToken<ImmutableList<TaskHistoryEntry>>() {}.getType()));

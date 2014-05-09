@@ -4,7 +4,7 @@ package com.pestcontrolenterprise.api;
  * @author myzone
  * @date 4/25/14
  */
-public interface Consumer extends ReadonlyConsumer {
+public interface Customer extends ReadonlyCustomer {
 
     String getName();
 

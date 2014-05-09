@@ -43,8 +43,8 @@ public class PersistentTask extends PersistentObject implements Task {
     @Column
     protected volatile ImmutableSet<Segment<Instant>> availabilityTime;
 
-    @ManyToOne(targetEntity = PersistentConsumer.class)
-    protected volatile ReadonlyConsumer consumer;
+    @ManyToOne(targetEntity = PersistentCustomer.class)
+    protected volatile ReadonlyCustomer customer;
 
     @ManyToOne(targetEntity = PersistentPestType.class)
     protected volatile PestType pestType;
@@ -62,7 +62,7 @@ public class PersistentTask extends PersistentObject implements Task {
             Status status,
             Optional<? extends ReadonlyWorker> executor,
             ImmutableSet<Segment<Instant>>availabilityTime,
-            ReadonlyConsumer consumer,
+            ReadonlyCustomer customer,
             PestType pestType,
             String problemDescription,
             String comment
@@ -75,7 +75,7 @@ public class PersistentTask extends PersistentObject implements Task {
         this.status = status;
         this.executor = executor.orElse(null);
         this.availabilityTime = availabilityTime;
-        this.consumer = consumer;
+        this.customer = customer;
         this.pestType = pestType;
         this.problemDescription = problemDescription;
         this.taskHistory = new ConcurrentLinkedDeque<>();
@@ -112,9 +112,9 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public ReadonlyConsumer getConsumer() {
+    public ReadonlyCustomer getCustomer() {
         try (QuiteAutoCloseable lock = readLock()) {
-            return consumer;
+            return customer;
         }
     }
 
@@ -188,16 +188,16 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setConsumer(UserSession causerSession, ReadonlyConsumer consumer, String comment) throws IllegalStateException {
+    public void setCustomer(UserSession causerSession, ReadonlyCustomer customer, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive())
                 throw new IllegalStateException("Session is inactive");
             if (!isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.consumer, new Pair<>(this.consumer, consumer)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.customer, new Pair<>(this.customer, customer)));
 
-            this.consumer = consumer;
+            this.customer = customer;
 
             update();
         }
@@ -278,7 +278,7 @@ public class PersistentTask extends PersistentObject implements Task {
 
             if (id != that.id) return false;
             if (!availabilityTime.equals(that.availabilityTime)) return false;
-            if (!consumer.equals(that.consumer)) return false;
+            if (!customer.equals(that.customer)) return false;
             if (!executor.equals(that.executor)) return false;
             if (!pestType.equals(that.pestType)) return false;
             if (!problemDescription.equals(that.problemDescription)) return false;
@@ -296,7 +296,7 @@ public class PersistentTask extends PersistentObject implements Task {
             result = 31 * result + status.hashCode();
             result = 31 * result + executor.hashCode();
             result = 31 * result + availabilityTime.hashCode();
-            result = 31 * result + consumer.hashCode();
+            result = 31 * result + customer.hashCode();
             result = 31 * result + pestType.hashCode();
             result = 31 * result + problemDescription.hashCode();
             result = 31 * result + taskHistory.hashCode();
@@ -311,7 +311,7 @@ public class PersistentTask extends PersistentObject implements Task {
                     .add("status", status)
                     .add("executor", executor)
                     .add("availabilityTime", availabilityTime)
-                    .add("consumer", consumer)
+                    .add("customer", customer)
                     .add("pestType", pestType)
                     .add("problemDescription", problemDescription)
                     .add("taskHistory", taskHistory)

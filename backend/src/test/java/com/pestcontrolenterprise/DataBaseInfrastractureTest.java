@@ -2,14 +2,7 @@ package com.pestcontrolenterprise;
 
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.util.H2SessionFactoryProvider;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.UUID;
-
-import static org.junit.Assert.*;
 
 
 /**
@@ -22,7 +15,7 @@ public class DataBaseInfrastractureTest {
     public H2SessionFactoryProvider sessionFactory = new H2SessionFactoryProvider(
 //            "file:D://test.db",
             "mem:db1",
-            PersistentConsumer.class,
+            PersistentCustomer.class,
             PersistentEquipmentType.class,
             PersistentPestType.class,
             PersistentUser.class,

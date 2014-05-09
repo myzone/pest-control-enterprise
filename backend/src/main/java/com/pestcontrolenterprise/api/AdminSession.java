@@ -21,7 +21,7 @@ public interface AdminSession extends UserSession {
             ReadonlyTask.Status status,
             Optional<? extends ReadonlyWorker> worker,
             ImmutableSet<Segment<Instant>> availabilityTime,
-            ReadonlyConsumer consumer,
+            ReadonlyCustomer customer,
             PestType pestType,
             String problemDescription,
             String comment
@@ -32,7 +32,7 @@ public interface AdminSession extends UserSession {
             Optional<ReadonlyTask.Status> status,
             Optional<Optional<? extends ReadonlyWorker>> worker,
             Optional<ImmutableSet<Segment<Instant>>> availabilityTime,
-            Optional<? extends ReadonlyConsumer> consumer,
+            Optional<? extends ReadonlyCustomer> customer,
             Optional<PestType> pestType,
             Optional<String> problemDescription,
             String comment
@@ -42,22 +42,22 @@ public interface AdminSession extends UserSession {
 
     Stream<Task> getTasks() throws IllegalStateException;
 
-    Consumer registerConsumer(
+    Customer registerCustomer(
             String name,
             Address address,
             String cellPhone,
             String email
     ) throws IllegalStateException;
 
-    Consumer editConsumer(
-            Consumer consumer,
+    Customer editCustomer(
+            Customer customer,
             Optional<String> name,
             Optional<Address> address,
             Optional<String> cellPhone,
             Optional<String> email
     ) throws IllegalStateException;
 
-    Stream<Consumer> getConsumers() throws IllegalStateException;
+    Stream<Customer> getCustomers() throws IllegalStateException;
 
     Worker registerWorker(
             String name,

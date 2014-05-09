@@ -4,7 +4,7 @@ package com.pestcontrolenterprise.api;
  * @author myzone
  * @date 5/6/14
  */
-public interface ReadonlyConsumer {
+public interface ReadonlyCustomer {
 
     String getName();
 

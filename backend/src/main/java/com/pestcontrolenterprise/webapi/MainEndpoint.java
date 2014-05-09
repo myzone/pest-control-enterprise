@@ -39,7 +39,7 @@ public class MainEndpoint {
                 "mem:db1",
                 PersistentObject.class,
                 PersistentApplicationContext.class,
-                PersistentConsumer.class,
+                PersistentCustomer.class,
                 PersistentEquipmentType.class,
                 PersistentPestType.class,
                 PersistentUser.class,
@@ -70,7 +70,7 @@ public class MainEndpoint {
                         .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
                         .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
-                        .registerTypeHierarchyAdapter(Consumer.class,new ConsumerJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(Customer.class,new CustomerJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(Address.class,new AddressJsonAdapter())
                         .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
@@ -108,7 +108,7 @@ public class MainEndpoint {
         PersistentEquipmentType trowel = new PersistentEquipmentType("trowel");
         PersistentPestType crap = new PersistentPestType("crap", "", ImmutableSet.of(trowel));
 
-        PersistentConsumer consumer = new PersistentConsumer(applicationContext, "asd", new PersistentAddress("asd"), "asd", "asd");
+        PersistentCustomer customer = new PersistentCustomer(applicationContext, "asd", new PersistentAddress("asd"), "asd", "asd");
 
         PersistentAdmin admin = new PersistentAdmin(applicationContext, "myzone", "fuck");
 
@@ -118,12 +118,12 @@ public class MainEndpoint {
         persistenceSession.save(trowel);
         persistenceSession.save(crap);
         persistenceSession.save(admin);
-        persistenceSession.save(consumer);
+        persistenceSession.save(customer);
         transaction.commit();
 
         AdminSession adminSession = admin.beginSession("fuck");
         adminSession.registerWorker("ololo", "fuck", ImmutableSet.of(crap));
-        adminSession.allocateTask(ReadonlyTask.Status.OPEN, Optional.empty(), ImmutableSet.of(), consumer, crap, "asd", "fuck");
+        adminSession.allocateTask(ReadonlyTask.Status.OPEN, Optional.empty(), ImmutableSet.of(), customer, crap, "asd", "fuck");
         adminSession.close();
     }
 
@@ -169,7 +169,7 @@ public class MainEndpoint {
                         allocateTaskRequest.getStatus(),
                         allocateTaskRequest.getWorker(),
                         ImmutableSet.copyOf(allocateTaskRequest.getAvailabilityTime()),
-                        allocateTaskRequest.getConsumer(),
+                        allocateTaskRequest.getCustomer(),
                         allocateTaskRequest.getPestType(),
                         allocateTaskRequest.getProblemDescription(),
                         allocateTaskRequest.getComment()
@@ -179,7 +179,7 @@ public class MainEndpoint {
                         editTaskRequest.getStatus(),
                         editTaskRequest.getWorker(),
                         editTaskRequest.getAvailabilityTime().map(ImmutableSet::copyOf),
-                        editTaskRequest.getConsumer(),
+                        editTaskRequest.getCustomer(),
                         editTaskRequest.getPestType(),
                         editTaskRequest.getProblemDescription(),
                         editTaskRequest.getComment()))

@@ -43,9 +43,9 @@ public interface Signatures {
     Procedure<String, EditTaskRequest, Task> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {});
     Procedure<String, AuthorizedGetRequest<AdminSession, Task>, Stream<Task>> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<Stream<Task>>() {});
 
-    Procedure<String, RegisterConsumerRequest, Consumer> registerConsumer = Procedure.of("registerConsumer", new TypeToken<RegisterConsumerRequest>() {}, new TypeToken<Consumer>() {});
-    Procedure<String, EditConsumerRequest, Consumer> editConsumer = Procedure.of("editConsumer", new TypeToken<EditConsumerRequest>() {}, new TypeToken<Consumer>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Consumer>, Stream<Consumer>> getConsumers = Procedure.of("getConsumers", new TypeToken<AuthorizedGetRequest<AdminSession, Consumer>>() {}, new TypeToken<Stream<Consumer>>() {});
+    Procedure<String, RegisterCustomerRequest, Customer> registerCustomer = Procedure.of("registerCustomer", new TypeToken<RegisterCustomerRequest>() {}, new TypeToken<Customer>() {});
+    Procedure<String, EditCustomerRequest, Customer> editCustomer = Procedure.of("editCustomer", new TypeToken<EditCustomerRequest>() {}, new TypeToken<Customer>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, Stream<Customer>> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<Stream<Customer>>() {});
 
     Procedure<String, RegisterWorkerRequest, ReadonlyWorker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
     Procedure<String, EditWorkerRequest, ReadonlyWorker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
@@ -156,7 +156,7 @@ public interface Signatures {
         private ReadonlyTask.Status status;
         private Optional<ReadonlyWorker> worker;
         private Set<Segment<Instant>> availabilityTime;
-        private ReadonlyConsumer consumer;
+        private ReadonlyCustomer customer;
         private PestType pestType;
         private String problemDescription;
         private String comment;
@@ -193,12 +193,12 @@ public interface Signatures {
             this.availabilityTime = availabilityTime;
         }
 
-        public ReadonlyConsumer getConsumer() {
-            return consumer;
+        public ReadonlyCustomer getCustomer() {
+            return customer;
         }
 
-        public void setConsumer(ReadonlyConsumer consumer) {
-            this.consumer = consumer;
+        public void setCustomer(ReadonlyCustomer customer) {
+            this.customer = customer;
         }
 
         public PestType getPestType() {
@@ -234,7 +234,7 @@ public interface Signatures {
         private Optional<Optional<? extends ReadonlyWorker>> worker;
         private Optional<ReadonlyTask.Status> status;
         private Optional<Set<Segment<Instant>>> availabilityTime;
-        private Optional<ReadonlyConsumer> consumer;
+        private Optional<ReadonlyCustomer> customer;
         private Optional<PestType> pestType;
         private Optional<String> problemDescription;
         private String comment;
@@ -279,12 +279,12 @@ public interface Signatures {
             this.availabilityTime = availabilityTime;
         }
 
-        public Optional<ReadonlyConsumer> getConsumer() {
-            return consumer;
+        public Optional<ReadonlyCustomer> getCustomer() {
+            return customer;
         }
 
-        public void setConsumer(Optional<ReadonlyConsumer> consumer) {
-            this.consumer = consumer;
+        public void setCustomer(Optional<ReadonlyCustomer> customer) {
+            this.customer = customer;
         }
 
         public Optional<PestType> getPestType() {
@@ -313,7 +313,7 @@ public interface Signatures {
 
     }
 
-    class RegisterConsumerRequest {
+    class RegisterCustomerRequest {
 
         private AdminSession session;
         private String name;
@@ -363,10 +363,10 @@ public interface Signatures {
 
     }
 
-    class EditConsumerRequest {
+    class EditCustomerRequest {
 
         private AdminSession session;
-        private Consumer consumer;
+        private Customer customer;
         private Optional<String> name;
         private Optional<Address> address;
         private Optional<String> cellPhone;
@@ -380,12 +380,12 @@ public interface Signatures {
             this.session = session;
         }
 
-        public Consumer getConsumer() {
-            return consumer;
+        public Customer getCustomer() {
+            return customer;
         }
 
-        public void setConsumer(Consumer consumer) {
-            this.consumer = consumer;
+        public void setCustomer(Customer customer) {
+            this.customer = customer;
         }
 
         public Optional<String> getName() {

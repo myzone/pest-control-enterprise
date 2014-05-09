@@ -23,7 +23,7 @@ public interface ReadonlyTask {
 
     ImmutableSet<Segment<Instant>> getAvailabilityTime();
 
-    ReadonlyConsumer getConsumer();
+    ReadonlyCustomer getCustomer();
 
     PestType getPestType();
 
@@ -58,7 +58,7 @@ public interface ReadonlyTask {
             status,
             executor,
             availabilityTime,
-            consumer,
+            customer,
             pestType,
             problemDescription
         }

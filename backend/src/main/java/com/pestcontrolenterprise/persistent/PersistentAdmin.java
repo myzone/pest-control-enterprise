@@ -4,14 +4,11 @@ import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.Segment;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import javax.persistence.Entity;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
@@ -58,14 +55,14 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
                 Status status,
                 Optional<? extends ReadonlyWorker> worker,
                 ImmutableSet<Segment<Instant>> availabilityTime,
-                ReadonlyConsumer consumer,
+                ReadonlyCustomer customer,
                 PestType pestType,
                 String problemDescription,
                 String comment
         ) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return new PersistentTask(getApplicationContext(), this, status, worker, availabilityTime, consumer, pestType, problemDescription, comment);
+            return new PersistentTask(getApplicationContext(), this, status, worker, availabilityTime, customer, pestType, problemDescription, comment);
         }
 
         @Override
@@ -74,7 +71,7 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
                 Optional<Status> status,
                 Optional<Optional<? extends ReadonlyWorker>> worker,
                 Optional<ImmutableSet<Segment<Instant>>> availabilityTime,
-                Optional<? extends ReadonlyConsumer> consumer,
+                Optional<? extends ReadonlyCustomer> customer,
                 Optional<PestType> pestType,
                 Optional<String> problemDescription,
                 String comment
@@ -84,7 +81,7 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
             if (worker.isPresent()) task.setExecutor(this, worker.get(), comment);
             if (status.isPresent()) task.setStatus(this, status.get(), comment);
             if (availabilityTime.isPresent()) task.setAvailabilityTime(this, availabilityTime.get(), comment);
-            if (consumer.isPresent()) task.setConsumer(this, consumer.get(), comment);
+            if (customer.isPresent()) task.setCustomer(this, customer.get(), comment);
             if (pestType.isPresent()) task.setPestType(this, pestType.get(), comment);
             if (problemDescription.isPresent()) task.setProblemDescription(this, problemDescription.get(), comment);
 
@@ -110,21 +107,21 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
         }
 
         @Override
-        public Consumer registerConsumer(String name, Address address, String cellPhone, String email) throws IllegalStateException {
+        public Customer registerCustomer(String name, Address address, String cellPhone, String email) throws IllegalStateException {
             ensureAndHoldOpened();
 
             return null;
         }
 
         @Override
-        public Consumer editConsumer(Consumer consumer, Optional<String> name, Optional<Address> address, Optional<String> cellPhone, Optional<String> email) throws IllegalStateException {
+        public Customer editCustomer(Customer customer, Optional<String> name, Optional<Address> address, Optional<String> cellPhone, Optional<String> email) throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return consumer;
+            return customer;
         }
 
         @Override
-        public Stream<Consumer> getConsumers() throws IllegalStateException {
+        public Stream<Customer> getCustomers() throws IllegalStateException {
             ensureAndHoldOpened();
 
             return Stream.empty();
