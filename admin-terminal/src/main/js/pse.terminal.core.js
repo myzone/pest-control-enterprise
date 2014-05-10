@@ -1,6 +1,68 @@
 $(document).ready(function(){
+
+    var SessionModel = Backbone.Model.extend({
+        initialize: function() {
+            var self = this;
+
+            var isActiveSession = false;
+            var userName = '';
+
+            function checkSession() {
+                if(!isActiveSession) {
+                    self.trigger('notAuthorizedError',{
+                        title: 'Ошибка авторизации',
+                        text: 'Вы не авторизированы или время сессии истекло.'
+                    });
+                }
+                return isActiveSession;
+            }
+
+            this.isLoggedIn = function() {
+                return isActiveSession;
+            }
+
+            this.getUserName = function() {
+                if(checkSession()) {
+                    return userName;
+                }
+            }
+
+            this.logout = function() {
+                if(!isActiveSession) {
+                    return;
+                }
+
+                isActiveSession = false;
+                userName = '';
+                this.trigger('statusChanged');
+            }
+
+            this.getSessionId = function() {
+                if(checkSession()) {
+                    return "someid";
+                }
+            }
+
+            this.login = function(login, password) {
+                if(login==='gleab' && password==='test') {
+                    isActiveSession = true;
+                    userName = login;
+                    this.trigger('statusChanged');
+                } else {
+                    this.trigger('loginError',{
+                        title: 'Ошибка авторизации',
+                        text: 'Введен неправильный логин или пароль.'
+                    });
+                }
+            }
+        }
+    });
+
     var TicketsModel = Backbone.Model.extend({
         initialize: function() {
+            var self = this;
+            var sessionModel;
+
             var columns=[[
                 {field:'colorStatus',title:''},
                 {field:'ticketid',title:'Заявка #'},
@@ -35,12 +97,24 @@ $(document).ready(function(){
             }
 
             this.getData = function(param, successCb, errorCb) {
+                if(!sessionModel.getSessionId()) {
+                    errorCb("Session error!");
+                    return false;
+                }
                 var response={
                     total: data.length,
                     rows: data.slice((param.page-1)*param.rows,(param.page-1)*param.rows+param.rows)
                 };
                 successCb(response);
                 return true;
+            }
+
+            this.setSession = function(session) {
+                sessionModel=session;
+                this.listenTo(sessionModel,'statusChanged',function() {
+                    if(sessionModel.isLoggedIn())
+                        this.trigger('refresh');
+                });
             }
         }
     });
@@ -49,6 +123,10 @@ $(document).ready(function(){
         initialize: function() {
             var ptoolbar="";
             var pIdFiled="";
+
+            this.listenTo(this.model,'refresh',function() {
+                this.$el.datagrid('reload');
+            });
 
             this.setToolbar = function(selector) {
                 ptoolbar=selector;
@@ -73,42 +151,12 @@ $(document).ready(function(){
             }
         }
     });
-    var SessionModel = Backbone.Model.extend({
-        initialize: function() {
-            var isActiveSession = false;
-            var userName = '';
-
-            this.isLoggedIn = function() {
-                return isActiveSession;
-            }
-
-            this.getUserName = function() {
-                return userName;
-            }
-
-            this.logout = function() {
-                isActiveSession = false;
-                userName = '';
-                this.trigger('statusChanged');
-            }
-
-            this.login = function(login, password) {
-                if(login==='gleab' && password==='test') {
-                    isActiveSession = true;
-                    userName = login;
-                    this.trigger('statusChanged');
-                } else {
-                    this.trigger('error',{title:'Ошибка авторизации',text:'Введен неправильный логин или пароль.'});
-                }
-            }
-        }
-    });
 
     var LoggedUserInfoView = Backbone.View.extend({
         template: _.template($('#user-info-panel-template').html()),
         initialize: function() {
             var self=this;
-            function onStatusChanged() {
+            function onSessionStatusChanged() {
                 if(self.model.isLoggedIn()) {
                     self.$('.lbl-text').html('Вы вошли как:');
                     self.$('.user-name').html(self.model.getUserName());
@@ -121,52 +169,85 @@ $(document).ready(function(){
                 }
             }
 
-            this.listenTo(this.model,"statusChanged",onStatusChanged);
+            this.listenTo(this.model,"statusChanged",onSessionStatusChanged);
 
             this.render = function() {
-                this.$el.html(this.template());
-                this.$('.logout-button').linkbutton({
-                    iconCls: 'icon-power'
-                });
-                onStatusChanged();
+                this.$el.html(this.template({lblExit: 'Выйти'}));
+                $.parser.parse(this.$el);
+                onSessionStatusChanged();
                 this.$('.logout-button').click(function() {
                     self.model.logout();
                 });
                 return this;
             }
-        },
-        events: {
-            "click .logout-button": "logout"
         }
     });
 
     var LoginForm = Backbone.View.extend({
         template: _.template($('#login-form-template').html()),
         initialize: function() {
+            var self = this;
 
-        },
-        render: function() {
-            this.$el.html(this.template({
-                lblLogin:       'Логин',
-                lblPassword:    'Пароль',
-                lblOk:          'Ок',
-                lblCancel:      'Отмена'
-            }));
-            this.$('.login-form').window({
-                title: 'Войти в систему',
-                width:300,
-                height:180,
-                modal:true,
-                collapsible: false,
-                minimizable: false,
-                maximizable: false,
-                resizable: false
-            });
-            this.$('.login-form').window('open');
+            this.listenToOnce(this.model,"statusChanged",onSessionStatusChanged);
+
+            this.render = function () {
+                this.$el.html(this.template({
+                    lblTitle: 'Войти в систему',
+                    lblLogin: 'Логин',
+                    lblPassword: 'Пароль',
+                    lblOk: 'Ок',
+                    lblCancel: 'Отмена'
+                }));
+                $.parser.parse(this.$el);
+                this.$el=$('.login-form');
+                this.el=$('.login-form')[0];
+                this.$('.button-ok').click(submitLoginForm);
+                this.$('.button-cancel').click(cancel);
+                this.$('.login-form').dialog('open');
+
+                return this;
+            }
+
+            function submitLoginForm() {
+                var login = self.$('.login').val();
+                var password = self.$('.password').val();
+                self.model.login(login, password);
+            }
+
+            function onSessionStatusChanged() {
+                if(self.model.isLoggedIn()) {
+                    self.$el.dialog('close');
+                    self.remove();
+                }
+            }
+
+            function cancel() {
+                self.$el.dialog('close');
+                self.remove();
+            }
         }
+
+    });
+
+    var session = new SessionModel;
+    session.on('loginError',function(msg) {
+        $.messager.alert(msg.title,msg.text,'error');
+    });
+
+    session.on('notAuthorizedError',function(msg) {
+        if(LoginForm.instance) {
+            return;
+        }
+        var loginForm = new LoginForm({
+            el: $('.windows')[0],
+            model: session
+        });
+        loginForm.render();
     });
 
     var md = new TicketsModel;
+    md.setSession(session);
+
     var tv = new TicketsView({
         el: $('#ticketsView')[0],
         model: md
@@ -175,13 +256,9 @@ $(document).ready(function(){
     tv.setIdField('ticketid');
     tv.render();
 
-    var session = new SessionModel;
-    session.on('error',function(msg) {
-        $.messager.alert(msg.title,msg.text,'error');
+    var userInfoView = new LoggedUserInfoView({
+        el: $('.user-info-container'),
+        model: session
     });
-    var userInfoView = new LoggedUserInfoView({el:$('.user-info-container'),model:session});
     userInfoView.render();
-
-    var loginForm = new LoginForm({el:$('.windows')[0]});
-    loginForm.render();
 });

@@ -13,18 +13,34 @@
             <div class="user-info-panel">
                 <p class="lbl-text"></p>
                 <a class="user-name" href="#"></a>
-                <a class="logout-button" href="#">Выйти</a>
+                <a class="logout-button easyui-linkbutton" icon="icon-power" href="#"><%= lblExit %></a>
             </div>
         </script>
 
         <script type="text/template" id="login-form-template">
-            <div class="login-form">
-                <form style="padding:10px 20px 10px 40px;">
-                    <p><%= lblLogin %>: <input type="text"></p>
-                    <p><%= lblPassword %>: <input type="password"></p>
-                    <div style="padding:5px;text-align:center;">
-                        <a href="#" class="easyui-linkbutton" icon="icon-ok"><%= lblOk %></a>
-                        <a href="#" class="easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
+            <div class="login-form easyui-dialog" title="<%= lblTitle %>"
+                    data-options="
+                        iconCls: 'icon-user',
+                        buttons: '#loginButtons',
+                        modal: true,
+                        collapsible: false,
+                        minimizable: false,
+                        maximizable: false,
+                        resizable: false">
+                <form>
+                    <table border="0" cellspacing="2" cellpadding="2">
+                        <tr>
+                            <td><%= lblLogin %>:&nbsp;</td>
+                            <td><input class="login" type="text"/></td>
+                        </tr>
+                        <tr>
+                            <td><%= lblPassword %>:&nbsp;</td>
+                            <td><input class="password" type="password"/></td>
+                        </tr>
+                    </table>
+                    <div id="loginButtons">
+                        <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblOk %></a>
+                        <a href="#" class="button-cancel easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
                     </div>
                 </form>
             </div>
