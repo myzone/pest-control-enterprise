@@ -55,12 +55,23 @@ $(document).ready(function(){
             }
 
             this.login = function(login, pass) {
+                alert(JSON.stringify({
+                    id: guid(),
+                    procedure: "beginSession",
+                    argument: {
+                        user: {
+                            name: login
+                        },
+                        password: pass
+                    }
+                }));
                 $.ajax({
                     url: 'http://localhost:9292',
                     type: 'POST',
                     dataType : "json",
                     crossDomain: true,
-                    data: {
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({
                         id: guid(),
                         procedure: "beginSession",
                         argument: {
@@ -69,7 +80,7 @@ $(document).ready(function(){
                             },
                             password: pass
                         }
-                    },
+                    }),
                     success: function (data, textStatus) {
                         alert(data);
                     }
