@@ -15,7 +15,6 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -107,21 +106,12 @@ public class MainEndpoint {
     }
 
     private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException {
-        PersistentEquipmentType trowel = new PersistentEquipmentType("trowel");
-        PersistentPestType crap = new PersistentPestType("crap", "", ImmutableSet.of(trowel));
+        PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "trowel");
+        PersistentPestType crap = new PersistentPestType(applicationContext, "crap", "", ImmutableSet.of(trowel));
 
-        PersistentCustomer customer = new PersistentCustomer(applicationContext, "asd", new PersistentAddress("asd"), "asd", "asd");
+        PersistentCustomer customer = new PersistentCustomer(applicationContext, "asd", new PersistentAddress("asd", null, null), "asd", "asd");
 
         PersistentAdmin admin = new PersistentAdmin(applicationContext, "myzone", "fuck");
-
-        Session persistenceSession = applicationContext.getPersistenceSession();
-        Transaction transaction = persistenceSession.beginTransaction();
-        persistenceSession.saveOrUpdate(applicationContext);
-        persistenceSession.save(trowel);
-        persistenceSession.save(crap);
-        persistenceSession.save(admin);
-        persistenceSession.save(customer);
-        transaction.commit();
 
         AdminSession adminSession = admin.beginSession("fuck");
         adminSession.registerWorker("ololo", "fuck", ImmutableSet.of(crap));

@@ -2,6 +2,7 @@ package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.EquipmentType;
 import com.pestcontrolenterprise.api.PestType;
 import org.hibernate.annotations.Immutable;
@@ -17,10 +18,11 @@ import java.util.UUID;
  */
 @Immutable
 @Entity
-public class PersistentPestType implements PestType {
+public class PersistentPestType extends PersistentObject implements PestType {
 
     @Id
-    private final long id = UUID.randomUUID().getLeastSignificantBits();;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    protected final long id = 0;
 
     @Column
     protected final String name;
@@ -31,10 +33,14 @@ public class PersistentPestType implements PestType {
     @ManyToMany(targetEntity = PersistentEquipmentType.class)
     protected volatile Set<EquipmentType> requiredEquipmentTypes;
 
-    public PersistentPestType(String name, String description, Set<EquipmentType> requiredEquipmentTypes) {
+    public PersistentPestType(ApplicationContext applicationContext, String name, String description, Set<EquipmentType> requiredEquipmentTypes) {
+        super(applicationContext);
+
         this.name = name;
         this.description = description;
         this.requiredEquipmentTypes = requiredEquipmentTypes;
+
+        save();
     }
 
     @Override

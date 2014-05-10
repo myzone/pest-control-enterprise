@@ -125,6 +125,7 @@ public class NettyEndpoint<I, O> {
                         });
                     }
                 })
+                .option(ChannelOption.SO_REUSEADDR, true)
                 .bind(port)
                 .syncUninterruptibly();
 

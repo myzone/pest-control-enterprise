@@ -5,6 +5,7 @@ import com.pestcontrolenterprise.api.Address;
 import org.hibernate.annotations.Immutable;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @author myzone
@@ -14,14 +15,28 @@ import java.io.Serializable;
 public class PersistentAddress implements Address, Serializable {
 
     protected final String representation;
+    protected final BigDecimal latitude;
+    protected final BigDecimal longitude;
 
-    public PersistentAddress(String representation) {
+    public PersistentAddress(String representation, BigDecimal latitude, BigDecimal longitude) {
         this.representation = representation;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     @Override
     public String getRepresentation() {
         return representation;
+    }
+
+    @Override
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    @Override
+    public BigDecimal getLongitude() {
+        return longitude;
     }
 
     @Override

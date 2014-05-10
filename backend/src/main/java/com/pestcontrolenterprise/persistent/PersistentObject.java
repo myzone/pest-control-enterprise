@@ -13,7 +13,7 @@ import java.util.concurrent.locks.*;
  */
 public abstract class PersistentObject {
 
-    @ManyToOne(targetEntity = PersistentApplicationContext.class)
+    @ManyToOne(targetEntity = PersistentApplicationContext.class, cascade = CascadeType.ALL)
     private final ApplicationContext applicationContext;
 
     @Transient

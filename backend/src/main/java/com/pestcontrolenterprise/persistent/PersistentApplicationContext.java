@@ -2,6 +2,7 @@ package com.pestcontrolenterprise.persistent;
 
 import com.pestcontrolenterprise.ApplicationContext;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -24,6 +25,10 @@ public class PersistentApplicationContext implements ApplicationContext {
 
     public PersistentApplicationContext(Session persistenceSession) {
         this.persistenceSession = persistenceSession;
+
+        Transaction transaction = persistenceSession.beginTransaction();
+        persistenceSession.saveOrUpdate(this);
+        transaction.commit();
     }
 
     @Override

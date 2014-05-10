@@ -95,9 +95,10 @@ public abstract class PersistentUser extends PersistentObject implements User {
         protected static final Duration DEFAULT_DELAY = Duration.ofHours(1);
 
         @Id
-        protected final long id = UUID.randomUUID().getLeastSignificantBits();
+        @GeneratedValue(strategy = GenerationType.SEQUENCE)
+        protected final long id = 0;
 
-        @ManyToOne
+        @ManyToOne(targetEntity = PersistentUser.class, cascade = CascadeType.ALL)
         protected final PersistentUser user;
 
         @Column

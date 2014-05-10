@@ -31,22 +31,23 @@ import static java.util.Collections.emptyMap;
 public class PersistentTask extends PersistentObject implements Task {
 
     @Id
-    private final long id = UUID.randomUUID().getLeastSignificantBits();;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    protected final long id = 0;
 
     @Column
     protected volatile Status status;
 
-    @ManyToOne(targetEntity = PersistentWorker.class)
+    @ManyToOne(targetEntity = PersistentWorker.class, cascade = CascadeType.ALL)
     protected volatile ReadonlyWorker executor;
 
     @Embedded
     @Column
     protected volatile ImmutableSet<Segment<Instant>> availabilityTime;
 
-    @ManyToOne(targetEntity = PersistentCustomer.class)
+    @ManyToOne(targetEntity = PersistentCustomer.class, cascade = CascadeType.ALL)
     protected volatile ReadonlyCustomer customer;
 
-    @ManyToOne(targetEntity = PersistentPestType.class)
+    @ManyToOne(targetEntity = PersistentPestType.class, cascade = CascadeType.ALL)
     protected volatile PestType pestType;
 
     @Column
@@ -54,7 +55,7 @@ public class PersistentTask extends PersistentObject implements Task {
 
     @Embedded
     @Column
-    protected volatile Deque<TaskHistoryEntry> taskHistory;
+    protected volatile ConcurrentLinkedDeque<TaskHistoryEntry> taskHistory;
 
     public PersistentTask(
             ApplicationContext applicationContext,

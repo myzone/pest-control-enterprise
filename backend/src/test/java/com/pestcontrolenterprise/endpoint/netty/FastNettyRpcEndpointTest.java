@@ -17,7 +17,7 @@ import static com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint.HandlerP
  */
 public class FastNettyRpcEndpointTest extends RpcEndpointTest {
 
-    private static final short PORT = 8082;
+    private static final short PORT = 8083;
 
     private Host<NettyRpcEndpoint.RemoteCall<ServiceSignature.MethodType,?>,NettyRpcEndpoint.RemoteResult<ServiceSignature.MethodType,?>> host;
     private NettyRpcEndpoint<ServiceSignature.MethodType> rpcEndpoint;

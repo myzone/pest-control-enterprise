@@ -5,6 +5,7 @@ import com.pestcontrolenterprise.api.Address;
 import com.pestcontrolenterprise.persistent.PersistentAddress;
 
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 
 /**
  * @author myzone
@@ -17,8 +18,10 @@ public class AddressJsonAdapter implements JsonSerializer<Address>, JsonDeserial
         JsonObject jsonObject = (JsonObject) jsonElement;
 
         String representation = context.deserialize(jsonObject.get("representation"), String.class);
+        BigDecimal latitude = context.deserialize(jsonObject.get("latitude"), BigDecimal.class);
+        BigDecimal longitude = context.deserialize(jsonObject.get("longitude"), BigDecimal.class);
 
-        return new PersistentAddress(representation);
+        return new PersistentAddress(representation, latitude, longitude);
     }
 
     @Override
@@ -26,6 +29,8 @@ public class AddressJsonAdapter implements JsonSerializer<Address>, JsonDeserial
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.add("representation", context.serialize(address.getRepresentation(), String.class));
+        jsonObject.add("latitude", context.serialize(address.getLatitude(), BigDecimal.class));
+        jsonObject.add("longitude", context.serialize(address.getLongitude(), BigDecimal.class));
 
         return jsonObject;
     }

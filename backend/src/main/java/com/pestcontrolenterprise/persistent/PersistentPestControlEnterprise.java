@@ -6,7 +6,6 @@ import com.pestcontrolenterprise.api.*;
 import org.hibernate.Session;
 
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -39,7 +38,7 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
     @Override
     public Optional<Address> getAddress(String textAddress) {
-        return Optional.<Address>of(new PersistentAddress(textAddress));
+        return Optional.<Address>of(new PersistentAddress(textAddress, null, null));
     }
 
     @Override
