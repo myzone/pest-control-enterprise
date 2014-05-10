@@ -6,6 +6,17 @@ $(document).ready(function(){
 
             var isActiveSession = false;
             var userName = '';
+            var guid = (function() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+                return function() {
+                    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                        s4() + '-' + s4() + s4() + s4();
+                };
+            })();
 
             function checkSession() {
                 if(!isActiveSession) {
@@ -43,17 +54,33 @@ $(document).ready(function(){
                 }
             }
 
-            this.login = function(login, password) {
-                if(login==='gleab' && password==='test') {
-                    isActiveSession = true;
-                    userName = login;
+            this.login = function(login, pass) {
+                $.ajax({
+                    url: 'http://localhost:9292',
+                    type: 'POST',
+                    dataType : "json",
+                    crossDomain: true,
+                    data: {
+                        id: guid(),
+                        procedure: "beginSession",
+                        argument: {
+                            user: {
+                                name: login
+                            },
+                            password: pass
+                        }
+                    },
+                    success: function (data, textStatus) {
+                        alert(data);
+                    }
+                });
                     this.trigger('statusChanged');
-                } else {
+                /*} else {
                     this.trigger('loginError',{
                         title: 'Ошибка авторизации',
                         text: 'Введен неправильный логин или пароль.'
                     });
-                }
+                }*/
             }
         }
     });
