@@ -107,9 +107,10 @@ public class MainEndpoint {
     private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException {
         PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "trowel");
         PersistentPestType crap = new PersistentPestType(applicationContext, "crap", "", ImmutableSet.of(trowel));
+        PersistentPestType shit = new PersistentPestType(applicationContext, "shit", "", ImmutableSet.of(trowel));
 
         PersistentCustomer customer = new PersistentCustomer(applicationContext, "asd", new PersistentAddress("asd", null, null), "asd", "asd");
-
+        PersistentWorker worker = new PersistentWorker(applicationContext, "worker", "fuck", ImmutableSet.of(crap, shit));
         PersistentAdmin admin = new PersistentAdmin(applicationContext, "myzone", "fuck");
 
         AdminSession adminSession = admin.beginSession("fuck");
@@ -146,8 +147,7 @@ public class MainEndpoint {
                     return null;
                 })
                 .withHandlerPair(startTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest
-                            .getComment());
+                    modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
 
                     return null;
                 })
@@ -174,9 +174,10 @@ public class MainEndpoint {
                         editTaskRequest.getPestType(),
                         editTaskRequest.getProblemDescription(),
                         editTaskRequest.getComment()))
-                .withHandlerPair(getTasks, adminSessionTaskAuthorizedGetRequest -> applyFilters
-                        (adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
-                                adminSessionTaskAuthorizedGetRequest.getFilters()))
+                .withHandlerPair(getTasks, adminSessionTaskAuthorizedGetRequest -> applyFilters(
+                        adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
+                        adminSessionTaskAuthorizedGetRequest.getFilters())
+                )
                 .withHandlerPair(registerWorker, registerWorkerRequest -> registerWorkerRequest.getSession().registerWorker(
                         registerWorkerRequest.getName(),
                         registerWorkerRequest.getPassword(),
@@ -214,7 +215,7 @@ public class MainEndpoint {
                     throw new RuntimeException(e);
                 }
             }, () -> "Just assigned by AssignerService."));
-        }, 0, 10, TimeUnit.SECONDS);
+        }, 0, 10, TimeUnit.MINUTES);
     }
 
     /**
