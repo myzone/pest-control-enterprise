@@ -123,7 +123,7 @@ $(document).ready(function(){
             };
 
             this.getData = function(param, successCb, errorCb) {
-                if(!sessionModel.getSessionId()) {
+                if(sessionModel.getSessionId()===null) {
                     errorCb("Session error!");
                     return false;
                 }
@@ -261,9 +261,6 @@ $(document).ready(function(){
     });
 
     session.on('notAuthorizedError',function(msg) {
-        if(LoginForm.instance) {
-            return;
-        }
         var loginForm = new LoginForm({
             el: $('.windows')[0],
             model: session
