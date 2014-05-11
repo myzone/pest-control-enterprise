@@ -110,6 +110,7 @@ public class NettyEndpoint<I, O> {
 
                                     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(responseContent.getBytes()));
                                     response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+                                    response.headers().set(ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, OPTIONS");
                                     response.headers().set(CONTENT_TYPE, "application/json");
                                     response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
 

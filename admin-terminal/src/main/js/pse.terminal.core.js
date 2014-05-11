@@ -1,11 +1,14 @@
 $(document).ready(function(){
 
+    var requester = Requester("http://127.0.0.1:9292/");
+
     var SessionModel = Backbone.Model.extend({
         initialize: function() {
             var self = this;
 
             var isActiveSession = false;
             var userName = '';
+            var sessionId = null;
             var guid = (function() {
                 function s4() {
                     return Math.floor((1 + Math.random()) * 0x10000)
@@ -30,13 +33,13 @@ $(document).ready(function(){
 
             this.isLoggedIn = function() {
                 return isActiveSession;
-            }
+            };
 
             this.getUserName = function() {
                 if(checkSession()) {
                     return userName;
                 }
-            }
+            };
 
             this.logout = function() {
                 if(!isActiveSession) {
@@ -45,17 +48,16 @@ $(document).ready(function(){
 
                 isActiveSession = false;
                 userName = '';
-                this.trigger('statusChanged');
-            }
+
+                self.trigger('statusChanged');
+            };
 
             this.getSessionId = function() {
-                if(checkSession()) {
-                    return "someid";
-                }
-            }
+                return sessionId;
+            };
 
             this.login = function(login, pass) {
-                alert(JSON.stringify({
+                requester.send({
                     id: guid(),
                     procedure: "beginSession",
                     argument: {
@@ -64,34 +66,20 @@ $(document).ready(function(){
                         },
                         password: pass
                     }
-                }));
-                $.ajax({
-                    url: 'http://localhost:9292',
-                    type: 'POST',
-                    dataType : "json",
-                    crossDomain: true,
-                    contentType: "application/json; charset=utf-8",
-                    data: JSON.stringify({
-                        id: guid(),
-                        procedure: "beginSession",
-                        argument: {
-                            user: {
-                                name: login
-                            },
-                            password: pass
-                        }
-                    }),
-                    success: function (data, textStatus) {
-                        alert(data);
+                }, function(response) {
+                    if (response != null && response.result.types.indexOf("Admin") != -1) {
+                        isActiveSession = true;
+                        userName = login;
+                        sessionId = response.result.id;
+
+                        self.trigger('statusChanged');
+                    } else {
+                        self.trigger('loginError',{
+                            title: 'Ошибка авторизации',
+                            text: 'Введен неправильный логин или пароль.'
+                        });
                     }
                 });
-                    this.trigger('statusChanged');
-                /*} else {
-                    this.trigger('loginError',{
-                        title: 'Ошибка авторизации',
-                        text: 'Введен неправильный логин или пароль.'
-                    });
-                }*/
             }
         }
     });
@@ -132,7 +120,7 @@ $(document).ready(function(){
 
             this.getColumns = function() {
                 return columns;
-            }
+            };
 
             this.getData = function(param, successCb, errorCb) {
                 if(!sessionModel.getSessionId()) {
@@ -145,7 +133,7 @@ $(document).ready(function(){
                 };
                 successCb(response);
                 return true;
-            }
+            };
 
             this.setSession = function(session) {
                 sessionModel=session;
@@ -168,11 +156,11 @@ $(document).ready(function(){
 
             this.setToolbar = function(selector) {
                 ptoolbar=selector;
-            }
+            };
 
             this.setIdField = function(fieldName) {
                 pIdFiled=fieldName;
-            }
+            };
 
             this.render = function() {
                 this.$el.datagrid({
@@ -299,4 +287,6 @@ $(document).ready(function(){
         model: session
     });
     userInfoView.render();
+
+    session.trigger('notAuthorizedError');
 });

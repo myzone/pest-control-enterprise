@@ -79,7 +79,6 @@ public class MainEndpoint {
                         .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
                         .setPrettyPrinting()
-                        .generateNonExecutableJson()
         );
     }
 
