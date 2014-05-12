@@ -5,12 +5,11 @@ import com.pestcontrolenterprise.api.ReadonlyTask;
 import com.pestcontrolenterprise.api.ReadonlyWorker;
 import com.pestcontrolenterprise.api.Task;
 import com.pestcontrolenterprise.persistent.*;
-import com.pestcontrolenterprise.util.H2SessionFactoryProvider;
 import com.pestcontrolenterprise.util.Segment;
 import org.hibernate.SessionFactory;
-import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -24,30 +23,12 @@ import static org.mockito.Mockito.verify;
  * @author myzone
  * @date 4/29/14
  */
-public class SomeApiTest {
-
-    @Rule
-    public H2SessionFactoryProvider sessionFactoryProvider = new H2SessionFactoryProvider(
-//            "file:D://test.db",
-            "mem:db1",
-            PersistentObject.class,
-            PersistentApplicationContext.class,
-            PersistentCustomer.class,
-            PersistentEquipmentType.class,
-            PersistentPestType.class,
-            PersistentUser.class,
-            PersistentUser.PersistentUserSession.class,
-            PersistentWorker.class,
-            PersistentWorker.PersistentWorkerSession.class,
-            PersistentAdmin.class,
-            PersistentAdmin.PersistentAdminSession.class,
-            PersistentTask.class
-    );
+public class SomeApiTest extends DataBaseInfrastractureTest {
 
     @Test
     public void testName() throws Exception {
         final SessionFactory sessionFactory = sessionFactoryProvider.getSessionFactory();
-        PersistentApplicationContext applicationContext = new PersistentApplicationContext(sessionFactory);
+        PersistentApplicationContext applicationContext = new PersistentApplicationContext(sessionFactory, Clock::systemDefaultZone);
 
         PersistentWorker worker = new PersistentWorker(applicationContext, "ololo", "fuck", ImmutableSet.of());
 

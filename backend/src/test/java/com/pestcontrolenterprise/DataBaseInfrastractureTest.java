@@ -4,27 +4,43 @@ import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.util.H2SessionFactoryProvider;
 import org.junit.Rule;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * @author myzone
  * @date 4/28/14
  */
-public class DataBaseInfrastractureTest {
+public abstract class DataBaseInfrastractureTest {
 
     @Rule
-    public H2SessionFactoryProvider sessionFactory = new H2SessionFactoryProvider(
+    public H2SessionFactoryProvider sessionFactoryProvider = new H2SessionFactoryProvider(
 //            "file:D://test.db",
             "mem:db1",
-            PersistentCustomer.class,
-            PersistentEquipmentType.class,
-            PersistentPestType.class,
-            PersistentUser.class,
-            PersistentUser.PersistentUserSession.class,
-            PersistentWorker.class,
-            PersistentWorker.PersistentWorkerSession.class,
-            PersistentAdmin.class,
-            PersistentAdmin.PersistentAdminSession.class,
-            PersistentTask.class
+            getPersistentClasses()
     );
+
+    protected Set<Class<?>> getPersistentClasses() {
+        HashSet<Class<?>> classes = new HashSet<>();
+
+        classes.add(PersistentObject.class);
+        classes.add(PersistentApplicationContext.class);
+        classes.add(PersistentCustomer.class);
+        classes.add(PersistentEquipmentType.class);
+        classes.add(PersistentPestType.class);
+        classes.add(PersistentUser.class);
+        classes.add(PersistentUser.PersistentUserSession.class);
+        classes.add(PersistentWorker.class);
+        classes.add(PersistentWorker.PersistentWorkerSession.class);
+        classes.add(PersistentAdmin.class);
+        classes.add(PersistentAdmin.PersistentAdminSession.class);
+        classes.add(PersistentTask.class);
+        classes.add(PersistentTask.SimpleTaskHistoryEntry.class);
+        classes.add(PersistentTask.SingleChangeTaskTaskHistory.class);
+        classes.add(PersistentTask.MergeableTaskHistoryEntry.class);
+
+        return classes;
+    }
 
 }

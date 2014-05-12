@@ -16,6 +16,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
 
+import java.time.Clock;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static com.pestcontrolenterprise.api.ReadonlyTask.Status.*;
 import static com.pestcontrolenterprise.webapi.Signatures.*;
 import static java.util.Collections.emptySet;
 
@@ -38,7 +40,7 @@ public class MainEndpoint {
 
     public static void main(String[] args) throws Exception {
         ApplicationContext applicationContext = buildApplicationContext(buildConfiguration(
-//                "file:D://test5.db",
+//                "file:D://test1.db",
                 "mem:db1",
                 PersistentObject.class,
                 PersistentApplicationContext.class,
@@ -90,7 +92,7 @@ public class MainEndpoint {
     private static PersistentApplicationContext buildApplicationContext(Configuration configuration) {
         SessionFactory sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build());
 
-        return new PersistentApplicationContext(sessionFactory);
+        return new PersistentApplicationContext(sessionFactory, Clock::systemDefaultZone);
     }
 
     private static Configuration buildConfiguration(String db, Class<?>... annotatedClasses) {
@@ -120,7 +122,8 @@ public class MainEndpoint {
 
         AdminSession adminSession = admin.beginSession("fuck");
         adminSession.registerWorker("ololo", "fuck", ImmutableSet.of(crap));
-        adminSession.allocateTask(ReadonlyTask.Status.OPEN, Optional.empty(), ImmutableSet.of(), customer, crap, "asd", "fuck");
+        Task task = adminSession.allocateTask(IN_PROGRESS, Optional.empty(), ImmutableSet.of(), customer, crap, "asd", "fuck");
+        adminSession.editTask(task, Optional.of(OPEN), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("asd-asd!!!111"), "fuck");
         adminSession.close();
     }
 

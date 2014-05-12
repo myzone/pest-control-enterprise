@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 import java.time.Clock;
+import java.util.function.Supplier;
 
 /**
  * @author myzone
@@ -23,7 +24,11 @@ public class PersistentApplicationContext implements ApplicationContext {
     @Transient
     private final ThreadLocal<Session> threadLocalPersistenceSession;
 
-    public PersistentApplicationContext(SessionFactory sessionFactory) {
+    @Transient
+    private final Supplier<Clock> clockSupplier;
+
+    public PersistentApplicationContext(SessionFactory sessionFactory, Supplier<Clock> clockSupplier) {
+        this.clockSupplier = clockSupplier;
         threadLocalPersistenceSession = ThreadLocal.withInitial(() -> {
             Session persistenceSession = sessionFactory.openSession();
 
@@ -45,7 +50,7 @@ public class PersistentApplicationContext implements ApplicationContext {
 
     @Override
     public Clock getClock() {
-        return Clock.systemDefaultZone();
+        return clockSupplier.get();
     }
 
 }

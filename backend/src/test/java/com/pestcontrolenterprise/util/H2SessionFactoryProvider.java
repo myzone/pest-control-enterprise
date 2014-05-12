@@ -8,6 +8,9 @@ import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
 import org.junit.rules.ExternalResource;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author myzone
  * @date 4/28/14
@@ -18,7 +21,7 @@ public class H2SessionFactoryProvider extends ExternalResource {
 
     private SessionFactory sessionFactory;
 
-    public H2SessionFactoryProvider(String db, Class<?>... annotatedClasses) {
+    public H2SessionFactoryProvider(String db, Set<Class<?>> annotatedClasses) {
         Configuration configuration = new Configuration()
                 .setNamingStrategy(new ImprovedNamingStrategy())
                 .setProperty("hibernate.dialect", H2Dialect.class.getCanonicalName())
