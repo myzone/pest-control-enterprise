@@ -30,6 +30,13 @@ public abstract class PersistentUser extends PersistentObject implements User {
     @Column
     protected volatile String password;
 
+    @Deprecated
+    protected PersistentUser() {
+        super();
+
+        name = null;
+    }
+
     public PersistentUser(ApplicationContext applicationContext, String name, String password) {
         super(applicationContext);
 
@@ -44,7 +51,7 @@ public abstract class PersistentUser extends PersistentObject implements User {
 
     protected final void setPassword(UserSession session, String newPassword) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!session.isStillActive())
+            if (!session.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException();
 
             this.password = newPassword;
@@ -107,12 +114,20 @@ public abstract class PersistentUser extends PersistentObject implements User {
         @Column
         protected volatile Instant closed;
 
+        @Deprecated
+        protected PersistentUserSession() {
+            super();
+
+            user = null;
+            opened = null;
+        }
+
         public PersistentUserSession(ApplicationContext applicationContext, PersistentUser user) {
             super(applicationContext);
 
             this.user = user;
 
-            opened = Clock.systemDefaultZone().instant();
+            opened = getApplicationContext().getClock().instant();
             closed = opened.plus(DEFAULT_DELAY);
         }
 
@@ -150,7 +165,7 @@ public abstract class PersistentUser extends PersistentObject implements User {
         @Override
         public final void close() throws IllegalStateException {
             try (QuiteAutoCloseable lock = writeLock()) {
-                Instant now = Clock.systemDefaultZone().instant();
+                Instant now = getApplicationContext().getClock().instant();
 
                 if (!willBeActive(now))
                     throw new IllegalStateException("Is already closed");
@@ -197,7 +212,7 @@ public abstract class PersistentUser extends PersistentObject implements User {
 
         protected final void ensureAndHoldOpened() throws IllegalStateException {
             try (QuiteAutoCloseable lock = writeLock()) {
-                Instant now = Clock.systemDefaultZone().instant();
+                Instant now = getApplicationContext().getClock().instant();
 
                 if (!willBeActive(now))
                     throw new IllegalStateException("Is already closed");

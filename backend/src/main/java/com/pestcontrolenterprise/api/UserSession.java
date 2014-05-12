@@ -22,8 +22,8 @@ public interface UserSession extends AutoCloseable {
     @Override
     void close() throws IllegalStateException;
 
-    default boolean isStillActive() {
-        return willBeActive(Clock.systemDefaultZone().instant());
+    default boolean isStillActive(Clock clock) {
+        return willBeActive(clock.instant());
     }
 
     default boolean willBeActive(Instant instant) {

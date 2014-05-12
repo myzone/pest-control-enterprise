@@ -20,6 +20,11 @@ import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
 @Entity
 public final class PersistentAdmin extends PersistentUser implements Admin {
 
+    @Deprecated
+    public PersistentAdmin() {
+        super();
+    }
+
     public PersistentAdmin(ApplicationContext applicationContext, String name, String password) {
         super(applicationContext, name, password);
 
@@ -38,6 +43,11 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
 
     @Entity
     public static class PersistentAdminSession extends PersistentUserSession implements AdminSession {
+
+        @Deprecated
+        protected PersistentAdminSession() {
+            super();
+        }
 
         public PersistentAdminSession(ApplicationContext applicationContext, PersistentAdmin user) {
             super(applicationContext, user);

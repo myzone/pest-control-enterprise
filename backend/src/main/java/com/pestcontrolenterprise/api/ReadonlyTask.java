@@ -52,7 +52,7 @@ public interface ReadonlyTask {
 
     interface DataChangeTaskHistoryEntry extends TaskHistoryEntry {
 
-        ImmutableMap<TaskField, Pair<?, ?>> getChanges();
+        ImmutableMap<TaskField, Change<String>> getChanges();
 
         enum TaskField {
             status,
@@ -61,6 +61,14 @@ public interface ReadonlyTask {
             customer,
             pestType,
             problemDescription
+        }
+
+        interface Change<T> {
+
+            T getOld();
+
+            T getNew();
+
         }
 
     }

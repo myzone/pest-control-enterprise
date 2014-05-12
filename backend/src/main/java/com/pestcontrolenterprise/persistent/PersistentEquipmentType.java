@@ -23,6 +23,13 @@ public class PersistentEquipmentType extends PersistentObject implements Equipme
     @Column
     protected final String name;
 
+    @Deprecated
+    protected PersistentEquipmentType() {
+        super();
+
+        name = null;
+    }
+
     public PersistentEquipmentType(ApplicationContext applicationContext, String name) {
         super(applicationContext);
 

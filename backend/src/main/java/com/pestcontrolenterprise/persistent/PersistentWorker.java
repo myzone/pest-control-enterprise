@@ -25,6 +25,11 @@ public class PersistentWorker extends PersistentUser implements Worker {
     @ManyToMany(targetEntity = PersistentPestType.class)
     protected volatile Set<PestType> workablePestTypes;
 
+    @Deprecated
+    protected PersistentWorker() {
+        super();
+    }
+
     public PersistentWorker(ApplicationContext applicationContext, String name, String password, ImmutableSet<PestType> workablePestTypes) {
         super(applicationContext, name, password);
 
@@ -53,7 +58,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
     @Override
     public void setWorkablePestTypes(AdminSession session, ImmutableSet<PestType> workablePestTypes) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!session.isStillActive())
+            if (!session.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException();
 
             this.workablePestTypes = workablePestTypes;
@@ -99,6 +104,11 @@ public class PersistentWorker extends PersistentUser implements Worker {
 
     @Entity
     public static class PersistentWorkerSession extends PersistentUserSession implements WorkerSession {
+
+        @Deprecated
+        protected PersistentWorkerSession() {
+            super();
+        }
 
         public PersistentWorkerSession(ApplicationContext applicationContext, PersistentWorker user) {
             super(applicationContext, user);

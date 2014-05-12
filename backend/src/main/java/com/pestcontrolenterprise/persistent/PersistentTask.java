@@ -7,18 +7,13 @@ import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.Segment;
-import org.javatuples.Pair;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.time.Clock;
 import java.time.Instant;
-import java.util.Deque;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.pestcontrolenterprise.api.ReadonlyTask.DataChangeTaskHistoryEntry.TaskField;
 import static java.util.Collections.emptyMap;
@@ -40,8 +35,8 @@ public class PersistentTask extends PersistentObject implements Task {
     @ManyToOne(targetEntity = PersistentWorker.class, cascade = CascadeType.ALL)
     protected volatile ReadonlyWorker executor;
 
-    @Embedded
-    @Column
+    @Type(type = "serializable")
+    @Column(length = 8192)
     protected volatile ImmutableSet<Segment<Instant>> availabilityTime;
 
     @ManyToOne(targetEntity = PersistentCustomer.class, cascade = CascadeType.ALL)
@@ -53,9 +48,13 @@ public class PersistentTask extends PersistentObject implements Task {
     @Column
     protected volatile String problemDescription;
 
-    @Embedded
-    @Column
-    protected volatile ConcurrentLinkedDeque<TaskHistoryEntry> taskHistory;
+    @ManyToMany(targetEntity = SimpleTaskHistoryEntry.class)
+    protected volatile List<TaskHistoryEntry> taskHistory;
+
+    @Deprecated
+    protected PersistentTask() {
+        super();
+    }
 
     public PersistentTask(
             ApplicationContext applicationContext,
@@ -70,7 +69,7 @@ public class PersistentTask extends PersistentObject implements Task {
     ) throws IllegalStateException {
         super(applicationContext);
 
-        if (!causer.isStillActive())
+        if (!causer.isStillActive(getApplicationContext().getClock()))
             throw new IllegalStateException("Session is inactive");
 
         this.status = status;
@@ -79,9 +78,9 @@ public class PersistentTask extends PersistentObject implements Task {
         this.customer = customer;
         this.pestType = pestType;
         this.problemDescription = problemDescription;
-        this.taskHistory = new ConcurrentLinkedDeque<>();
+        this.taskHistory = new CopyOnWriteArrayList<>();
 
-        persistHistoryEntry(new SimpleTaskHistoryEntry(Clock.systemDefaultZone().instant(), causer.getOwner(), comment));
+        persistHistoryEntry(new SimpleTaskHistoryEntry(applicationContext, getApplicationContext().getClock().instant(), causer.getOwner(), comment));
 
         save();
     }
@@ -143,12 +142,19 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public void setStatus(UserSession causerSession, Status status, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!causerSession.isStillActive())
+            if (!causerSession.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException("Session is inactive");
             if (!isExecutorsSession(causerSession) && !isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.status, new Pair<>(this.status, status)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(
+                    getApplicationContext(),
+                    getApplicationContext().getClock().instant(),
+                    causerSession.getOwner(),
+                    comment,
+                    TaskField.status,
+                    new PersistentChange<>(this.status.name(), status.name())
+            ));
 
             this.status = status;
 
@@ -159,12 +165,25 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public void setExecutor(UserSession causerSession, Optional<? extends ReadonlyWorker> executor, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!causerSession.isStillActive())
+            if (!causerSession.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException("Session is inactive");
             if ((!isExecutorsSession(causerSession) || !executor.isPresent()) && !isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.executor, new Pair<>(Optional.ofNullable(this.executor), executor)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(
+                    getApplicationContext(),
+                    getApplicationContext().getClock().instant(),
+                    causerSession.getOwner(),
+                    comment,
+                    TaskField.executor,
+                    new PersistentChange<String>(
+                            Optional.ofNullable(this.executor)
+                                    .map(ReadonlyWorker::getName)
+                                    .orElse(null) ,
+                            executor.map(ReadonlyWorker::getName)
+                                    .orElse(null)
+                    )
+            ));
 
             this.executor = executor.orElse(null);
 
@@ -175,12 +194,19 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public void setAvailabilityTime(UserSession causerSession, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!causerSession.isStillActive())
+            if (!causerSession.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException("Session is inactive");
             if (!isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.availabilityTime, new Pair<>(this.availabilityTime, availabilityTime)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(
+                    getApplicationContext(),
+                    getApplicationContext().getClock().instant(),
+                    causerSession.getOwner(),
+                    comment,
+                    TaskField.availabilityTime,
+                    new PersistentChange<>(String.valueOf(this.availabilityTime), String.valueOf(availabilityTime))
+            ));
 
             this.availabilityTime = availabilityTime;
 
@@ -191,12 +217,19 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public void setCustomer(UserSession causerSession, ReadonlyCustomer customer, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!causerSession.isStillActive())
+            if (!causerSession.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException("Session is inactive");
             if (!isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.customer, new Pair<>(this.customer, customer)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(
+                    getApplicationContext(),
+                    getApplicationContext().getClock().instant(),
+                    causerSession.getOwner(),
+                    comment,
+                    TaskField.customer,
+                    new PersistentChange<>(this.customer.getName(), customer.getName())
+            ));
 
             this.customer = customer;
 
@@ -207,12 +240,19 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public void setPestType(UserSession causerSession, PestType pestType, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!causerSession.isStillActive())
+            if (!causerSession.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException("Session is inactive");
             if (!isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.pestType, new Pair<>(this.pestType, pestType)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(
+                    getApplicationContext(),
+                    getApplicationContext().getClock().instant(),
+                    causerSession.getOwner(),
+                    comment,
+                    TaskField.pestType,
+                    new PersistentChange<>(this.pestType.getName(), pestType.getName())
+            ));
 
             this.pestType = pestType;
 
@@ -223,12 +263,19 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public void setProblemDescription(UserSession causerSession, String problemDescription, String comment) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!causerSession.isStillActive())
+            if (!causerSession.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException("Session is inactive");
             if (!isAdminSession(causerSession))
                 throw new IllegalStateException();
 
-            persistHistoryEntry(new SingleChangeTaskTaskHistory(Clock.systemDefaultZone().instant(), causerSession.getOwner(), comment, TaskField.problemDescription, new Pair<>(this.problemDescription, problemDescription)));
+            persistHistoryEntry(new SingleChangeTaskTaskHistory(
+                    getApplicationContext(),
+                    getApplicationContext().getClock().instant(),
+                    causerSession.getOwner(),
+                    comment,
+                    TaskField.problemDescription,
+                    new PersistentChange<>(this.problemDescription, problemDescription)
+            ));
 
             this.problemDescription = problemDescription;
 
@@ -238,24 +285,24 @@ public class PersistentTask extends PersistentObject implements Task {
 
     protected void persistHistoryEntry(TaskHistoryEntry taskHistoryEntry) {
         try (QuiteAutoCloseable lock = writeLock()) {
-            TaskHistoryEntry peek = taskHistory.peek();
+            TaskHistoryEntry peek = taskHistory.size() - 1 > 0 ? taskHistory.get(taskHistory.size() - 1) : null;
 
             if (peek != null) {
-                if (peek instanceof MergeableTaskTaskHistoryEntry) {
-                    if (((MergeableTaskTaskHistoryEntry) peek).tryMerge(taskHistoryEntry)) {
+                if (peek instanceof MergeableTaskHistoryEntry) {
+                    if (((MergeableTaskHistoryEntry) peek).tryMerge(taskHistoryEntry)) {
                         return;
                     }
                 } else {
-                    MergeableTaskTaskHistoryEntry mergeable = new MergeableTaskTaskHistoryEntry(peek.getInstant(), peek.getCauser(), peek.getComment());
+                    MergeableTaskHistoryEntry mergeable = new MergeableTaskHistoryEntry(getApplicationContext(), peek.getInstant(), peek.getCauser(), peek.getComment());
 
                     if (mergeable.tryMerge(peek) && mergeable.tryMerge(taskHistoryEntry)) {
-                        taskHistory.pop();
+                        taskHistory.remove(taskHistory.size() - 1);
                         taskHistoryEntry = mergeable;
                     }
                 }
             }
 
-            taskHistory.push(taskHistoryEntry);
+            taskHistory.add(taskHistoryEntry);
         }
     }
 
@@ -320,16 +367,41 @@ public class PersistentTask extends PersistentObject implements Task {
         }
     }
 
-    protected class SimpleTaskHistoryEntry implements TaskHistoryEntry, Serializable{
+    @Entity
+    @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+    @DiscriminatorColumn(length = 100)
+    public static class SimpleTaskHistoryEntry extends PersistentObject implements TaskHistoryEntry {
 
+        @Id
+        @GeneratedValue(strategy = GenerationType.SEQUENCE)
+        protected final long id = autoGenerated();
+
+        @Column
         protected final Instant instant;
+
+        @ManyToOne(targetEntity = PersistentUser.class)
         protected final User causer;
+
+        @Column
         protected final String comment;
 
-        public SimpleTaskHistoryEntry(Instant instant, User causer, String comment) {
+        @Deprecated
+        protected SimpleTaskHistoryEntry() {
+            super();
+
+            instant = null;
+            causer = null;
+            comment = null;
+        }
+
+        public SimpleTaskHistoryEntry(ApplicationContext applicationContext, Instant instant, User causer, String comment) {
+            super(applicationContext);
+
             this.instant = instant;
             this.causer = causer;
             this.comment = comment;
+
+            save();
         }
 
         @Override
@@ -361,38 +433,57 @@ public class PersistentTask extends PersistentObject implements Task {
 
     }
 
-    protected class SingleChangeTaskTaskHistory extends SimpleTaskHistoryEntry implements DataChangeTaskHistoryEntry {
+    @Entity
+    public static class SingleChangeTaskTaskHistory extends SimpleTaskHistoryEntry implements DataChangeTaskHistoryEntry {
 
-        protected final ImmutableMap<TaskField, Pair<?, ?>> changes;
+        @Type(type = "serializable")
+        @Column(length = 1024)
+        protected final ImmutableMap<TaskField, Change<String>> changes;
 
-        public SingleChangeTaskTaskHistory(Instant instant, User causer, String comment, TaskField field, Pair<?, ?> change) {
-            super(instant, causer, comment);
+        protected SingleChangeTaskTaskHistory() {
+            super();
+
+            changes = null;
+        }
+
+        public SingleChangeTaskTaskHistory(ApplicationContext applicationContext, Instant instant, User causer, String comment, TaskField field, Change<String> change) {
+            super(applicationContext, instant, causer, comment);
 
             this.changes = ImmutableMap.of(field, change);
+
+            save();
         }
 
         @Override
-        public ImmutableMap<TaskField, Pair<?, ?>> getChanges() {
+        public ImmutableMap<TaskField, Change<String>> getChanges() {
             return changes;
         }
 
     }
 
-    protected class MergeableTaskTaskHistoryEntry extends SimpleTaskHistoryEntry implements DataChangeTaskHistoryEntry {
+    @Entity
+    public static class MergeableTaskHistoryEntry extends SimpleTaskHistoryEntry implements DataChangeTaskHistoryEntry {
 
-        protected AtomicReference<ImmutableMap<TaskField, Pair<?, ?>>> changes;
+        @Type(type = "serializable")
+        @Column(length = 8192)
+        protected volatile Map<TaskField, Change<String>> changes;
 
-        public MergeableTaskTaskHistoryEntry(Instant instant, User causer, String comment) {
-            super(instant, causer, comment);
+        protected MergeableTaskHistoryEntry() {
+            super();
+        }
 
-            changes = new AtomicReference<>(ImmutableMap.of());
+        public MergeableTaskHistoryEntry(ApplicationContext applicationContext, Instant instant, User causer, String comment) {
+            super(applicationContext, instant, causer, comment);
+
+            changes = ImmutableMap.of();
+
+            save();
         }
 
         public boolean tryMerge(TaskHistoryEntry taskHistoryEntry) {
-            while (true) {
-                ImmutableMap<TaskField, Pair<?, ?>> oldChanges = changes.get();
-
-                Map<TaskField, Pair<?, ?>> addingChanges = getChanges(taskHistoryEntry);
+            try (QuiteAutoCloseable lock = writeLock()) {
+                Map<TaskField, Change<String>> oldChanges = changes;
+                Map<TaskField, Change<String>> addingChanges = getChanges(taskHistoryEntry);
 
                 if (causer.equals(taskHistoryEntry.getCauser())
                         && comment.equals(taskHistoryEntry.getComment())
@@ -400,19 +491,19 @@ public class PersistentTask extends PersistentObject implements Task {
                         .entrySet()
                         .stream()
                         .map(entry -> {
-                            Pair<?, ?> objects = oldChanges.get(entry.getKey());
+                            Change<?> objects = oldChanges.get(entry.getKey());
 
-                            return objects == null || objects.getValue1().equals(entry.getValue().getValue0());
+                            return objects == null || objects.getOld().equals(entry.getValue().getNew());
                         })
                         .reduce(true, Boolean::logicalAnd)) {
 
-                    if (changes.compareAndSet(oldChanges, ImmutableMap
-                            .<TaskField, Pair<?, ?>>builder()
+                    changes = ImmutableMap
+                            .<TaskField, Change<String>>builder()
                             .putAll(oldChanges)
                             .putAll(addingChanges)
-                            .build())) {
-                       return true;
-                    }
+                            .build();
+
+                    return true;
                 } else {
                     return false;
                 }
@@ -420,19 +511,73 @@ public class PersistentTask extends PersistentObject implements Task {
         }
 
         @Override
-        public ImmutableMap<TaskField, Pair<?, ?>> getChanges() {
-            return changes.get();
+        public ImmutableMap<TaskField, Change<String>> getChanges() {
+            try (QuiteAutoCloseable lock = readLock()) {
+                return ImmutableMap.copyOf(changes);
+            }
         }
 
         protected Objects.ToStringHelper toStringHelper() {
-            return super.toStringHelper()
-                    .add("changes", changes.get());
+            try (QuiteAutoCloseable lock = readLock()) {
+                return super.toStringHelper()
+                        .add("changes", changes);
+            }
         }
 
-        protected Map<TaskField, Pair<?, ?>> getChanges(TaskHistoryEntry taskHistoryEntry) {
+        protected Map<TaskField, Change<String>> getChanges(TaskHistoryEntry taskHistoryEntry) {
             return taskHistoryEntry instanceof DataChangeTaskHistoryEntry
                     ? ((DataChangeTaskHistoryEntry) taskHistoryEntry).getChanges()
                     : emptyMap();
+        }
+
+    }
+
+    public static class PersistentChange<T extends Serializable> implements DataChangeTaskHistoryEntry.Change<T>, Serializable {
+
+        private final T oldValue;
+        private final T newValue;
+
+        public PersistentChange(T oldValue, T newValue) {
+            this.oldValue = oldValue;
+            this.newValue = newValue;
+        }
+
+        @Override
+        public T getOld() {
+            return oldValue;
+        }
+
+        @Override
+        public T getNew() {
+            return newValue;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            PersistentChange that = (PersistentChange) o;
+
+            if (newValue != null ? !newValue.equals(that.newValue) : that.newValue != null) return false;
+            if (oldValue != null ? !oldValue.equals(that.oldValue) : that.oldValue != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = oldValue != null ? oldValue.hashCode() : 0;
+            result = 31 * result + (newValue != null ? newValue.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("oldValue", oldValue)
+                    .add("newValue", newValue)
+                    .toString();
         }
 
     }

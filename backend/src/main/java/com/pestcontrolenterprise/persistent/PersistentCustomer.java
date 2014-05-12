@@ -5,6 +5,7 @@ import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Address;
 import com.pestcontrolenterprise.api.AdminSession;
 import com.pestcontrolenterprise.api.Customer;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -18,8 +19,8 @@ public class PersistentCustomer extends PersistentObject implements Customer {
     @Id
     protected final String name;
 
-    @Embedded
-    @Column
+    @Type(type = "serializable")
+    @Column(length = 8192)
     protected volatile Address address;
 
     @Column
@@ -27,6 +28,13 @@ public class PersistentCustomer extends PersistentObject implements Customer {
 
     @Column
     protected volatile String email;
+
+    @Deprecated
+    protected PersistentCustomer() {
+        super();
+
+        name = null;
+    }
 
     public PersistentCustomer(ApplicationContext applicationContext, String name, Address address, String cellPhone, String email) {
         super(applicationContext);
@@ -66,7 +74,7 @@ public class PersistentCustomer extends PersistentObject implements Customer {
     @Override
     public void setAddress(AdminSession session, Address address) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!session.isStillActive())
+            if (!session.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException();
 
             this.address = address;
@@ -76,7 +84,7 @@ public class PersistentCustomer extends PersistentObject implements Customer {
     @Override
     public void setCellPhone(AdminSession session, String cellPhone) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!session.isStillActive())
+            if (!session.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException();
 
             this.cellPhone = cellPhone;
@@ -86,7 +94,7 @@ public class PersistentCustomer extends PersistentObject implements Customer {
     @Override
     public void setEmail(AdminSession session, String email) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
-            if (!session.isStillActive())
+            if (!session.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException();
 
             this.email = email;

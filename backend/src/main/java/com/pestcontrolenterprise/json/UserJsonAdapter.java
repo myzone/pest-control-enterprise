@@ -46,7 +46,7 @@ public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<U
     protected ImmutableSet<String> getUserTypes(User user) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
 
-        if (user instanceof ReadonlyWorker) builder.add("ReadonlyWorker");
+        if (user instanceof ReadonlyWorker) builder.add("Worker");
         if (user instanceof Admin) builder.add("Admin");
 
         return builder.build();

@@ -7,14 +7,12 @@ import com.pestcontrolenterprise.api.Task;
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.util.H2SessionFactoryProvider;
 import com.pestcontrolenterprise.util.Segment;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+import org.hibernate.SessionFactory;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.time.Instant;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.mockito.Matchers.eq;
@@ -29,7 +27,7 @@ import static org.mockito.Mockito.verify;
 public class SomeApiTest {
 
     @Rule
-    public H2SessionFactoryProvider sessionFactory = new H2SessionFactoryProvider(
+    public H2SessionFactoryProvider sessionFactoryProvider = new H2SessionFactoryProvider(
 //            "file:D://test.db",
             "mem:db1",
             PersistentObject.class,
@@ -48,8 +46,8 @@ public class SomeApiTest {
 
     @Test
     public void testName() throws Exception {
-        final Session session = sessionFactory.getSessionFactory().openSession();
-        PersistentApplicationContext applicationContext = new PersistentApplicationContext(session);
+        final SessionFactory sessionFactory = sessionFactoryProvider.getSessionFactory();
+        PersistentApplicationContext applicationContext = new PersistentApplicationContext(sessionFactory);
 
         PersistentWorker worker = new PersistentWorker(applicationContext, "ololo", "fuck", ImmutableSet.of());
 

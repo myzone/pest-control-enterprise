@@ -81,11 +81,11 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
 
             JsonObject changesObject = new JsonObject();
 
-            for (Map.Entry<DataChangeTaskHistoryEntry.TaskField, Pair<?, ?>> taskFieldPairEntry : taskHistoryEntry.getChanges().entrySet()) {
+            for (Map.Entry<DataChangeTaskHistoryEntry.TaskField, DataChangeTaskHistoryEntry.Change<String>> taskFieldPairEntry : taskHistoryEntry.getChanges().entrySet()) {
                 JsonObject changeObject = new JsonObject();
 
-                changeObject.add("old", context.serialize(taskFieldPairEntry.getValue().getValue0()));
-                changeObject.add("new", context.serialize(taskFieldPairEntry.getValue().getValue1()));
+                changeObject.add("old", context.serialize(taskFieldPairEntry.getValue().getOld(), String.class));
+                changeObject.add("new", context.serialize(taskFieldPairEntry.getValue().getNew(), String.class));
 
                 changesObject.add(taskFieldPairEntry.getKey().name(), changeObject);
             }

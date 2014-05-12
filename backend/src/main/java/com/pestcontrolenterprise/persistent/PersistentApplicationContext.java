@@ -1,12 +1,12 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.pestcontrolenterprise.ApplicationContext;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
+import java.time.Clock;
 
 /**
  * @author myzone
@@ -15,25 +15,37 @@ import javax.persistence.Transient;
 @Entity
 public class PersistentApplicationContext implements ApplicationContext {
 
-    public static final String INSTANCE_ID = "Singleton for injection";
+    public static final boolean INSTANCE_ID = true;
 
     @Id
-    private final String id = INSTANCE_ID;
+    private final boolean id = INSTANCE_ID;
 
     @Transient
-    private final Session persistenceSession;
+    private final ThreadLocal<Session> threadLocalPersistenceSession;
 
-    public PersistentApplicationContext(Session persistenceSession) {
-        this.persistenceSession = persistenceSession;
+    public PersistentApplicationContext(SessionFactory sessionFactory) {
+        threadLocalPersistenceSession = ThreadLocal.withInitial(() -> {
+            Session persistenceSession = sessionFactory.openSession();
 
-        Transaction transaction = persistenceSession.beginTransaction();
-        persistenceSession.saveOrUpdate(this);
-        transaction.commit();
+
+            Transaction transaction = persistenceSession.beginTransaction();
+            persistenceSession.saveOrUpdate(this);
+            transaction.commit();
+            persistenceSession.flush();
+
+            return persistenceSession;
+        });
+
     }
 
     @Override
     public Session getPersistenceSession() {
-        return persistenceSession;
+        return threadLocalPersistenceSession.get();
+    }
+
+    @Override
+    public Clock getClock() {
+        return Clock.systemDefaultZone();
     }
 
 }

@@ -47,7 +47,7 @@ public class UserSessionJsonAdapter implements JsonSerializer<UserSession>, Json
     protected ImmutableSet<String> getUserSessionTypes(UserSession userSession) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
 
-        if (userSession instanceof WorkerSession) builder.add("ReadonlyWorker");
+        if (userSession instanceof WorkerSession) builder.add("Worker");
         if (userSession instanceof AdminSession) builder.add("Admin");
 
         return builder.build();

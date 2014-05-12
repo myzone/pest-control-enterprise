@@ -23,16 +23,15 @@ public class PestTypeJsonAdapter implements JsonSerializer<PestType>, JsonDeseri
     public PestType deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = (JsonObject) jsonElement;
 
-        long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
+        String name = context.deserialize(jsonObject.get("name"), String.class);
 
-        return (PestType) applicationContext.getPersistenceSession().get(PersistentPestType.class, id);
+        return (PestType) applicationContext.getPersistenceSession().get(PersistentPestType.class, name);
     }
 
     @Override
     public JsonObject serialize(PestType pestType, Type type, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.add("id", context.serialize(pestType.getId(), Long.TYPE));
         jsonObject.add("name", context.serialize(pestType.getName(), String.class));
         jsonObject.add("description", context.serialize(pestType.getDescription(), String.class));
 

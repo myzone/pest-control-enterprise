@@ -8,8 +8,6 @@ import com.google.common.collect.ImmutableSet;
  */
 public interface PestType {
 
-    long getId();
-
     String getName();
 
     String getDescription();

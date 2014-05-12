@@ -9,6 +9,7 @@ import com.pestcontrolenterprise.json.*;
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.service.AssignerService;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -37,6 +38,7 @@ public class MainEndpoint {
 
     public static void main(String[] args) throws Exception {
         ApplicationContext applicationContext = buildApplicationContext(buildConfiguration(
+//                "file:D://test5.db",
                 "mem:db1",
                 PersistentObject.class,
                 PersistentApplicationContext.class,
@@ -49,7 +51,10 @@ public class MainEndpoint {
                 PersistentWorker.PersistentWorkerSession.class,
                 PersistentAdmin.class,
                 PersistentAdmin.PersistentAdminSession.class,
-                PersistentTask.class
+                PersistentTask.class,
+                PersistentTask.SimpleTaskHistoryEntry.class,
+                PersistentTask.SingleChangeTaskTaskHistory.class,
+                PersistentTask.MergeableTaskHistoryEntry.class
         ));
 
         NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder = NettyRpcEndpoint.builder(String.class);
@@ -83,9 +88,9 @@ public class MainEndpoint {
     }
 
     private static PersistentApplicationContext buildApplicationContext(Configuration configuration) {
-        Session session = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build()).openSession();
+        SessionFactory sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build());
 
-        return new PersistentApplicationContext(session);
+        return new PersistentApplicationContext(sessionFactory);
     }
 
     private static Configuration buildConfiguration(String db, Class<?>... annotatedClasses) {
