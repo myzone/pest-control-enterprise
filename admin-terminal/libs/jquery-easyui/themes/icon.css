@@ -1,3 +1,11 @@
+.icon-call
+{
+    background:url('icons/call.png') no-repeat center center;
+}
+.icon-mark
+{
+    background:url('icons/mark.png') no-repeat center center;
+}
 .icon-user
 {
     background:url('icons/user.png') no-repeat center center;
@@ -5,6 +13,14 @@
 .icon-power
 {
     background:url('icons/power.png') no-repeat center center;
+}
+.icon-login
+{
+    background:url('icons/login.png') no-repeat center center;
+}
+.icon-report
+{
+    background:url('icons/report.png') no-repeat center center;
 }
 .icon-blank{
 	background:url('icons/blank.gif') no-repeat center center;
