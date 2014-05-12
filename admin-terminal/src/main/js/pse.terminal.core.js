@@ -53,7 +53,11 @@ $(document).ready(function(){
             };
 
             this.getSessionId = function() {
-                return sessionId;
+                if(checkSession()) {
+                    return sessionId;
+                } else {
+                    return null;
+                }
             };
 
             this.login = function(login, pass) {
@@ -147,6 +151,7 @@ $(document).ready(function(){
 
     var TicketsView = Backbone.View.extend({
         initialize: function() {
+            var self = this;
             var ptoolbar="";
             var pIdFiled="";
 
@@ -172,6 +177,9 @@ $(document).ready(function(){
                     pagination:true,
                     loader: this.model.getData,
                     fit:true
+                });
+                $('#createRequest').click(function(){
+                    self.trigger('createRequest');
                 });
                 return this;
             }
@@ -229,7 +237,16 @@ $(document).ready(function(){
                 this.el=$('.login-form')[0];
                 this.$('.button-ok').click(submitLoginForm);
                 this.$('.button-cancel').click(cancel);
-                this.$('.login-form').dialog('open');
+                this.$('input').keyup(function(e) {
+                    if (e.keyCode == 13) {
+                        submitLoginForm();
+                    }
+                });
+                this.$el.dialog({
+                    onClose: function() {
+                        self.remove();
+                    }
+                });
 
                 return this;
             }
@@ -243,16 +260,44 @@ $(document).ready(function(){
             function onSessionStatusChanged() {
                 if(self.model.isLoggedIn()) {
                     self.$el.dialog('close');
-                    self.remove();
+                    //self.remove();
                 }
             }
 
             function cancel() {
                 self.$el.dialog('close');
-                self.remove();
+                //self.remove();
             }
         }
 
+    });
+
+    var TicketForm = Backbone.View.extend({
+        template: _.template($('#ticket-form-template').html()),
+        initialize: function() {
+            var self = this;
+
+            this.render = function() {
+                this.$el = $('<div/>');
+                this.$el.html(this.template({
+                    lblTitle: 'Создать заявку',
+                    lblPestType: 'Тип вредителя',
+                    lblSelectPestType: 'Пожалуйста, выберите тип вредителя...',
+                    lblBriefDescription: 'Краткое описание проблемы',
+                    lblCustomerName: 'Имя клиента',
+                    lblHouseNumber: 'Номер/Название дома',
+                    lblStreet: 'Улица',
+                    lblTown: 'Город/Населенный пункт',
+                    lblPreferredDay: 'Предпочитаемая дата приезда специалиста',
+                    lblEmail: 'Email',
+                    lblPhoneNumber: 'Телефон',
+                    lblSubmit: 'Создать',
+                    lblCancel: 'Отмена'
+                }));
+                $('body').append(this.$el);
+                $.parser.parse(this.$el);
+            };
+        }
     });
 
     var session = new SessionModel;
@@ -278,12 +323,15 @@ $(document).ready(function(){
     tv.setToolbar('#ticketsToolbar');
     tv.setIdField('ticketid');
     tv.render();
-
+    tv.on('createRequest', function(){
+        var form = new TicketForm;
+        form.render();
+    });
     var userInfoView = new LoggedUserInfoView({
         el: $('.user-info-container'),
         model: session
     });
     userInfoView.render();
 
-    session.trigger('notAuthorizedError');
+    //session.trigger('notAuthorizedError');
 });

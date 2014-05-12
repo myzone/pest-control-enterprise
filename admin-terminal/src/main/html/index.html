@@ -9,6 +9,97 @@
         <link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.10.4.custom.css">
         <link rel="stylesheet" type="text/css" href="styles.css">
 
+        <script type="text/template" id="ticket-form-template">
+            <div id="ticket-form" class="easyui-dialog" title="<%= lblTitle %>"
+                    data-options="
+                    iconCls: 'icon-call',
+                    buttons: '#new-ticket-buttons',
+                    modal: true,
+                    collapsible: false,
+                    minimizable: false,
+                    maximizable: false,
+                    resizable: false">
+                <table border="0" cellpadding="2" cellspacing="2">
+                    <tr>
+                        <td><%= lblPestType %>:</td>
+                        <td>
+                            <select id="pestType" name="pestType" class="easyui-combobox"
+                                    data-options="
+                                        valueField: 'id',
+                                        textField: 'text',
+                                        required: true">
+                                <option value=" "><%= lblSelectPestType %></option>
+                                <option value="I">Ants</option>
+                                <option value="A">Bedbugs (Inspection only)</option>
+                                <option value="R">Carpet beetle</option>
+                                <option value="B">Cockroaches</option>
+                                <option value="T">Earwigs</option>
+                                <option value="C">Fleas</option>
+                                <option value="P">Flies</option>
+                                <option value="J">Hornets</option>
+                                <option value="D">Mice</option>
+                                <option value="S">Plaster beetle</option>
+                                <option value="Z">Psoccids and other stored food pests</option>
+                                <option value="E">Rats</option>
+                                <option value="Q">Silverfish</option>
+                                <option value="K">Wasps</option>
+                                <option value="U">Woodlouse</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><%= lblBriefDescription %>:</td>
+                        <td>
+                            <textarea id="problemDescription" name="problemDescription" class="easyui-validatebox"
+                                    data-options="required:true,validType:'length[1,2048]'"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><%= lblCustomerName %>:</td>
+                        <td><input id="customerName" name="customerName" class="easyui-validatebox" type="text"
+                                   data-options="required:true,validType:'length[1,100]'"/></td>
+                    </tr>
+                    <tr>
+                        <td><%= lblHouseNumber %>:</td>
+                        <td><input id="houseNumber" name="houseNumber" class="easyui-validatebox" type="text"
+                                   data-options="required:true,validType:'length[1,100]'"/></td>
+                    </tr>
+                    <tr>
+                        <td><%= lblStreet %>:</td>
+                        <td><input id="street" name="street" class="easyui-validatebox" type="text"
+                                   data-options="required:true,validType:'length[1,100]'"/></td>
+                    </tr>
+                    <tr>
+                        <td><%= lblTown %>:</td>
+                        <td><input id="town" name="town" class="easyui-validatebox" type="text"
+                                   data-options="required:true,validType:'length[1,100]'"/></td>
+                    </tr>
+                    <tr>
+                        <td><%= lblPreferredDay %>:</td>
+                        <td>
+                            <div id="calendar" class="easyui-calendar" style="width:180px;height:180px;" data-options="
+                                firstDay: 1
+                            "></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><%= lblEmail %>:</td>
+                        <td><input id="email" name="email" class="easyui-validatebox" type="email"
+                                   data-options="required:true,validType:'email'"/></td>
+                    </tr>
+                    <tr>
+                        <td><%= lblPhoneNumber %>:</td>
+                        <td><input id="phone" name="phone" class="easyui-validatebox" type="text"
+                                   data-options="required:true,validType:'length[1,100]'"/></td>
+                    </tr>
+                </table>
+                <div id="new-ticket-buttons">
+                    <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblSubmit %></a>
+                    <a href="#" class="button-cancel easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="user-info-panel-template">
             <div class="user-info-panel">
                 <p class="lbl-text"></p>
@@ -20,7 +111,7 @@
         <script type="text/template" id="login-form-template">
             <div class="login-form easyui-dialog" title="<%= lblTitle %>"
                     data-options="
-                        iconCls: 'icon-user',
+                        iconCls: 'icon-login',
                         buttons: '#loginButtons',
                         modal: true,
                         collapsible: false,
@@ -31,11 +122,17 @@
                     <table border="0" cellspacing="2" cellpadding="2">
                         <tr>
                             <td><%= lblLogin %>:&nbsp;</td>
-                            <td><input class="login" type="text"/></td>
+                            <td>
+                                <input name="login" class="login easyui-validatebox" type="text"
+                                       data-options="required:true,validType:'length[1,50]'"/>
+                            </td>
                         </tr>
                         <tr>
                             <td><%= lblPassword %>:&nbsp;</td>
-                            <td><input class="password" type="password"/></td>
+                            <td>
+                                <input name="password" class="password easyui-validatebox"
+                                       type="password" data-options="required:true,validType:'length[1,50]'"/>
+                            </td>
                         </tr>
                     </table>
                     <div id="loginButtons">
@@ -49,6 +146,7 @@
         <script type="text/javascript" src="underscore.js"></script>
         <script type="text/javascript" src="jquery.min.js"></script>
         <script type="text/javascript" src="jquery.easyui.min.js"></script>
+        <script type="text/javascript" src="easyui-lang-ru.js"></script>
         <script type="text/javascript" src="backbone.js"></script>
         <script type="text/javascript" src="pse.terminal.requester.js"></script>
         <script type="text/javascript" src="pse.terminal.core.js"></script>
@@ -61,15 +159,23 @@
                     <div class="easyui-tabs" id="tabs" data-options="fit:true">
                         <div title="Заявки" >
                             <div id="ticketsToolbar">
-                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
-                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                                <a href="#" id="createRequest" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-call',plain:true">Добавить заявку</a>
+                                <a href="#" id="editRequest" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-edit',plain:true">Редактировать заявку</a>
+                                <a href="#" id="closeRequest" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-ok',plain:true">Закрыть заявку</a>
+                                <a href="#" id="createReport" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-report',plain:true">Создать отчет</a>
                             </div>
                             <table id="ticketsView"></table>
                         </div>
                         <div title="Пользователи" class="easyui-layout">
                             <div id="usersToolbar">
-                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">Edit</a>
-                                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true">Help</a>
+                                <a href="#" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-edit',plain:true">Edit</a>
+                                <a href="#" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-help',plain:true">Help</a>
                             </div>
                             <table id="usersView" data-options="fit:true"></table>
                         </div>
@@ -77,7 +183,13 @@
                 </div>
                 <div class="right-panel" data-options="region:'east',split:true">
                     <div class="easyui-layout" data-options="fit:true">
-                        <div class="user-info-container" data-options="region:'north',title:'Инфо',collapsible:false,iconCls:'icon-user'">
+                        <div class="user-info-container"
+                             data-options="
+                                region: 'north',
+                                title: 'Инфо',
+                                collapsible: false,
+                                iconCls: 'icon-user'
+                             ">
 
                         </div>
                     </div>
