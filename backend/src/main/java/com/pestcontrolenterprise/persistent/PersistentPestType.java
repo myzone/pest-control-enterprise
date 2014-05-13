@@ -1,16 +1,14 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.EquipmentType;
 import com.pestcontrolenterprise.api.PestType;
 import org.hibernate.annotations.Immutable;
 
-import javax.annotation.Generated;
 import javax.persistence.*;
-import java.util.Set;
-import java.util.UUID;
+import java.util.Map;
 
 /**
  * @author myzone
@@ -26,8 +24,9 @@ public class PersistentPestType extends PersistentObject implements PestType {
     @Column
     protected final String description;
 
-    @ManyToMany(targetEntity = PersistentEquipmentType.class)
-    protected volatile Set<EquipmentType> requiredEquipmentTypes;
+    @ElementCollection(targetClass = Integer.class)
+    @MapKeyClass(PersistentEquipmentType.class)
+    protected volatile Map<EquipmentType, Integer> requiredEquipment;
 
     @Deprecated
     protected PersistentPestType() {
@@ -37,12 +36,12 @@ public class PersistentPestType extends PersistentObject implements PestType {
         description = null;
     }
 
-    public PersistentPestType(ApplicationContext applicationContext, String name, String description, Set<EquipmentType> requiredEquipmentTypes) {
+    public PersistentPestType(ApplicationContext applicationContext, String name, String description, Map<EquipmentType, Integer> requiredEquipmentTypes) {
         super(applicationContext);
 
         this.name = name;
         this.description = description;
-        this.requiredEquipmentTypes = requiredEquipmentTypes;
+        this.requiredEquipment = requiredEquipmentTypes;
 
         save();
     }
@@ -58,8 +57,8 @@ public class PersistentPestType extends PersistentObject implements PestType {
     }
 
     @Override
-    public ImmutableSet<EquipmentType> getRequiredEquipmentTypes() {
-        return ImmutableSet.copyOf(requiredEquipmentTypes);
+    public ImmutableMap<EquipmentType, Integer> getRequiredEquipment() {
+        return ImmutableMap.copyOf(requiredEquipment);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class PersistentPestType extends PersistentObject implements PestType {
 
         if (!description.equals(that.description)) return false;
         if (!name.equals(that.name)) return false;
-        if (!requiredEquipmentTypes.equals(that.requiredEquipmentTypes)) return false;
+        if (!requiredEquipment.equals(that.requiredEquipment)) return false;
 
         return true;
     }
@@ -81,7 +80,7 @@ public class PersistentPestType extends PersistentObject implements PestType {
         int result = 0;
         result = 31 * result + name.hashCode();
         result = 31 * result + description.hashCode();
-        result = 31 * result + requiredEquipmentTypes.hashCode();
+        result = 31 * result + requiredEquipment.hashCode();
         return result;
     }
 

@@ -1,6 +1,6 @@
 package com.pestcontrolenterprise.persistent;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
@@ -37,8 +37,8 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
     }
 
     @Override
-    public ImmutableSet<EquipmentType> getRequiredEquipmentTypes(PestType pestType) {
-        return pestType.getRequiredEquipmentTypes();
+    public ImmutableMap<EquipmentType, Integer> getRequiredEquipment(PestType pestType) {
+        return pestType.getRequiredEquipment();
     }
 
     protected Session getPersistenceSession() {

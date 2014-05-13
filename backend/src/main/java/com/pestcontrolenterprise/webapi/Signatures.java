@@ -6,6 +6,7 @@ import com.pestcontrolenterprise.util.Segment;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -26,7 +27,7 @@ public interface Signatures {
     // common
     Procedure<String, GetRequest<User>, GetResponse<User>> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {});
     Procedure<String, GetRequest<PestType>, GetResponse<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {});
-    Procedure<String, PestType, Set<EquipmentType>> getRequiredEquipmentTypes = Procedure.of("getRequiredEquipmentTypes", new TypeToken<PestType>() {}, new TypeToken<Set<EquipmentType>>() {});
+    Procedure<String, PestType, Map<EquipmentType, Integer>> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Map<EquipmentType, Integer>>() {});
 
     Procedure<String, BeginSessionRequest, UserSession> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {});
     Procedure<String, UserSession, Void> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {});

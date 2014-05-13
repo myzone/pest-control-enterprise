@@ -34,7 +34,7 @@ public class CustomerJsonAdapter implements JsonSerializer<Customer>, JsonDeseri
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.add("name", context.serialize(customer.getName(), String.class));
-        jsonObject.add("description", context.serialize(customer.getAddress(), Address.class));
+        jsonObject.add("address", context.serialize(customer.getAddress(), Address.class));
         jsonObject.add("cellPhone", context.serialize(customer.getCellPhone(), String.class));
         jsonObject.add("email", context.serialize(customer.getEmail(), String.class));
 

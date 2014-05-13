@@ -1,6 +1,6 @@
 package com.pestcontrolenterprise.webapi;
 
-import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.GsonBuilder;
 import com.pestcontrolenterprise.ApplicationContext;
@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status.*;
 import static com.pestcontrolenterprise.webapi.Signatures.*;
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -117,8 +115,8 @@ public class MainEndpoint {
 
     private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException {
         PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "trowel");
-        PersistentPestType crap = new PersistentPestType(applicationContext, "crap", "", ImmutableSet.of(trowel));
-        PersistentPestType shit = new PersistentPestType(applicationContext, "shit", "", ImmutableSet.of(trowel));
+        PersistentPestType crap = new PersistentPestType(applicationContext, "crap", "", ImmutableMap.of(trowel, 2));
+        PersistentPestType shit = new PersistentPestType(applicationContext, "shit", "", ImmutableMap.of(trowel, 1));
 
         PersistentCustomer customer = new PersistentCustomer(applicationContext, "asd", new PersistentAddress("asd", null, null), "asd", "asd");
         PersistentWorker worker = new PersistentWorker(applicationContext, "worker", "fuck", ImmutableSet.of(crap, shit));
@@ -150,7 +148,7 @@ public class MainEndpoint {
                 })
                 .withHandlerPair(getUsers, request -> applyFilters(persistentPestControlEnterprise.getUsers(), request.getFilters()))
                 .withHandlerPair(getPestTypes, request -> applyFilters(persistentPestControlEnterprise.getPestTypes(), request.getFilters()))
-                .withHandlerPair(getRequiredEquipmentTypes, persistentPestControlEnterprise::getRequiredEquipmentTypes)
+                .withHandlerPair(getRequiredEquipment, persistentPestControlEnterprise::getRequiredEquipment)
                 .withHandlerPair(getAssignedTasks, request -> applyFilters(request.getSession().getAssignedTasks(), request.getFilters()))
                 .withHandlerPair(getCurrentTasks, request -> applyFilters(request.getSession().getCurrentTasks(), request.getFilters()))
                 .withHandlerPair(discardTask, modifyTaskRequest -> {

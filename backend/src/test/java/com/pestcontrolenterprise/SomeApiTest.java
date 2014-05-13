@@ -1,5 +1,6 @@
 package com.pestcontrolenterprise;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.api.ReadonlyTask;
 import com.pestcontrolenterprise.api.ReadonlyWorker;
@@ -36,7 +37,7 @@ public class SomeApiTest extends DataBaseInfrastractureTest {
         PersistentAddress address = new PersistentAddress("some street", null, null);
         PersistentCustomer customer = new PersistentCustomer(applicationContext, "ololo", address, "asd", "asd");
 
-        PersistentPestType pestType = new PersistentPestType(applicationContext, "asd", "blah", ImmutableSet.of());
+        PersistentPestType pestType = new PersistentPestType(applicationContext, "asd", "blah", ImmutableMap.of());
 
         Task task = admin.beginSession("asd").allocateTask(ReadonlyTask.Status.ASSIGNED, Optional.<ReadonlyWorker>of(worker), ImmutableSet.<Segment<Instant>>of(), customer, pestType, "nothing", "ololo!!!!11");
 

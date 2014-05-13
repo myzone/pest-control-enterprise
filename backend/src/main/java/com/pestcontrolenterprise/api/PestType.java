@@ -1,5 +1,6 @@
 package com.pestcontrolenterprise.api;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -12,6 +13,6 @@ public interface PestType {
 
     String getDescription();
 
-    ImmutableSet<EquipmentType> getRequiredEquipmentTypes();
+    ImmutableMap<EquipmentType, Integer> getRequiredEquipment();
 
 }
