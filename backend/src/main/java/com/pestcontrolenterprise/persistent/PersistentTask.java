@@ -285,7 +285,7 @@ public class PersistentTask extends PersistentObject implements Task {
 
     protected void persistHistoryEntry(TaskHistoryEntry taskHistoryEntry) {
         try (QuiteAutoCloseable lock = writeLock()) {
-            TaskHistoryEntry peek = taskHistory.size() - 1 > 0 ? taskHistory.get(taskHistory.size() - 1) : null;
+            TaskHistoryEntry peek = !taskHistory.isEmpty() ? taskHistory.get(taskHistory.size() - 1) : null;
 
             if (peek != null) {
                 if (peek instanceof MergeableTaskHistoryEntry) {
