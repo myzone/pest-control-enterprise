@@ -1,5 +1,6 @@
 package com.pestcontrolenterprise.webapi;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.GsonBuilder;
 import com.pestcontrolenterprise.ApplicationContext;
@@ -8,6 +9,7 @@ import com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint;
 import com.pestcontrolenterprise.json.*;
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.service.AssignerService;
+import com.pestcontrolenterprise.util.HibernateStream;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -17,8 +19,7 @@ import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
 
 import java.time.Clock;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,6 +30,8 @@ import java.util.stream.Stream;
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status.*;
 import static com.pestcontrolenterprise.webapi.Signatures.*;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author myzone
@@ -74,6 +77,7 @@ public class MainEndpoint {
     private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
         endpointBuilder.withGsonBuilder(new GsonBuilder()
                         .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
+                        .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
                         .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
                         .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
@@ -226,14 +230,30 @@ public class MainEndpoint {
         }, 0, 10, TimeUnit.MINUTES);
     }
 
-    /**
-     * @todo filters ignoring is just for now. this feature will be implemented in following versions
-     */
-    public static <T> GetResponse<T> applyFilters(Stream<T> stream, Iterable<Predicate<T>> predicates) {
+    public static <T> GetResponse<T> applyFilters(Stream<T> stream, Set<Predicate<T>> predicates) {
         GetResponse<T> response = new GetResponse<>();
 
+        Set<Predicate<T>> predicatesToApply = predicates
+                .stream()
+                .filter(p -> p != null)
+                .sorted(new Comparator<Predicate<T>>() {
+                    @Override
+                    public int compare(Predicate<T> o1, Predicate<T> o2) {
+                        return evaluation(o1).compareTo(evaluation(o2));
+                    }
+
+                    private Integer evaluation(Predicate<T> p) {
+                        return p instanceof HibernateStream.HibernatePredicate ? 1 : 0;
+                    }
+                })
+                .collect(toSet());
+
+        for (Predicate<T> predicate : predicatesToApply) {
+            stream = stream.filter(predicate);
+        }
+
         response.setData(stream);
-        response.setFilters(emptySet());
+        response.setFilters(predicatesToApply);
 
         return response;
     }

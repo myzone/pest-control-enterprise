@@ -20,32 +20,4 @@ public interface PestControlEnterprise {
 
     ImmutableSet<EquipmentType> getRequiredEquipmentTypes(PestType pestType);
 
-    final class FastPredicates {
-
-        public static Predicate<User> userByName(String username) {
-            return new UserByNamePredicate(username);
-        }
-
-        private FastPredicates() {}
-
-        private static class UserByNamePredicate implements Predicate<User> {
-
-            private final String username;
-
-            private UserByNamePredicate(String username) {
-                this.username = username;
-            }
-
-            @Override
-            public boolean test(User user) {
-                return user.getName().equals(username);
-            }
-
-            public String getUsername() {
-                return username;
-            }
-
-        }
-    }
-
 }

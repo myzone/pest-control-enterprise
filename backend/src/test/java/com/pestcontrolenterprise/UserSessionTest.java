@@ -5,20 +5,12 @@ import com.pestcontrolenterprise.api.PestType;
 import com.pestcontrolenterprise.api.WorkerSession;
 import com.pestcontrolenterprise.persistent.PersistentApplicationContext;
 import com.pestcontrolenterprise.persistent.PersistentWorker;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.junit.Test;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Transient;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;

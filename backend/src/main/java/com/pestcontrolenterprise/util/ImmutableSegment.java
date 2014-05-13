@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 /**
  * @author myzone
- * @date 28-Apr-14
+ * @date 4/28/14
  */
 public class ImmutableSegment<T> implements Segment<T>, Serializable {
 

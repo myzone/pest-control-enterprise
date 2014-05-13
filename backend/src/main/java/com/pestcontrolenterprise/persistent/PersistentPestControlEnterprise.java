@@ -3,6 +3,7 @@ package com.pestcontrolenterprise.persistent;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.util.HibernateStream;
 import org.hibernate.Session;
 
 import java.util.Optional;
@@ -22,18 +23,12 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
     @Override
     public Stream<User> getUsers() {
-        return getPersistenceSession()
-                .createCriteria(PersistentUser.class)
-                .list()
-                .stream();
+        return new HibernateStream<>(getPersistenceSession().createCriteria(PersistentUser.class));
     }
 
     @Override
     public Stream<PestType> getPestTypes() {
-        return getPersistenceSession()
-                .createCriteria(PersistentPestType.class)
-                .list()
-                .stream();
+        return new HibernateStream<>(getPersistenceSession().createCriteria(PersistentPestType.class));
     }
 
     @Override

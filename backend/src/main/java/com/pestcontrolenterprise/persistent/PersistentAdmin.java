@@ -3,6 +3,7 @@ package com.pestcontrolenterprise.persistent;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.util.HibernateStream;
 import com.pestcontrolenterprise.util.Segment;
 
 import javax.persistence.Entity;
@@ -109,11 +110,9 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
         public Stream<Task> getTasks() throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return getApplicationContext()
+            return new HibernateStream<>(getApplicationContext()
                     .getPersistenceSession()
-                    .createCriteria(PersistentTask.class)
-                    .list()
-                    .stream();
+                    .createCriteria(PersistentTask.class));
         }
 
         @Override
@@ -158,11 +157,9 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
         public Stream<Worker> getWorkers() throws IllegalStateException {
             ensureAndHoldOpened();
 
-            return getApplicationContext()
+            return new HibernateStream<>(getApplicationContext()
                     .getPersistenceSession()
-                    .createCriteria(PersistentWorker.class)
-                    .list()
-                    .stream();
+                    .createCriteria(PersistentWorker.class));
         }
 
     }

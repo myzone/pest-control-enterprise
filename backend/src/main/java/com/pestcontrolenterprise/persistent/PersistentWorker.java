@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.util.HibernateStream;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -126,13 +127,11 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public Stream<Task> getAssignedTasks() {
             ensureAndHoldOpened();
 
-            return getApplicationContext()
+            return new HibernateStream<>(getApplicationContext()
                     .getPersistenceSession()
                     .createCriteria(ReadonlyTask.class)
                     .add(eq("status", ReadonlyTask.Status.ASSIGNED))
-                    .add(eq("executor", user))
-                    .list()
-                    .stream();
+                    .add(eq("executor", user)));
         }
 
         @Override
@@ -140,13 +139,11 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public Stream<Task> getCurrentTasks() {
             ensureAndHoldOpened();
 
-            return getApplicationContext()
+            return new HibernateStream<>(getApplicationContext()
                     .getPersistenceSession()
                     .createCriteria(ReadonlyTask.class)
                     .add(eq("status", ReadonlyTask.Status.IN_PROGRESS))
-                    .add(eq("executor", user))
-                    .list()
-                    .stream();
+                    .add(eq("executor", user)));
         }
 
         @Override
