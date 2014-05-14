@@ -9,17 +9,7 @@ $(document).ready(function(){
             var isActiveSession = false;
             var userName = '';
             var sessionId = null;
-            var guid = (function() {
-                function s4() {
-                    return Math.floor((1 + Math.random()) * 0x10000)
-                        .toString(16)
-                        .substring(1);
-                }
-                return function() {
-                    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-                        s4() + '-' + s4() + s4() + s4();
-                };
-            })();
+
 
             function checkSession() {
                 if(!isActiveSession) {
@@ -45,11 +35,18 @@ $(document).ready(function(){
                 if(!isActiveSession) {
                     return;
                 }
+                requester.send({
+                    procedure: "endSession",
+                    argument: {
+                        id: sessionId
+                    }
+                }, function() {
+                    isActiveSession = false;
+                    userName = '';
+                    sessionId
+                    self.trigger('statusChanged');
+                });
 
-                isActiveSession = false;
-                userName = '';
-
-                self.trigger('statusChanged');
             };
 
             this.getSessionId = function() {
@@ -62,7 +59,6 @@ $(document).ready(function(){
 
             this.login = function(login, pass) {
                 requester.send({
-                    id: guid(),
                     procedure: "beginSession",
                     argument: {
                         user: {
