@@ -244,7 +244,7 @@ public class MainEndpoint {
                 } catch (AuthException e) {
                     throw new RuntimeException(e);
                 }
-            }, () -> "Just assigned by AssignerService."));
+            }, (session) -> "Just assigned by AssignerService during the " + session));
         }, 0, 10, TimeUnit.MINUTES);
     }
 
