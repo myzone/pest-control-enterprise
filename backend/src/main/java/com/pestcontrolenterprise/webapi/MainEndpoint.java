@@ -191,6 +191,23 @@ public class MainEndpoint {
                         adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
                         adminSessionTaskAuthorizedGetRequest.getFilters())
                 )
+                .withHandlerPair(registerCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().registerCustomer(
+                        registerCustomerRequest.getName(),
+                        registerCustomerRequest.getAddress(),
+                        registerCustomerRequest.getCellPhone(),
+                        registerCustomerRequest.getEmail()
+                ))
+                .withHandlerPair(editCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().editCustomer(
+                        registerCustomerRequest.getCustomer(),
+                        registerCustomerRequest.getName(),
+                        registerCustomerRequest.getAddress(),
+                        registerCustomerRequest.getCellPhone(),
+                        registerCustomerRequest.getEmail()
+                ))
+                .withHandlerPair(getCustomers, adminSessionCustomerAuthorizedGetRequest -> applyFilters(
+                        adminSessionCustomerAuthorizedGetRequest.getSession().getCustomers(),
+                        adminSessionCustomerAuthorizedGetRequest.getFilters()
+                ))
                 .withHandlerPair(registerWorker, registerWorkerRequest -> registerWorkerRequest.getSession().registerWorker(
                         registerWorkerRequest.getName(),
                         registerWorkerRequest.getPassword(),
