@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.*;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -101,14 +102,14 @@ public class NettyEndpoint<I, O> {
                                 System.out.println(">>> " + new String(bytes));
 
                                 try {
-                                    String responseContent = gson.toJson(function.apply(gson.<I>fromJson(new InputStreamReader(new ByteBufInputStream(httpRequest.content())), inputType.getType())), outputType.getType());
+                                    String responseContent = gson.toJson(function.apply(gson.<I>fromJson(new InputStreamReader(new ByteBufInputStream(httpRequest.content()), Charset.forName("UTF-8")), inputType.getType())), outputType.getType());
 
                                     /**
                                      * @todo replace this logging with some external logging, it's just temp solution for debugging related stuff
                                      */
                                     System.out.println("<<< " + responseContent);
 
-                                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(responseContent.getBytes()));
+                                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(responseContent.getBytes(Charset.forName("UTF-8"))));
                                     response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
                                     response.headers().set(ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, OPTIONS");
                                     response.headers().set(CONTENT_TYPE, "application/json");
