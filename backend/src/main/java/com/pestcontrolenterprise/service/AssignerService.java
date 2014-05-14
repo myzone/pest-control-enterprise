@@ -1,15 +1,13 @@
 package com.pestcontrolenterprise.service;
 
-import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.api.*;
-import com.pestcontrolenterprise.util.Segment;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.RecursiveAction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
@@ -27,11 +25,11 @@ public class AssignerService extends RecursiveAction {
     ));
 
     private final Supplier<AdminSession> adminSessionSupplier;
-    private final Supplier<String> commentSupplier;
+    private final Function<AdminSession, String> commentGenerator;
 
-    public AssignerService(Supplier<AdminSession> adminSessionSupplier, Supplier<String> commentSupplier) {
+    public AssignerService(Supplier<AdminSession> adminSessionSupplier, Function<AdminSession, String> commentGenerator) {
         this.adminSessionSupplier = adminSessionSupplier;
-        this.commentSupplier = commentSupplier;
+        this.commentGenerator = commentGenerator;
     }
 
     @Override
@@ -42,7 +40,6 @@ public class AssignerService extends RecursiveAction {
                     .filter(task -> task.getStatus().equals(Status.OPEN))
                     .filter(task -> !task.getExecutor().isPresent())
                     .forEach(task -> {
-                        try {
                             adminSession.editTask(
                                     task,
                                     Optional.of(Status.ASSIGNED),
@@ -51,19 +48,10 @@ public class AssignerService extends RecursiveAction {
                                     Optional.empty(),
                                     Optional.empty(),
                                     Optional.empty(),
-                                    commentSupplier.get()
+                                    commentGenerator.apply(adminSession)
                             );
-                        } catch (IllegalStateException ingored) {
-                            /**
-                             * Ignoring is just for now.
-                             * @todo add some logging logic
-                             */
-                            throw ingored;
-                        }
                     });
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
+        }   
     }
 
     protected Optional<Worker> determineAppropriateExecutor(AdminSession adminSession, ReadonlyTask task) {
