@@ -114,18 +114,21 @@ public class MainEndpoint {
     }
 
     private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException {
-        PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "trowel");
-        PersistentPestType crap = new PersistentPestType(applicationContext, "crap", "", ImmutableMap.of(trowel, 2));
-        PersistentPestType shit = new PersistentPestType(applicationContext, "shit", "", ImmutableMap.of(trowel, 1));
+        PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "smth");
+        PersistentPestType crap = new PersistentPestType(applicationContext, "Тараканы", "", ImmutableMap.of(trowel, 2));
+        PersistentPestType shit = new PersistentPestType(applicationContext, "Прусаки", "", ImmutableMap.of(trowel, 1));
 
-        PersistentCustomer customer = new PersistentCustomer(applicationContext, "asd", new PersistentAddress("asd", null, null), "asd", "asd");
+        PersistentCustomer customer1 = new PersistentCustomer(applicationContext, "Иванов Василий", new PersistentAddress("Проспект Шевченка 2", null, null), "asd", "asd");
+        PersistentCustomer customer2 = new PersistentCustomer(applicationContext, "Петров Гена", new PersistentAddress("Канатная 2а", null, null), "asd", "asd");
         PersistentWorker worker = new PersistentWorker(applicationContext, "worker", "fuck", ImmutableSet.of(crap, shit));
         PersistentAdmin admin = new PersistentAdmin(applicationContext, "myzone", "fuck");
 
         AdminSession adminSession = admin.beginSession("fuck");
         adminSession.registerWorker("ololo", "fuck", ImmutableSet.of(crap));
-        Task task = adminSession.allocateTask(IN_PROGRESS, Optional.empty(), ImmutableSet.of(), customer, crap, "asd", "fuck");
+        Task task = adminSession.allocateTask(IN_PROGRESS, Optional.empty(), ImmutableSet.of(), customer1, crap, "asd", "fuck");
         adminSession.editTask(task, Optional.of(OPEN), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("asd-asd!!!111"), "fuck");
+        adminSession.allocateTask(ASSIGNED, Optional.of(worker), ImmutableSet.of(), customer1, shit, "asd", "fuck");
+        adminSession.allocateTask(ASSIGNED, Optional.of(worker), ImmutableSet.of(), customer2, crap, "asd", "fuck");
         adminSession.close();
     }
 
