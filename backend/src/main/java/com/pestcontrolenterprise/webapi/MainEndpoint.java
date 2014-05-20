@@ -74,20 +74,21 @@ public class MainEndpoint {
 
     private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
         endpointBuilder.withGsonBuilder(new GsonBuilder()
-                        .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
-                        .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
-                        .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
-                        .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
-                        .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
-                        .registerTypeHierarchyAdapter(Customer.class,new CustomerJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(Address.class,new AddressJsonAdapter())
-                        .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
-                        .setPrettyPrinting()
+                .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
+                .registerTypeHierarchyAdapter(Map.Entry.class, new EntryJsonAdapter())
+                .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
+                .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
+                .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
+                .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
+                .registerTypeHierarchyAdapter(Customer.class, new CustomerJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
+                .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
+                .setPrettyPrinting()
         );
     }
 
@@ -137,6 +138,9 @@ public class MainEndpoint {
 
         endpointBuilder
                 .withHandlerPair(plus, integers -> integers.stream().reduce(Math::addExact).orElse(0))
+                .withHandlerPair(getUsers, request -> applyFilters(persistentPestControlEnterprise.getUsers(), request.getFilters()))
+                .withHandlerPair(getPestTypes, request -> applyFilters(persistentPestControlEnterprise.getPestTypes(), request.getFilters()))
+                .withHandlerPair(getRequiredEquipment, pestType -> persistentPestControlEnterprise.getRequiredEquipment(pestType).entrySet())
                 .withHandlerPair(beginSession, beginSessionRequest -> {
                     try {
                         return beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword());
@@ -149,9 +153,6 @@ public class MainEndpoint {
 
                     return null;
                 })
-                .withHandlerPair(getUsers, request -> applyFilters(persistentPestControlEnterprise.getUsers(), request.getFilters()))
-                .withHandlerPair(getPestTypes, request -> applyFilters(persistentPestControlEnterprise.getPestTypes(), request.getFilters()))
-                .withHandlerPair(getRequiredEquipment, persistentPestControlEnterprise::getRequiredEquipment)
                 .withHandlerPair(getAssignedTasks, request -> applyFilters(request.getSession().getAssignedTasks(), request.getFilters()))
                 .withHandlerPair(getCurrentTasks, request -> applyFilters(request.getSession().getCurrentTasks(), request.getFilters()))
                 .withHandlerPair(discardTask, modifyTaskRequest -> {
