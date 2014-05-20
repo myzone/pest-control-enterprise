@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.endpoint.RpcEndpoint.Procedure;
 import static java.util.Collections.emptySet;
+import static java.util.Map.Entry;
 
 /**
  * @author myzone
@@ -27,7 +28,7 @@ public interface Signatures {
     // common
     Procedure<String, GetRequest<User>, GetResponse<User>> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {});
     Procedure<String, GetRequest<PestType>, GetResponse<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {});
-    Procedure<String, PestType, Map<EquipmentType, Integer>> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Map<EquipmentType, Integer>>() {});
+    Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {});
 
     Procedure<String, BeginSessionRequest, UserSession> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {});
     Procedure<String, UserSession, Void> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {});
