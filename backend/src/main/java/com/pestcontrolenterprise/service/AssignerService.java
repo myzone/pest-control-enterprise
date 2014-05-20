@@ -39,18 +39,17 @@ public class AssignerService extends RecursiveAction {
                     .getTasks()
                     .filter(task -> task.getStatus().equals(Status.OPEN))
                     .filter(task -> !task.getExecutor().isPresent())
-                    .forEach(task -> {
-                            adminSession.editTask(
-                                    task,
-                                    Optional.of(Status.ASSIGNED),
-                                    Optional.of(determineAppropriateExecutor(adminSession, task)),
-                                    Optional.empty(),
-                                    Optional.empty(),
-                                    Optional.empty(),
-                                    Optional.empty(),
-                                    commentGenerator.apply(adminSession)
-                            );
-                    });
+                    .parallel()
+                    .forEach(task -> adminSession.editTask(
+                            task,
+                            Optional.of(Status.ASSIGNED),
+                            Optional.of(determineAppropriateExecutor(adminSession, task)),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            commentGenerator.apply(adminSession)
+                    ));
         }   
     }
 
@@ -58,8 +57,7 @@ public class AssignerService extends RecursiveAction {
         return adminSession
                 .getWorkers()
                 .filter(worker -> worker.getWorkablePestTypes().contains(task.getPestType()))
-                .sorted((l, r) -> getActiveTasksCountByWorker(adminSession, l).compareTo(getActiveTasksCountByWorker(adminSession, r)))
-                .findFirst();
+                .max((l, r) -> getActiveTasksCountByWorker(adminSession, l).compareTo(getActiveTasksCountByWorker(adminSession, r)));                
     }
 
     private Long getActiveTasksCountByWorker(AdminSession adminSession, Worker worker) {
