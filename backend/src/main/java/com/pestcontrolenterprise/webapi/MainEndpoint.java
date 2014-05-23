@@ -81,7 +81,7 @@ public class MainEndpoint {
                 .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
                 .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
                 .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
-                .registerTypeHierarchyAdapter(Customer.class, new CustomerJsonAdapter(applicationContext))
+                .registerTypeHierarchyAdapter(ReadonlyCustomer.class, new CustomerJsonAdapter(applicationContext))
                 .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
                 .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
                 .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))

@@ -499,11 +499,10 @@ public class PersistentTask extends PersistentObject implements Task {
                         })
                         .reduce(true, Boolean::logicalAnd)) {
 
-                    changes = ImmutableMap
-                            .<TaskField, Change<String>>builder()
-                            .putAll(oldChanges)
-                            .putAll(addingChanges)
-                            .build();
+                    Map<TaskField, Change<String>> changesBuilder = new HashMap<>();
+                    changesBuilder.putAll(oldChanges);
+                    changesBuilder.putAll(addingChanges);
+                    changes = ImmutableMap.copyOf(changesBuilder);
 
                     return true;
                 } else {
