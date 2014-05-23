@@ -19,7 +19,7 @@ import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
  * @date 4/28/14
  */
 @Entity
-public final class PersistentAdmin extends PersistentUser implements Admin {
+public class PersistentAdmin extends PersistentUser implements Admin {
 
     @Deprecated
     public PersistentAdmin() {
@@ -33,7 +33,7 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
     }
 
     @Override
-    public AdminSession beginSession(String password) throws AuthException, IllegalStateException {
+    public AdminSession beginSession(String password) throws AuthException, InvalidStateException {
         try (QuiteAutoCloseable lock = readLock()) {
             if (!this.password.equals(password))
                 throw new AuthException();
@@ -70,7 +70,7 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
                 PestType pestType,
                 String problemDescription,
                 String comment
-        ) throws IllegalStateException {
+        ) throws InvalidStateException {
             ensureAndHoldOpened();
 
             return new PersistentTask(getApplicationContext(), this, status, worker, availabilityTime, customer, pestType, problemDescription, comment);
@@ -86,7 +86,7 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
                 Optional<PestType> pestType,
                 Optional<String> problemDescription,
                 String comment
-        ) throws IllegalStateException {
+        ) throws InvalidStateException {
             ensureAndHoldOpened();
 
             if (worker.isPresent()) task.setExecutor(this, worker.get(), comment);
@@ -100,14 +100,14 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
         }
 
         @Override
-        public void closeTask(Task task, String comment) throws IllegalStateException {
+        public void closeTask(Task task, String comment) throws InvalidStateException {
             ensureAndHoldOpened();
 
             task.setStatus(this, Status.CLOSED, comment);
         }
 
         @Override
-        public Stream<Task> getTasks() throws IllegalStateException {
+        public Stream<Task> getTasks() throws InvalidStateException {
             ensureAndHoldOpened();
 
             return new HibernateStream<>(getApplicationContext()
@@ -116,35 +116,41 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
         }
 
         @Override
-        public Customer registerCustomer(String name, Address address, String cellPhone, String email) throws IllegalStateException {
+        public Customer registerCustomer(String name, Address address, String cellPhone, String email) throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return null;
+            return new PersistentCustomer(getApplicationContext(), name, address, cellPhone, email);
         }
 
         @Override
-        public Customer editCustomer(Customer customer, Optional<String> name, Optional<Address> address, Optional<String> cellPhone, Optional<String> email) throws IllegalStateException {
+        public Customer editCustomer(Customer customer, Optional<Address> address, Optional<String> cellPhone, Optional<String> email) throws InvalidStateException {
             ensureAndHoldOpened();
+
+            if (address.isPresent()) customer.setAddress(this, address.get());
+            if (cellPhone.isPresent()) customer.setCellPhone(this, cellPhone.get());
+            if (email.isPresent()) customer.setEmail(this, email.get());
 
             return customer;
         }
 
         @Override
-        public Stream<Customer> getCustomers() throws IllegalStateException {
+        public Stream<Customer> getCustomers() throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return Stream.empty();
+            return new HibernateStream<>(getApplicationContext()
+                    .getPersistenceSession()
+                    .createCriteria(PersistentCustomer.class));
         }
 
         @Override
-        public Worker registerWorker(String name, String password, Set<PestType> workablePestTypes) throws IllegalStateException {
+        public Worker registerWorker(String name, String password, Set<PestType> workablePestTypes) throws InvalidStateException {
             ensureAndHoldOpened();
 
             return new PersistentWorker(getApplicationContext(), name, password, ImmutableSet.copyOf(workablePestTypes));
         }
 
         @Override
-        public Worker editWorker(Worker worker, Optional<String> password, Optional<Set<PestType>> workablePestTypes) throws IllegalStateException {
+        public Worker editWorker(Worker worker, Optional<String> password, Optional<Set<PestType>> workablePestTypes) throws InvalidStateException {
             ensureAndHoldOpened();
 
             if (password.isPresent()) worker.setPassword(this, password.get());
@@ -154,7 +160,7 @@ public final class PersistentAdmin extends PersistentUser implements Admin {
         }
 
         @Override
-        public Stream<Worker> getWorkers() throws IllegalStateException {
+        public Stream<Worker> getWorkers() throws InvalidStateException {
             ensureAndHoldOpened();
 
             return new HibernateStream<>(getApplicationContext()

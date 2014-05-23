@@ -5,9 +5,12 @@ import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Address;
 import com.pestcontrolenterprise.api.AdminSession;
 import com.pestcontrolenterprise.api.Customer;
+import com.pestcontrolenterprise.api.InvalidStateException;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+
+import static com.pestcontrolenterprise.api.InvalidStateException.inactiveSession;
 
 /**
  * @author myzone
@@ -72,30 +75,30 @@ public class PersistentCustomer extends PersistentObject implements Customer {
     }
 
     @Override
-    public void setAddress(AdminSession session, Address address) throws IllegalStateException {
+    public void setAddress(AdminSession session, Address address) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!session.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException();
+                throw inactiveSession();
 
             this.address = address;
         }
     }
 
     @Override
-    public void setCellPhone(AdminSession session, String cellPhone) throws IllegalStateException {
+    public void setCellPhone(AdminSession session, String cellPhone) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!session.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException();
+                throw inactiveSession();
 
             this.cellPhone = cellPhone;
         }
     }
 
     @Override
-    public void setEmail(AdminSession session, String email) throws IllegalStateException {
+    public void setEmail(AdminSession session, String email) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!session.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException();
+                throw inactiveSession();
 
             this.email = email;
         }

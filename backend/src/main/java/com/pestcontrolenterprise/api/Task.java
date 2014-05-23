@@ -12,16 +12,16 @@ import java.util.Optional;
  */
 public interface Task extends ReadonlyTask {
 
-    void setStatus(UserSession causer, Status status, String comment) throws IllegalStateException;
+    void setStatus(UserSession causer, Status status, String comment) throws InvalidStateException;
 
-    void setExecutor(UserSession causer, Optional<? extends ReadonlyWorker> currentWorker, String comment) throws IllegalStateException;
+    void setExecutor(UserSession causer, Optional<? extends ReadonlyWorker> currentWorker, String comment) throws InvalidStateException;
 
-    void setAvailabilityTime(UserSession causer, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException;
+    void setAvailabilityTime(UserSession causer, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws InvalidStateException;
 
-    void setCustomer(UserSession causer, ReadonlyCustomer customer, String comment) throws IllegalStateException;
+    void setCustomer(UserSession causer, ReadonlyCustomer customer, String comment) throws InvalidStateException;
 
-    void setPestType(UserSession causer, PestType pestType, String comment) throws IllegalStateException;
+    void setPestType(UserSession causer, PestType pestType, String comment) throws InvalidStateException;
 
-    void setProblemDescription(UserSession causer, String problemDescription, String comment) throws IllegalStateException;
+    void setProblemDescription(UserSession causer, String problemDescription, String comment) throws InvalidStateException;
 
 }

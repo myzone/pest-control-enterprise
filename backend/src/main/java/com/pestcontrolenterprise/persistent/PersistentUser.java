@@ -2,19 +2,16 @@ package com.pestcontrolenterprise.persistent;
 
 import com.google.common.base.Objects;
 import com.pestcontrolenterprise.ApplicationContext;
-import com.pestcontrolenterprise.api.AdminSession;
+import com.pestcontrolenterprise.api.InvalidStateException;
 import com.pestcontrolenterprise.api.User;
 import com.pestcontrolenterprise.api.UserSession;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import javax.persistence.*;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 
 import static com.google.common.base.Objects.ToStringHelper;
+import static com.pestcontrolenterprise.api.InvalidStateException.inactiveSession;
 
 /**
  * @author myzone
@@ -154,7 +151,7 @@ public abstract class PersistentUser extends PersistentObject implements User {
         }
 
         @Override
-        public void changePassword(String newPassword) throws IllegalStateException {
+        public void changePassword(String newPassword) throws InvalidStateException {
             try (QuiteAutoCloseable lock = readLock()) {
                 ensureAndHoldOpened();
 
@@ -163,12 +160,12 @@ public abstract class PersistentUser extends PersistentObject implements User {
         }
 
         @Override
-        public final void close() throws IllegalStateException {
+        public final void close() throws InvalidStateException {
             try (QuiteAutoCloseable lock = writeLock()) {
                 Instant now = getApplicationContext().getClock().instant();
 
                 if (!willBeActive(now))
-                    throw new IllegalStateException("Is already closed");
+                    throw inactiveSession();
 
                 closed = now;
 
@@ -210,12 +207,12 @@ public abstract class PersistentUser extends PersistentObject implements User {
                     .add("closed", closed);
         }
 
-        protected final void ensureAndHoldOpened() throws IllegalStateException {
+        protected final void ensureAndHoldOpened() throws InvalidStateException {
             try (QuiteAutoCloseable lock = writeLock()) {
                 Instant now = getApplicationContext().getClock().instant();
 
                 if (!willBeActive(now))
-                    throw new IllegalStateException("Is already closed");
+                    throw inactiveSession();
 
                 closed = now.plus(DEFAULT_DELAY);
 

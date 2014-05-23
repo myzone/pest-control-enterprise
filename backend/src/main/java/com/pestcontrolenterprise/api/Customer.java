@@ -8,10 +8,10 @@ public interface Customer extends ReadonlyCustomer {
 
     String getName();
 
-    void setAddress(AdminSession session, Address address) throws IllegalStateException;
+    void setAddress(AdminSession session, Address address) throws InvalidStateException;
 
-    void setCellPhone(AdminSession session, String cellPhone) throws IllegalStateException;
+    void setCellPhone(AdminSession session, String cellPhone) throws InvalidStateException;
 
-    void setEmail(AdminSession session, String email) throws IllegalStateException;
+    void setEmail(AdminSession session, String email) throws InvalidStateException;
 
 }

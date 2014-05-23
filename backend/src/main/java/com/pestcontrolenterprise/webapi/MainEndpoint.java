@@ -41,8 +41,8 @@ public class MainEndpoint {
 
     public static void main(String[] args) throws Exception {
         ApplicationContext applicationContext = buildApplicationContext(buildConfiguration(
-//                "file:D://test1.db",
-                "mem:db1",
+                "file:~/test123.db",
+//                "mem:db1",
                 PersistentObject.class,
                 PersistentApplicationContext.class,
                 PersistentCustomer.class,
@@ -105,7 +105,7 @@ public class MainEndpoint {
 //                .setProperty("hibernate.show_sql", "true")
 //                .setProperty("hibernate.format_sql", "true")
                 .setProperty("hibernate.connection.url", "jdbc:h2:" + db)
-                .setProperty("hibernate.hbm2ddl.auto", "update");
+                .setProperty("hibernate.hbm2ddl.auto", "create-drop");
 
         for(Class<?> annotatedClass : annotatedClasses) {
             configuration = configuration.addAnnotatedClass(annotatedClass);
@@ -114,7 +114,7 @@ public class MainEndpoint {
         return configuration;
     }
 
-    private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException {
+    private static void populateDbWithTestData(ApplicationContext applicationContext) throws AuthException, InvalidStateException {
         PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "smth");
         PersistentPestType crap = new PersistentPestType(applicationContext, "Тараканы", "", ImmutableMap.of(trowel, 2));
         PersistentPestType shit = new PersistentPestType(applicationContext, "Прусаки", "", ImmutableMap.of(trowel, 1));
@@ -133,7 +133,7 @@ public class MainEndpoint {
         adminSession.close();
     }
 
-    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) {
+    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) throws InvalidStateException {
         PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationContext);
 
         endpointBuilder
@@ -144,85 +144,165 @@ public class MainEndpoint {
                 .withHandlerPair(beginSession, beginSessionRequest -> {
                     try {
                         return beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword());
-                    } catch (AuthException e) {
+                    } catch (AuthException | InvalidStateException e) {
                         throw new RuntimeException(e);
                     }
                 })
                 .withHandlerPair(endSession, userSession -> {
-                    userSession.close();
+                    try {
+                        userSession.close();
+                    } catch (InvalidStateException ignored) {
+                    }
 
                     return null;
                 })
-                .withHandlerPair(getAssignedTasks, request -> applyFilters(request.getSession().getAssignedTasks(), request.getFilters()))
-                .withHandlerPair(getCurrentTasks, request -> applyFilters(request.getSession().getCurrentTasks(), request.getFilters()))
+                .withHandlerPair(getAssignedTasks, request -> {
+                    try {
+                        return applyFilters(request.getSession().getAssignedTasks(), request.getFilters());
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(getCurrentTasks, request -> {
+                    try {
+                        return applyFilters(request.getSession().getCurrentTasks(), request.getFilters());
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .withHandlerPair(discardTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().discardTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                    try {
+                        modifyTaskRequest.getWorkerSession().discardTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     return null;
                 })
                 .withHandlerPair(startTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                    try {
+                        modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     return null;
                 })
                 .withHandlerPair(finishTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().finishTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                    try {
+                        modifyTaskRequest.getWorkerSession().finishTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     return null;
                 })
-                .withHandlerPair(allocateTask, allocateTaskRequest -> allocateTaskRequest.getSession().allocateTask(
-                        allocateTaskRequest.getStatus(),
-                        allocateTaskRequest.getWorker(),
-                        ImmutableSet.copyOf(allocateTaskRequest.getAvailabilityTime()),
-                        allocateTaskRequest.getCustomer(),
-                        allocateTaskRequest.getPestType(),
-                        allocateTaskRequest.getProblemDescription(),
-                        allocateTaskRequest.getComment()
-                ))
-                .withHandlerPair(editTask, editTaskRequest -> editTaskRequest.getSession().editTask(
-                        editTaskRequest.getTask(),
-                        editTaskRequest.getStatus(),
-                        editTaskRequest.getWorker(),
-                        editTaskRequest.getAvailabilityTime().map(ImmutableSet::copyOf),
-                        editTaskRequest.getCustomer(),
-                        editTaskRequest.getPestType(),
-                        editTaskRequest.getProblemDescription(),
-                        editTaskRequest.getComment()))
-                .withHandlerPair(getTasks, adminSessionTaskAuthorizedGetRequest -> applyFilters(
-                        adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
-                        adminSessionTaskAuthorizedGetRequest.getFilters())
-                )
-                .withHandlerPair(registerCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().registerCustomer(
-                        registerCustomerRequest.getName(),
-                        registerCustomerRequest.getAddress(),
-                        registerCustomerRequest.getCellPhone(),
-                        registerCustomerRequest.getEmail()
-                ))
-                .withHandlerPair(editCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().editCustomer(
-                        registerCustomerRequest.getCustomer(),
-                        registerCustomerRequest.getName(),
-                        registerCustomerRequest.getAddress(),
-                        registerCustomerRequest.getCellPhone(),
-                        registerCustomerRequest.getEmail()
-                ))
-                .withHandlerPair(getCustomers, adminSessionCustomerAuthorizedGetRequest -> applyFilters(
-                        adminSessionCustomerAuthorizedGetRequest.getSession().getCustomers(),
-                        adminSessionCustomerAuthorizedGetRequest.getFilters()
-                ))
-                .withHandlerPair(registerWorker, registerWorkerRequest -> registerWorkerRequest.getSession().registerWorker(
-                        registerWorkerRequest.getName(),
-                        registerWorkerRequest.getPassword(),
-                        registerWorkerRequest.getWorkablePestTypes()
-                ))
-                .withHandlerPair(editWorker, registerWorkerRequest -> registerWorkerRequest.getSession().editWorker(
-                        registerWorkerRequest.getWorker(),
-                        registerWorkerRequest.getPassword(),
-                        registerWorkerRequest.getWorkablePestTypes()
-                ))
-                .withHandlerPair(getWorkers, adminSessionWorkerAuthorizedGetRequest -> applyFilters(
-                        adminSessionWorkerAuthorizedGetRequest.getSession().getWorkers(),
-                        adminSessionWorkerAuthorizedGetRequest.getFilters()
-                ));
+                .withHandlerPair(allocateTask, allocateTaskRequest -> {
+                    try {
+                        return allocateTaskRequest.getSession().allocateTask(
+                                allocateTaskRequest.getStatus(),
+                                allocateTaskRequest.getWorker(),
+                                ImmutableSet.copyOf(allocateTaskRequest.getAvailabilityTime()),
+                                allocateTaskRequest.getCustomer(),
+                                allocateTaskRequest.getPestType(),
+                                allocateTaskRequest.getProblemDescription(),
+                                allocateTaskRequest.getComment()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(editTask, editTaskRequest -> {
+                    try {
+                        return editTaskRequest.getSession().editTask(
+                                editTaskRequest.getTask(),
+                                editTaskRequest.getStatus(),
+                                editTaskRequest.getWorker(),
+                                editTaskRequest.getAvailabilityTime().map(ImmutableSet::copyOf),
+                                editTaskRequest.getCustomer(),
+                                editTaskRequest.getPestType(),
+                                editTaskRequest.getProblemDescription(),
+                                editTaskRequest.getComment());
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(getTasks, adminSessionTaskAuthorizedGetRequest -> {
+                    try {
+                        return applyFilters(
+                                adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
+                                adminSessionTaskAuthorizedGetRequest.getFilters()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(registerCustomer, registerCustomerRequest -> {
+                    try {
+                        return registerCustomerRequest.getSession().registerCustomer(
+                                registerCustomerRequest.getName(),
+                                registerCustomerRequest.getAddress(),
+                                registerCustomerRequest.getCellPhone(),
+                                registerCustomerRequest.getEmail()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(editCustomer, registerCustomerRequest -> {
+                    try {
+                        return registerCustomerRequest.getSession().editCustomer(
+                                registerCustomerRequest.getCustomer(),
+                                registerCustomerRequest.getAddress(),
+                                registerCustomerRequest.getCellPhone(),
+                                registerCustomerRequest.getEmail()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(getCustomers, adminSessionCustomerAuthorizedGetRequest -> {
+                    try {
+                        return applyFilters(
+                                adminSessionCustomerAuthorizedGetRequest.getSession().getCustomers(),
+                                adminSessionCustomerAuthorizedGetRequest.getFilters()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(registerWorker, registerWorkerRequest -> {
+                    try {
+                        return registerWorkerRequest.getSession().registerWorker(
+                                registerWorkerRequest.getName(),
+                                registerWorkerRequest.getPassword(),
+                                registerWorkerRequest.getWorkablePestTypes()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(editWorker, registerWorkerRequest -> {
+                    try {
+                        return registerWorkerRequest.getSession().editWorker(
+                                registerWorkerRequest.getWorker(),
+                                registerWorkerRequest.getPassword(),
+                                registerWorkerRequest.getWorkablePestTypes()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .withHandlerPair(getWorkers, adminSessionWorkerAuthorizedGetRequest -> {
+                    try {
+                        return applyFilters(
+                                adminSessionWorkerAuthorizedGetRequest.getSession().getWorkers(),
+                                adminSessionWorkerAuthorizedGetRequest.getFilters()
+                        );
+                    } catch (InvalidStateException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     private static void runServices(ApplicationContext applicationContext) {
@@ -242,7 +322,7 @@ public class MainEndpoint {
             forkJoinPool.submit(new AssignerService(() -> {
                 try {
                     return admin.beginSession(currentServicePassword);
-                } catch (AuthException e) {
+                } catch (AuthException | InvalidStateException e) {
                     throw new RuntimeException(e);
                 }
             }, (session) -> "Just assigned by AssignerService during the " + session));

@@ -25,7 +25,7 @@ public interface AdminSession extends UserSession {
             PestType pestType,
             String problemDescription,
             String comment
-    ) throws IllegalStateException;
+    ) throws InvalidStateException;
 
     Task editTask(
             Task task,
@@ -36,41 +36,40 @@ public interface AdminSession extends UserSession {
             Optional<PestType> pestType,
             Optional<String> problemDescription,
             String comment
-    ) throws IllegalStateException;
+    ) throws InvalidStateException;
 
-    void closeTask(Task task, String comment) throws IllegalStateException;
+    void closeTask(Task task, String comment) throws InvalidStateException;
 
-    Stream<Task> getTasks() throws IllegalStateException;
+    Stream<Task> getTasks() throws InvalidStateException;
 
     Customer registerCustomer(
             String name,
             Address address,
             String cellPhone,
             String email
-    ) throws IllegalStateException;
+    ) throws InvalidStateException;
 
     Customer editCustomer(
             Customer customer,
-            Optional<String> name,
             Optional<Address> address,
             Optional<String> cellPhone,
             Optional<String> email
-    ) throws IllegalStateException;
+    ) throws InvalidStateException;
 
-    Stream<Customer> getCustomers() throws IllegalStateException;
+    Stream<Customer> getCustomers() throws InvalidStateException;
 
     Worker registerWorker(
             String name,
             String password,
             Set<PestType> workablePestTypes
-    ) throws IllegalStateException;
+    ) throws InvalidStateException;
 
     Worker editWorker(
             Worker worker,
             Optional<String> password,
             Optional<Set<PestType>> workablePestTypes
-    ) throws IllegalStateException;
+    ) throws InvalidStateException;
 
-    Stream<Worker> getWorkers() throws IllegalStateException;
+    Stream<Worker> getWorkers() throws InvalidStateException;
 
 }
