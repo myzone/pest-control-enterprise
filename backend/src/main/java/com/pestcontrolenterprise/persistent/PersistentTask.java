@@ -15,6 +15,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static com.pestcontrolenterprise.api.InvalidStateException.inactiveSession;
+import static com.pestcontrolenterprise.api.InvalidStateException.notEnoughAccess;
 import static com.pestcontrolenterprise.api.ReadonlyTask.DataChangeTaskHistoryEntry.TaskField;
 import static java.util.Collections.emptyMap;
 
@@ -66,11 +68,11 @@ public class PersistentTask extends PersistentObject implements Task {
             PestType pestType,
             String problemDescription,
             String comment
-    ) throws IllegalStateException {
+    ) throws InvalidStateException {
         super(applicationContext);
 
         if (!causer.isStillActive(getApplicationContext().getClock()))
-            throw new IllegalStateException("Session is inactive");
+            throw inactiveSession();
 
         this.status = status;
         this.executor = executor.orElse(null);
@@ -140,12 +142,12 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setStatus(UserSession causerSession, Status status, String comment) throws IllegalStateException {
+    public void setStatus(UserSession causerSession, Status status, String comment) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException("Session is inactive");
+                throw inactiveSession();
             if (!isExecutorsSession(causerSession) && !isAdminSession(causerSession))
-                throw new IllegalStateException();
+                throw notEnoughAccess("todo this message"); // @todo this message
 
             persistHistoryEntry(new SingleChangeTaskTaskHistory(
                     getApplicationContext(),
@@ -163,12 +165,12 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setExecutor(UserSession causerSession, Optional<? extends ReadonlyWorker> executor, String comment) throws IllegalStateException {
+    public void setExecutor(UserSession causerSession, Optional<? extends ReadonlyWorker> executor, String comment) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException("Session is inactive");
+                throw inactiveSession();
             if ((!isExecutorsSession(causerSession) || !executor.isPresent()) && !isAdminSession(causerSession))
-                throw new IllegalStateException();
+                throw notEnoughAccess("todo this message"); // @todo this message
 
             persistHistoryEntry(new SingleChangeTaskTaskHistory(
                     getApplicationContext(),
@@ -192,12 +194,12 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setAvailabilityTime(UserSession causerSession, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws IllegalStateException {
+    public void setAvailabilityTime(UserSession causerSession, ImmutableSet<Segment<Instant>> availabilityTime, String comment) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException("Session is inactive");
+                throw inactiveSession();
             if (!isAdminSession(causerSession))
-                throw new IllegalStateException();
+                throw notEnoughAccess("todo this message"); // @todo this message
 
             persistHistoryEntry(new SingleChangeTaskTaskHistory(
                     getApplicationContext(),
@@ -215,12 +217,12 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setCustomer(UserSession causerSession, ReadonlyCustomer customer, String comment) throws IllegalStateException {
+    public void setCustomer(UserSession causerSession, ReadonlyCustomer customer, String comment) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException("Session is inactive");
+                throw inactiveSession();
             if (!isAdminSession(causerSession))
-                throw new IllegalStateException();
+                throw notEnoughAccess("todo this message"); // @todo this message
 
             persistHistoryEntry(new SingleChangeTaskTaskHistory(
                     getApplicationContext(),
@@ -238,12 +240,12 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setPestType(UserSession causerSession, PestType pestType, String comment) throws IllegalStateException {
+    public void setPestType(UserSession causerSession, PestType pestType, String comment) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException("Session is inactive");
+                throw inactiveSession();
             if (!isAdminSession(causerSession))
-                throw new IllegalStateException();
+                throw notEnoughAccess("todo this message"); // @todo this message;
 
             persistHistoryEntry(new SingleChangeTaskTaskHistory(
                     getApplicationContext(),
@@ -261,12 +263,12 @@ public class PersistentTask extends PersistentObject implements Task {
     }
 
     @Override
-    public void setProblemDescription(UserSession causerSession, String problemDescription, String comment) throws IllegalStateException {
+    public void setProblemDescription(UserSession causerSession, String problemDescription, String comment) throws InvalidStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!causerSession.isStillActive(getApplicationContext().getClock()))
-                throw new IllegalStateException("Session is inactive");
+                throw inactiveSession();
             if (!isAdminSession(causerSession))
-                throw new IllegalStateException();
+                throw notEnoughAccess("todo this message"); // @todo this message;
 
             persistHistoryEntry(new SingleChangeTaskTaskHistory(
                     getApplicationContext(),

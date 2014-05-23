@@ -5,8 +5,6 @@ import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -14,6 +12,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.pestcontrolenterprise.api.InvalidStateException.illegalTasksStatus;
+import static com.pestcontrolenterprise.api.InvalidStateException.notEnoughAccess;
+import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
 import static org.hibernate.criterion.Restrictions.eq;
 
 /**
@@ -124,57 +125,57 @@ public class PersistentWorker extends PersistentUser implements Worker {
 
         @SuppressWarnings("unchecked")
         @Override
-        public Stream<Task> getAssignedTasks() {
+        public Stream<Task> getAssignedTasks() throws InvalidStateException {
             ensureAndHoldOpened();
 
             return new HibernateStream<>(getApplicationContext()
                     .getPersistenceSession()
                     .createCriteria(ReadonlyTask.class)
-                    .add(eq("status", ReadonlyTask.Status.ASSIGNED))
+                    .add(eq("status", Status.ASSIGNED))
                     .add(eq("executor", user)));
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        public Stream<Task> getCurrentTasks() {
+        public Stream<Task> getCurrentTasks() throws InvalidStateException {
             ensureAndHoldOpened();
 
             return new HibernateStream<>(getApplicationContext()
                     .getPersistenceSession()
                     .createCriteria(ReadonlyTask.class)
-                    .add(eq("status", ReadonlyTask.Status.IN_PROGRESS))
+                    .add(eq("status", Status.IN_PROGRESS))
                     .add(eq("executor", user)));
         }
 
         @Override
-        public void discardTask(Task task, String comment) throws IllegalStateException {
+        public void discardTask(Task task, String comment) throws InvalidStateException {
             ensureAndHoldOpened();
 
-            if (!user.equals(task.getExecutor().orElse(null))) throw new IllegalStateException("Worker is able to discard only his own tasks");
-            if (task.getStatus() != ReadonlyTask.Status.ASSIGNED) throw new IllegalStateException("Task's status must be ASSIGNED");
+            if (!user.equals(task.getExecutor().orElse(null))) throw notEnoughAccess("Worker is able to discard only his own tasks");
+            if (task.getStatus() != Status.ASSIGNED) throw illegalTasksStatus(task, Status.ASSIGNED);
 
             task.setExecutor(this, Optional.empty(), comment);
-            task.setStatus(this, ReadonlyTask.Status.OPEN, comment);
+            task.setStatus(this, Status.OPEN, comment);
         }
 
         @Override
-        public void startTask(Task task, String comment) throws IllegalStateException {
+        public void startTask(Task task, String comment) throws InvalidStateException {
             ensureAndHoldOpened();
 
-            if (!user.equals(task.getExecutor().orElse(null))) throw new IllegalStateException("Worker is able to start only his own tasks");
-            if (task.getStatus() != ReadonlyTask.Status.ASSIGNED) throw new IllegalStateException("Task's status must be ASSIGNED");
+            if (!user.equals(task.getExecutor().orElse(null))) throw notEnoughAccess("Worker is able to start only his own tasks");
+            if (task.getStatus() != Status.ASSIGNED) throw illegalTasksStatus(task, Status.ASSIGNED);
 
-            task.setStatus(this, ReadonlyTask.Status.IN_PROGRESS, comment);
+            task.setStatus(this, Status.IN_PROGRESS, comment);
         }
 
         @Override
-        public void finishTask(Task task, String comment) throws IllegalStateException {
+        public void finishTask(Task task, String comment) throws InvalidStateException {
             ensureAndHoldOpened();
 
-            if (!user.equals(task.getExecutor().orElse(null))) throw new IllegalStateException("Worker is able to finish only his own tasks");
-            if (task.getStatus() != ReadonlyTask.Status.IN_PROGRESS) throw new IllegalStateException("Task's status must be IN_PROGRESS");
+            if (!user.equals(task.getExecutor().orElse(null))) throw notEnoughAccess("Worker is able to finish only his own tasks");
+            if (task.getStatus() != Status.IN_PROGRESS) throw illegalTasksStatus(task, Status.IN_PROGRESS);
 
-            task.setStatus(this, ReadonlyTask.Status.RESOLVED, comment);
+            task.setStatus(this, Status.RESOLVED, comment);
         }
 
     }

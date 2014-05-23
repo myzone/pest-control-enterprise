@@ -17,10 +17,10 @@ public interface UserSession extends AutoCloseable {
 
     Instant getClosed();
 
-    void changePassword(String newPassword) throws IllegalStateException;
+    void changePassword(String newPassword) throws InvalidStateException;
 
     @Override
-    void close() throws IllegalStateException;
+    void close() throws InvalidStateException;
 
     default boolean isStillActive(Clock clock) {
         return willBeActive(clock.instant());

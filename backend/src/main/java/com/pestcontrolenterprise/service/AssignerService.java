@@ -40,32 +40,48 @@ public class AssignerService extends RecursiveAction {
                     .filter(task -> task.getStatus().equals(Status.OPEN))
                     .filter(task -> !task.getExecutor().isPresent())
                     .parallel()
-                    .forEach(task -> adminSession.editTask(
-                            task,
-                            Optional.of(Status.ASSIGNED),
-                            Optional.of(determineAppropriateExecutor(adminSession, task)),
-                            Optional.empty(),
-                            Optional.empty(),
-                            Optional.empty(),
-                            Optional.empty(),
-                            commentGenerator.apply(adminSession)
-                    ));
-        }   
+                    .forEach(task -> {
+                        try {
+                            adminSession.editTask(
+                                    task,
+                                    Optional.of(Status.ASSIGNED),
+                                    Optional.of(determineAppropriateExecutor(adminSession, task)),
+                                    Optional.empty(),
+                                    Optional.empty(),
+                                    Optional.empty(),
+                                    Optional.empty(),
+                                    commentGenerator.apply(adminSession)
+                            );
+                        } catch (InvalidStateException | IllegalStateException e) {
+                            // do nothing
+                        }
+                    });
+        } catch (InvalidStateException e) {
+            // do nothing
+        }
     }
 
     protected Optional<Worker> determineAppropriateExecutor(AdminSession adminSession, ReadonlyTask task) {
-        return adminSession
-                .getWorkers()
-                .filter(worker -> worker.getWorkablePestTypes().contains(task.getPestType()))
-                .max((l, r) -> getActiveTasksCountByWorker(adminSession, l).compareTo(getActiveTasksCountByWorker(adminSession, r)));                
+        try {
+            return adminSession
+                    .getWorkers()
+                    .filter(worker -> worker.getWorkablePestTypes().contains(task.getPestType()))
+                    .max((l, r) -> getActiveTasksCountByWorker(adminSession, l).compareTo(getActiveTasksCountByWorker(adminSession, r)));
+        } catch (InvalidStateException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private Long getActiveTasksCountByWorker(AdminSession adminSession, Worker worker) {
-        return adminSession
-                .getTasks()
-                .filter(task -> ACTIVE_TASK_STATUSES.contains(task.getStatus()))
-                .filter(task -> worker.equals(task.getExecutor().orElse(null)))
-                .count();
+        try {
+            return adminSession
+                    .getTasks()
+                    .filter(task -> ACTIVE_TASK_STATUSES.contains(task.getStatus()))
+                    .filter(task -> worker.equals(task.getExecutor().orElse(null)))
+                    .count();
+        } catch (InvalidStateException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 }

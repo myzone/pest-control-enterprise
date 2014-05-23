@@ -7,6 +7,6 @@ package com.pestcontrolenterprise.api;
 public interface Admin extends User {
 
     @Override
-    AdminSession beginSession(String password) throws AuthException, IllegalStateException;
+    AdminSession beginSession(String password) throws AuthException, InvalidStateException;
 
 }

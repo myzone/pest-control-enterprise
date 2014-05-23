@@ -8,8 +8,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public interface Worker extends ReadonlyWorker {
 
-    void setWorkablePestTypes(AdminSession session, ImmutableSet<PestType> workablePestTypes) throws IllegalStateException;
+    void setWorkablePestTypes(AdminSession session, ImmutableSet<PestType> workablePestTypes) throws InvalidStateException;
 
-    void setPassword(AdminSession session, String newPassword) throws IllegalStateException;
+    void setPassword(AdminSession session, String newPassword) throws InvalidStateException;
 
 }
