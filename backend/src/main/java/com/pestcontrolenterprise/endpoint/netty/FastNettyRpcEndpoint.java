@@ -16,11 +16,11 @@ import static java.util.Collections.unmodifiableMap;
  */
 public class FastNettyRpcEndpoint<P extends Enum<P>> extends NettyRpcEndpoint<P> implements RpcEndpoint<P> {
 
-    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Set<HandlerPair<P, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
         super(procedureTypeClass, asMap(procedureTypeClass, handlerPairs), idSupplier, gsonBuilder);
     }
 
-    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Map<P, HandlerPair<P, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
         super(procedureTypeClass, handlerPairsMap, idSupplier, gsonBuilder);
     }
 
@@ -28,10 +28,10 @@ public class FastNettyRpcEndpoint<P extends Enum<P>> extends NettyRpcEndpoint<P>
         return new FastNettyRpcEndpointBuilder<P>(procedureTypeClass);
     }
 
-    private static <P extends Enum<P>> Map<P, HandlerPair<P, ?, ?>> asMap(final Class<P> procedureTypeClass, final Set<HandlerPair<P, ?, ?>> handlerPairs) {
-        Map<P, HandlerPair<P, ?, ?>> handlerPairsMap = new EnumMap<P, HandlerPair<P, ?, ?>>(procedureTypeClass);
+    private static <P extends Enum<P>> Map<P, HandlerPair<P, ?, ?, ?>> asMap(final Class<P> procedureTypeClass, final Set<HandlerPair<P, ?, ?, ?>> handlerPairs) {
+        Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap = new EnumMap<P, HandlerPair<P, ?, ?, ?>>(procedureTypeClass);
 
-        for (HandlerPair<P, ?, ?> handlerPair : handlerPairs) {
+        for (HandlerPair<P, ?, ?, ?> handlerPair : handlerPairs) {
             handlerPairsMap.put(handlerPair.getProcedure().getProcedureType(), handlerPair);
         }
 

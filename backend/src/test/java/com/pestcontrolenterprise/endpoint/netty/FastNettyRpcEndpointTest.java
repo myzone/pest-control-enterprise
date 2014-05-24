@@ -9,6 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static com.pestcontrolenterprise.endpoint.Endpoint.Host;
+import static com.pestcontrolenterprise.endpoint.RpcEndpoint.RemoteCall;
+import static com.pestcontrolenterprise.endpoint.RpcEndpoint.RemoteResult;
 import static com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint.HandlerPair;
 
 /**
@@ -19,7 +21,7 @@ public class FastNettyRpcEndpointTest extends RpcEndpointTest {
 
     private static final short PORT = 8083;
 
-    private Host<NettyRpcEndpoint.RemoteCall<ServiceSignature.MethodType,?>,NettyRpcEndpoint.RemoteResult<ServiceSignature.MethodType,?>> host;
+    private Host<RemoteCall<ServiceSignature.MethodType, ?>, RemoteResult<ServiceSignature.MethodType, ?, ?>> host;
     private NettyRpcEndpoint<ServiceSignature.MethodType> rpcEndpoint;
 
     @Before
@@ -28,20 +30,12 @@ public class FastNettyRpcEndpointTest extends RpcEndpointTest {
 
         rpcEndpoint = FastNettyRpcEndpoint
                 .fastBuilder(ServiceSignature.MethodType.class)
-                .withHandlerPair(HandlerPair.of(ServiceSignature.SET, new Function<String, Void>() {
-                    @Override
-                    public Void apply(String s) {
-                        atomicReference.set(s);
+                .withHandlerPair(HandlerPair.of(ServiceSignature.SET, s -> {
+                    atomicReference.set(s);
 
-                        return null;
-                    }
+                    return null;
                 }))
-                .withHandlerPair(HandlerPair.of(ServiceSignature.GET, new Function<Void, String>() {
-                    @Override
-                    public String apply(Void none) {
-                        return atomicReference.get();
-                    }
-                }))
+                .withHandlerPair(HandlerPair.of(ServiceSignature.GET, none -> atomicReference.get()))
                 .build();
 
         host = rpcEndpoint.bind(PORT);

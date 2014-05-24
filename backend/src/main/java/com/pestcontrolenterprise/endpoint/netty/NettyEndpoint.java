@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
+import com.pestcontrolenterprise.endpoint.Endpoint;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -35,7 +36,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  * @author myzone
  * @date 4/25/14
  */
-public class NettyEndpoint<I, O> {
+public class NettyEndpoint<I, O> implements Endpoint<I, O> {
 
     private final Function<I, O> function;
 
@@ -43,25 +44,6 @@ public class NettyEndpoint<I, O> {
     protected final TypeToken<O> outputType;
 
     protected final Gson gson;
-
-    protected NettyEndpoint(
-            Function<I, O> function,
-            TypeToken<I> inputType,
-            TypeToken<O> outputType,
-            JsonDeserializer<I> deserializer,
-            JsonSerializer<O> serializer,
-            GsonBuilder gsonBuilder
-    ) {
-        this.function = function;
-
-        this.inputType = inputType;
-        this.outputType = outputType;
-
-        gson = gsonBuilder
-                .registerTypeAdapter(inputType.getType(), deserializer)
-                .registerTypeAdapter(outputType.getType(), serializer)
-                .create();
-    }
 
     protected NettyEndpoint(
             Function<I, O> function,
@@ -214,17 +196,6 @@ public class NettyEndpoint<I, O> {
             Function<I, O> function,
             TypeToken<I> inputType,
             TypeToken<O> outputType,
-            JsonDeserializer<I> deserializer,
-            JsonSerializer<O> serializer,
-            GsonBuilder gsonBuilder
-    ) {
-        return new NettyEndpoint<I, O>(function, inputType, outputType, deserializer, serializer, gsonBuilder);
-    }
-
-    public static <I, O> NettyEndpoint<I, O> of(
-            Function<I, O> function,
-            TypeToken<I> inputType,
-            TypeToken<O> outputType,
             GsonBuilder gsonBuilder
     ) {
         return new NettyEndpoint<I, O>(function, inputType, outputType, gsonBuilder);
@@ -235,7 +206,7 @@ public class NettyEndpoint<I, O> {
             TypeToken<I> inputType,
             TypeToken<O> outputType
     ) {
-        return new NettyEndpoint<I, O>(function, inputType, outputType, new GsonBuilder());
+        return NettyEndpoint.of(function, inputType, outputType, new GsonBuilder());
     }
 
 }

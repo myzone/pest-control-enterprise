@@ -23,36 +23,36 @@ import static java.util.Map.Entry;
 public interface Signatures {
 
     // test
-    Procedure<String, List<Integer>, Integer> plus = Procedure.of("plus", new TypeToken<List<Integer>>(){}, new TypeToken<Integer>(){});
+    Procedure<String, List<Integer>, Integer, RuntimeException> plus = Procedure.of("plus", new TypeToken<List<Integer>>() {}, new TypeToken<Integer>() {});
 
     // common
-    Procedure<String, GetRequest<User>, GetResponse<User>> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {});
-    Procedure<String, GetRequest<PestType>, GetResponse<PestType>> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {});
-    Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {});
+    Procedure<String, GetRequest<User>, GetResponse<User>, RuntimeException> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, GetRequest<PestType>, GetResponse<PestType>, RuntimeException> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>, RuntimeException> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {}, new TypeToken<RuntimeException>() {});
 
-    Procedure<String, BeginSessionRequest, UserSession> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {});
-    Procedure<String, UserSession, Void> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {});
+    Procedure<String, BeginSessionRequest, UserSession, RuntimeException> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, UserSession, Void, RuntimeException> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
 
     // worker
-    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {});
-    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>, RuntimeException> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>, RuntimeException> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<RuntimeException>() {});
 
-    Procedure<String, ModifyTaskRequest, Void> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
-    Procedure<String, ModifyTaskRequest, Void> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
-    Procedure<String, ModifyTaskRequest, Void> finishTask = Procedure.of("finishTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {});
+    Procedure<String, ModifyTaskRequest, Void, RuntimeException> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, ModifyTaskRequest, Void, RuntimeException> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, ModifyTaskRequest, Void, RuntimeException> finishTask = Procedure.of("finishTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
 
     // admin
-    Procedure<String, AllocateTaskRequest, Task> allocateTask = Procedure.of("allocateTask", new TypeToken<AllocateTaskRequest>() {}, new TypeToken<Task>() {});
-    Procedure<String, EditTaskRequest, Task> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, GetResponse<Task>> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {});
+    Procedure<String, AllocateTaskRequest, Task, RuntimeException> allocateTask = Procedure.of("allocateTask", new TypeToken<AllocateTaskRequest>() {}, new TypeToken<Task>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, EditTaskRequest, Task, RuntimeException> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, GetResponse<Task>, RuntimeException> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<RuntimeException>() {});
 
-    Procedure<String, RegisterCustomerRequest, Customer> registerCustomer = Procedure.of("registerCustomer", new TypeToken<RegisterCustomerRequest>() {}, new TypeToken<Customer>() {});
-    Procedure<String, EditCustomerRequest, Customer> editCustomer = Procedure.of("editCustomer", new TypeToken<EditCustomerRequest>() {}, new TypeToken<Customer>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, GetResponse<Customer>> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<GetResponse<Customer>>() {});
+    Procedure<String, RegisterCustomerRequest, Customer, RuntimeException> registerCustomer = Procedure.of("registerCustomer", new TypeToken<RegisterCustomerRequest>() {}, new TypeToken<Customer>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, EditCustomerRequest, Customer, RuntimeException> editCustomer = Procedure.of("editCustomer", new TypeToken<EditCustomerRequest>() {}, new TypeToken<Customer>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, GetResponse<Customer>, RuntimeException> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<GetResponse<Customer>>() {}, new TypeToken<RuntimeException>() {});
 
-    Procedure<String, RegisterWorkerRequest, ReadonlyWorker> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
-    Procedure<String, EditWorkerRequest, ReadonlyWorker> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, GetResponse<Worker>> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<GetResponse<Worker>>() {});
+    Procedure<String, RegisterWorkerRequest, ReadonlyWorker, RuntimeException> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, EditWorkerRequest, ReadonlyWorker, RuntimeException> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, GetResponse<Worker>, RuntimeException> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<GetResponse<Worker>>() {}, new TypeToken<RuntimeException>() {});
 
     class GetRequest<T> {
 
