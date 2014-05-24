@@ -2,15 +2,17 @@ package com.pestcontrolenterprise.endpoint;
 
 import com.google.common.base.Objects;
 import com.google.gson.reflect.TypeToken;
+import com.pestcontrolenterprise.util.PartialSupplier;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
  * @author myzone
  * @date 4/27/14
  */
-public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, RpcEndpoint.RemoteResult<P, ?>> {
+public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, RpcEndpoint.RemoteResult<P, ?, ?>> {
 
     @Override
     RpcClient<P> client(final String host, final short port);
@@ -25,7 +27,7 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
 
     }
 
-    interface RemoteResult<P, R> {
+    interface RemoteResult<P, R, E extends Throwable> {
 
         String getIdentifier();
 
@@ -33,26 +35,32 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
 
         R getReturnedResult();
 
-    }
+        E getThrownException();
 
-    interface RpcClient<P> extends Client<RemoteCall<P, ?>, RemoteResult<P, ?>> {
-
-        <A, R> void call(Procedure<P, A, R> procedure, A arg, Consumer<R> consumer);
+        boolean isSucceeded();
 
     }
 
-    final class Procedure<P, A, R> {
+    interface RpcClient<P> extends Client<RemoteCall<P, ?>, RemoteResult<P, ?, ?>> {
+
+        <A, R, E extends Throwable> void call(Procedure<P, A, R, E> procedure, A arg, Consumer<PartialSupplier<R, E>> consumer);
+
+    }
+
+    final class Procedure<P, A, R, E extends Throwable> {
 
         private final P procedureType;
 
         private final TypeToken<A> argumentType;
         private final TypeToken<R> returnType;
+        private final TypeToken<E> exceptionType;
 
-        protected Procedure(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
+        private Procedure(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType, TypeToken<E> exceptionType) {
             this.procedureType = procedureType;
 
             this.argumentType = argumentType;
             this.returnType = returnType;
+            this.exceptionType = exceptionType;
         }
 
         public P getProcedureType() {
@@ -65,6 +73,10 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
 
         public TypeToken<R> getReturnType() {
             return returnType;
+        }
+
+        public TypeToken<E> getExceptionType() {
+            return exceptionType;
         }
 
         @Override
@@ -90,11 +102,16 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
                     .add("procedureType", procedureType)
                     .add("argumentType", argumentType)
                     .add("returnType", returnType)
+                    .add("exceptionType", exceptionType)
                     .toString();
         }
 
-        public static <E, A, R> Procedure<E, A, R> of(E procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
-            return new Procedure<E, A, R>(procedureType, argumentType, returnType);
+        public static <P, A, R, E extends Throwable> Procedure<P, A, R, E> of(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType, TypeToken<E> exceptionType) {
+            return new Procedure<>(procedureType, argumentType, returnType, exceptionType);
+        }
+
+        public static <P, A, R> Procedure<P, A, R, RuntimeException> of(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
+            return new Procedure<>(procedureType, argumentType, returnType, new TypeToken<RuntimeException>() {});
         }
 
     }

@@ -3,8 +3,8 @@ package com.pestcontrolenterprise.api;
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
 
 /**
- * myzone
- * 5/23/14.
+ * @author myzone
+ * @date 5/23/14
  */
 public abstract class InvalidStateException extends Exception {
 

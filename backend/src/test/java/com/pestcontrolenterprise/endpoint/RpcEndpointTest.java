@@ -2,9 +2,11 @@ package com.pestcontrolenterprise.endpoint;
 
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint;
+import com.pestcontrolenterprise.util.PartialSupplier;
 import org.junit.Test;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -22,8 +24,8 @@ public abstract class RpcEndpointTest {
             GET
         }
 
-        RpcEndpoint.Procedure<MethodType, String, Void> SET = RpcEndpoint.Procedure.of(MethodType.SET, new TypeToken<String>() {}, new TypeToken<Void>() {});
-        RpcEndpoint.Procedure<MethodType, Void, String> GET = RpcEndpoint.Procedure.of(MethodType.GET, new TypeToken<Void>() {}, new TypeToken<String>() {});
+        RpcEndpoint.Procedure<MethodType, String, Void, RuntimeException> SET = RpcEndpoint.Procedure.of(MethodType.SET, new TypeToken<String>() {}, new TypeToken<Void>() {});
+        RpcEndpoint.Procedure<MethodType, Void, String, RuntimeException> GET = RpcEndpoint.Procedure.of(MethodType.GET, new TypeToken<Void>() {}, new TypeToken<String>() {});
     }
 
     protected abstract NettyRpcEndpoint<ServiceSignature.MethodType> getRpcEndpoint();
@@ -36,13 +38,15 @@ public abstract class RpcEndpointTest {
 
         NettyRpcEndpoint.RpcClient<ServiceSignature.MethodType> client = getRpcEndpoint().client("localhost", getPort());
 
-        Consumer<Void> voidConsumer = mock(Consumer.class);
+        Consumer<PartialSupplier<Void, RuntimeException>> voidConsumer = mock(Consumer.class);
         Consumer<String> stringConsumer = mock(Consumer.class);
 
         client.call(ServiceSignature.SET, value, voidConsumer);
         verify(voidConsumer, timeout(100)).accept(null);
 
-        client.call(ServiceSignature.GET, null, stringConsumer);
+        client.call(ServiceSignature.GET, null, supplier -> {
+            stringConsumer.accept(supplier.get());
+        });
         verify(stringConsumer, timeout(100)).accept(value);
     }
 

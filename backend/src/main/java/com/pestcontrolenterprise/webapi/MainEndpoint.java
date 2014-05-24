@@ -3,8 +3,10 @@ package com.pestcontrolenterprise.webapi;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.endpoint.RpcEndpoint;
 import com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint;
 import com.pestcontrolenterprise.json.*;
 import com.pestcontrolenterprise.persistent.*;
@@ -18,13 +20,15 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.dialect.H2Dialect;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Clock;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status.*;
@@ -73,22 +77,23 @@ public class MainEndpoint {
     }
 
     private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
-        endpointBuilder.withGsonBuilder(new GsonBuilder()
-                .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
-                .registerTypeHierarchyAdapter(Map.Entry.class, new EntryJsonAdapter())
-                .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
-                .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
-                .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
-                .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
-                .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
-                .registerTypeHierarchyAdapter(ReadonlyCustomer.class, new CustomerJsonAdapter(applicationContext))
-                .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
-                .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
-                .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
-                .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
-                .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
-                .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
-                .setPrettyPrinting()
+        endpointBuilder.withGsonBuilder((gsonBuilder) -> gsonBuilder
+                        .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
+                        .registerTypeHierarchyAdapter(Throwable.class, new ThrowableJsonAdapter<>())
+                        .registerTypeHierarchyAdapter(Map.Entry.class, new EntryJsonAdapter())
+                        .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
+                        .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
+                        .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
+                        .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
+                        .registerTypeHierarchyAdapter(ReadonlyCustomer.class, new CustomerJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
+                        .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
+                        .setPrettyPrinting()
         );
     }
 
