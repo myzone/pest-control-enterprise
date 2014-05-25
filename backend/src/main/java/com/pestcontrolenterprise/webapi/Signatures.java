@@ -30,29 +30,29 @@ public interface Signatures {
     Procedure<String, GetRequest<PestType>, GetResponse<PestType>, RuntimeException> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {}, new TypeToken<RuntimeException>() {});
     Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>, RuntimeException> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {}, new TypeToken<RuntimeException>() {});
 
-    Procedure<String, BeginSessionRequest, UserSession, RuntimeException> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, UserSession, Void, RuntimeException> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, BeginSessionRequest, UserSession, InvalidStateException> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, UserSession, Void, InvalidStateException> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {}, new TypeToken<InvalidStateException>() {});
 
     // worker
-    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>, RuntimeException> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>, RuntimeException> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>, InvalidStateException> getAssignedTasks = Procedure.of("getAssignedTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, AuthorizedGetRequest<WorkerSession, Task>, GetResponse<Task>, InvalidStateException> getCurrentTasks = Procedure.of("getCurrentTasks", new TypeToken<AuthorizedGetRequest<WorkerSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<InvalidStateException>() {});
 
-    Procedure<String, ModifyTaskRequest, Void, RuntimeException> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, ModifyTaskRequest, Void, RuntimeException> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, ModifyTaskRequest, Void, RuntimeException> finishTask = Procedure.of("finishTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, ModifyTaskRequest, Void, InvalidStateException> discardTask = Procedure.of("discardTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, ModifyTaskRequest, Void, InvalidStateException> startTask = Procedure.of("startTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, ModifyTaskRequest, Void, InvalidStateException> finishTask = Procedure.of("finishTask", new TypeToken<ModifyTaskRequest>() {}, new TypeToken<Void>() {}, new TypeToken<InvalidStateException>() {});
 
     // admin
-    Procedure<String, AllocateTaskRequest, Task, RuntimeException> allocateTask = Procedure.of("allocateTask", new TypeToken<AllocateTaskRequest>() {}, new TypeToken<Task>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, EditTaskRequest, Task, RuntimeException> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, GetResponse<Task>, RuntimeException> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, AllocateTaskRequest, Task, InvalidStateException> allocateTask = Procedure.of("allocateTask", new TypeToken<AllocateTaskRequest>() {}, new TypeToken<Task>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, EditTaskRequest, Task, InvalidStateException> editTask = Procedure.of("editTask", new TypeToken<EditTaskRequest>() {}, new TypeToken<Task>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Task>, GetResponse<Task>, InvalidStateException> getTasks = Procedure.of("getTasks", new TypeToken<AuthorizedGetRequest<AdminSession, Task>>() {}, new TypeToken<GetResponse<Task>>() {}, new TypeToken<InvalidStateException>() {});
 
-    Procedure<String, RegisterCustomerRequest, Customer, RuntimeException> registerCustomer = Procedure.of("registerCustomer", new TypeToken<RegisterCustomerRequest>() {}, new TypeToken<Customer>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, EditCustomerRequest, Customer, RuntimeException> editCustomer = Procedure.of("editCustomer", new TypeToken<EditCustomerRequest>() {}, new TypeToken<Customer>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, GetResponse<Customer>, RuntimeException> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<GetResponse<Customer>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, RegisterCustomerRequest, Customer, InvalidStateException> registerCustomer = Procedure.of("registerCustomer", new TypeToken<RegisterCustomerRequest>() {}, new TypeToken<Customer>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, EditCustomerRequest, Customer, InvalidStateException> editCustomer = Procedure.of("editCustomer", new TypeToken<EditCustomerRequest>() {}, new TypeToken<Customer>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Customer>, GetResponse<Customer>, InvalidStateException> getCustomers = Procedure.of("getCustomers", new TypeToken<AuthorizedGetRequest<AdminSession, Customer>>() {}, new TypeToken<GetResponse<Customer>>() {}, new TypeToken<InvalidStateException>() {});
 
-    Procedure<String, RegisterWorkerRequest, ReadonlyWorker, RuntimeException> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, EditWorkerRequest, ReadonlyWorker, RuntimeException> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, GetResponse<Worker>, RuntimeException> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<GetResponse<Worker>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, RegisterWorkerRequest, ReadonlyWorker, InvalidStateException> registerWorker = Procedure.of("registerWorker", new TypeToken<RegisterWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, EditWorkerRequest, ReadonlyWorker, InvalidStateException> editWorker = Procedure.of("editWorker", new TypeToken<EditWorkerRequest>() {}, new TypeToken<ReadonlyWorker>() {}, new TypeToken<InvalidStateException>() {});
+    Procedure<String, AuthorizedGetRequest<AdminSession, Worker>, GetResponse<Worker>, InvalidStateException> getWorkers = Procedure.of("getWorkers", new TypeToken<AuthorizedGetRequest<AdminSession, Worker>>() {}, new TypeToken<GetResponse<Worker>>() {}, new TypeToken<InvalidStateException>() {});
 
     class GetRequest<T> {
 

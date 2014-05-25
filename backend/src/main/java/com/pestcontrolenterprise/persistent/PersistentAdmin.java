@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.pestcontrolenterprise.api.InvalidStateException.authenticationFailed;
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
 
 /**
@@ -33,10 +34,10 @@ public class PersistentAdmin extends PersistentUser implements Admin {
     }
 
     @Override
-    public AdminSession beginSession(String password) throws AuthException, InvalidStateException {
+    public AdminSession beginSession(String password) throws InvalidStateException {
         try (QuiteAutoCloseable lock = readLock()) {
             if (!this.password.equals(password))
-                throw new AuthException();
+                throw authenticationFailed(this);
 
             return new PersistentAdminSession(getApplicationContext(), this);
         }
