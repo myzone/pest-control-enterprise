@@ -8,6 +8,6 @@ public interface User {
 
     String getName();
 
-    UserSession beginSession(String password) throws AuthException, InvalidStateException;
+    UserSession beginSession(String password) throws InvalidStateException;
 
 }

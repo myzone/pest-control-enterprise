@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableSet;
 public interface ReadonlyWorker extends User {
 
     @Override
-    WorkerSession beginSession(String password) throws AuthException, InvalidStateException;
+    WorkerSession beginSession(String password) throws InvalidStateException;
 
     ImmutableSet<PestType> getWorkablePestTypes();
 

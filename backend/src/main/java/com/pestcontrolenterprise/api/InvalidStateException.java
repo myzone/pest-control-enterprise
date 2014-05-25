@@ -24,6 +24,12 @@ public abstract class InvalidStateException extends Exception {
         return new NotEnoughAccessException(comment);
     }
 
+    public static AuthenticationException authenticationFailed(User user) {
+        return new AuthenticationException(user);
+    }
+
+
+
     public static class InactiveSessionException extends NotEnoughAccessException {
 
         protected InactiveSessionException() {
@@ -62,7 +68,21 @@ public abstract class InvalidStateException extends Exception {
 
     }
 
+    public static class AuthenticationException extends InvalidStateException {
 
+        private final User user;
+
+        protected AuthenticationException(User user) {
+            super("Authentication of " + user + " failed");
+
+            this.user = user;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+    }
 
 
 }
