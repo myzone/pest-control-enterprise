@@ -36,7 +36,7 @@ public class UserSessionTest extends DataBaseInfrastractureTest {
 
         PersistentApplicationContext context = new PersistentApplicationContext(sessionFactoryProvider.getSessionFactory(), clock::get);
 
-        PersistentWorker ololo = new PersistentWorker(context, "ololo1", "fuck", ImmutableSet.<PestType>of());
+        PersistentWorker ololo = new PersistentWorker(context, "ololo1", "ololo1", "fuck", ImmutableSet.<PestType>of());
         WorkerSession fuck = ololo.beginSession("fuck");
         clock.set(afterClock);
 
@@ -62,7 +62,7 @@ public class UserSessionTest extends DataBaseInfrastractureTest {
 
         PersistentApplicationContext context = new PersistentApplicationContext(sessionFactoryProvider.getSessionFactory(), clock::get);
 
-        PersistentWorker ololo = new PersistentWorker(context, "ololo1", "fuck", ImmutableSet.<PestType>of());
+        PersistentWorker ololo = new PersistentWorker(context, "ololo1", "ololo1", "fuck", ImmutableSet.<PestType>of());
         WorkerSession fuck = ololo.beginSession("fuck");
 
         clock.set(after1Clock);
@@ -87,7 +87,7 @@ public class UserSessionTest extends DataBaseInfrastractureTest {
 
         PersistentApplicationContext context = new PersistentApplicationContext(sessionFactoryProvider.getSessionFactory(), clock::get);
 
-        PersistentWorker ololo = new PersistentWorker(context, "ololo1", "fuck", ImmutableSet.<PestType>of());
+        PersistentWorker ololo = new PersistentWorker(context, "ololo1", "ololo1", "fuck", ImmutableSet.<PestType>of());
         WorkerSession fuck = ololo.beginSession("fuck");
         clock.set(afterClock);
 

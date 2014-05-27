@@ -27,8 +27,8 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         super();
     }
 
-    public PersistentAdmin(ApplicationContext applicationContext, String name, String password) {
-        super(applicationContext, name, password);
+    public PersistentAdmin(ApplicationContext applicationContext, String login, String name, String password) {
+        super(applicationContext, login, name, password);
 
         save();
     }
@@ -144,16 +144,17 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         }
 
         @Override
-        public Worker registerWorker(String name, String password, Set<PestType> workablePestTypes) throws InvalidStateException {
+        public Worker registerWorker(String login, String name, String password, Set<PestType> workablePestTypes) throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return new PersistentWorker(getApplicationContext(), name, password, ImmutableSet.copyOf(workablePestTypes));
+            return new PersistentWorker(getApplicationContext(), login, name, password, ImmutableSet.copyOf(workablePestTypes));
         }
 
         @Override
-        public Worker editWorker(Worker worker, Optional<String> password, Optional<Set<PestType>> workablePestTypes) throws InvalidStateException {
+        public Worker editWorker(Worker worker, Optional<String> name, Optional<String> password, Optional<Set<PestType>> workablePestTypes) throws InvalidStateException {
             ensureAndHoldOpened();
 
+            if (name.isPresent()) worker.setName(this, name.get());
             if (password.isPresent()) worker.setPassword(this, password.get());
             if (workablePestTypes.isPresent()) worker.setWorkablePestTypes(this, ImmutableSet.copyOf(workablePestTypes.get()));
 

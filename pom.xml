@@ -51,7 +51,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Specification-Title>${project.name}</Specification-Title>
+                            <Specification-Title>${project.login}</Specification-Title>
                             <Specification-Version>${project.version}</Specification-Version>
                             <Implementation-Title>${project.groupId}.${project.artifactId}</Implementation-Title>
                             <Implementation-Version>${git.revision}</Implementation-Version>

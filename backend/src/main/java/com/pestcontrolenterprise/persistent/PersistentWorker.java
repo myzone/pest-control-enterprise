@@ -33,8 +33,8 @@ public class PersistentWorker extends PersistentUser implements Worker {
         super();
     }
 
-    public PersistentWorker(ApplicationContext applicationContext, String name, String password, ImmutableSet<PestType> workablePestTypes) {
-        super(applicationContext, name, password);
+    public PersistentWorker(ApplicationContext applicationContext, String login, String name, String password, ImmutableSet<PestType> workablePestTypes) {
+        super(applicationContext, login, name, password);
 
         this.workablePestTypes = workablePestTypes;
 
@@ -69,32 +69,13 @@ public class PersistentWorker extends PersistentUser implements Worker {
     }
 
     @Override
+    public void setName(AdminSession session, String newName) throws InvalidStateException {
+        super.setName(session, newName);
+    }
+
+    @Override
     public void setPassword(AdminSession session, String newPassword) throws IllegalStateException {
        super.setPassword(session, newPassword);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        try (QuiteAutoCloseable lock = readLock()) {
-            if (this == o) return true;
-            if (!(o instanceof PersistentWorker)) return false;
-            if (!super.equals(o)) return false;
-
-            PersistentWorker that = (PersistentWorker) o;
-
-            if (!workablePestTypes.equals(that.workablePestTypes)) return false;
-
-            return true;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        try (QuiteAutoCloseable lock = readLock()) {
-            int result = super.hashCode();
-            result = 31 * result + workablePestTypes.hashCode();
-            return result;
-        }
     }
 
     @Override
