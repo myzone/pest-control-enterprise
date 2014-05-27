@@ -27,8 +27,8 @@ public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<U
     public User deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = (JsonObject) jsonElement;
 
-        String name = context.deserialize(jsonObject.get("name"), String.class);
-        PersistentUser user = (PersistentUser) applicationContext.getPersistenceSession().get(PersistentUser.class, name);
+        String login = context.deserialize(jsonObject.get("login"), String.class);
+        PersistentUser user = (PersistentUser) applicationContext.getPersistenceSession().get(PersistentUser.class, login);
 
         return user;
     }

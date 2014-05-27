@@ -1,12 +1,8 @@
 package com.pestcontrolenterprise.webapi;
 
 import com.pestcontrolenterprise.api.User;
-import com.pestcontrolenterprise.util.HibernateStream;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 
-import javax.management.Query;
 import java.util.function.Predicate;
 
 import static com.pestcontrolenterprise.util.HibernateStream.HibernatePredicate;
@@ -34,7 +30,7 @@ public class FastPredicates {
 
         @Override
         public boolean test(User user) {
-            return user.getName().equals(username);
+            return user.getLogin().equals(username);
         }
 
         public String getUsername() {

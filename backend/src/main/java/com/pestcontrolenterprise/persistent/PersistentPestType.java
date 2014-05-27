@@ -8,7 +8,10 @@ import com.pestcontrolenterprise.api.PestType;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
+import java.util.Collections;
 import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * @author myzone
@@ -26,7 +29,7 @@ public class PersistentPestType extends PersistentObject implements PestType {
 
     @ElementCollection(targetClass = Integer.class)
     @MapKeyClass(PersistentEquipmentType.class)
-    protected volatile Map<EquipmentType, Integer> requiredEquipment;
+    protected final Map<EquipmentType, Integer> requiredEquipment;
 
     @Deprecated
     protected PersistentPestType() {
@@ -34,6 +37,7 @@ public class PersistentPestType extends PersistentObject implements PestType {
 
         name = null;
         description = null;
+        requiredEquipment = emptyMap();
     }
 
     public PersistentPestType(ApplicationContext applicationContext, String name, String description, Map<EquipmentType, Integer> requiredEquipmentTypes) {

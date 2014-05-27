@@ -6,6 +6,8 @@ package com.pestcontrolenterprise.api;
  */
 public interface User {
 
+    String getLogin();
+
     String getName();
 
     UserSession beginSession(String password) throws InvalidStateException;

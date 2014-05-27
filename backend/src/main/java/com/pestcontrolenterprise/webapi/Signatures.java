@@ -476,12 +476,14 @@ public interface Signatures {
     class RegisterWorkerRequest {
 
         private AdminSession session;
+        private String login;
         private String name;
         private String password;
         private Set<PestType> workablePestTypes;
 
         public RegisterWorkerRequest() {
             session = null;
+            login = null;
             name = null;
             password = null;
             workablePestTypes = emptySet();
@@ -493,6 +495,14 @@ public interface Signatures {
 
         public void setSession(AdminSession session) {
             this.session = session;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
         }
 
         public String getName() {
@@ -525,12 +535,14 @@ public interface Signatures {
 
         private AdminSession session;
         private Worker worker;
+        private Optional<String> name;
         private Optional<String> password;
         private Optional<Set<PestType>> workablePestTypes;
 
         public EditWorkerRequest() {
             session = null;
             worker = null;
+            name = Optional.empty();
             password = Optional.empty();
             workablePestTypes = Optional.empty();
         }
@@ -549,6 +561,14 @@ public interface Signatures {
 
         public void setWorker(Worker worker) {
             this.worker = worker;
+        }
+
+        public Optional<String> getName() {
+            return name;
+        }
+
+        public void setName(Optional<String> name) {
+            this.name = name;
         }
 
         public Optional<String> getPassword() {

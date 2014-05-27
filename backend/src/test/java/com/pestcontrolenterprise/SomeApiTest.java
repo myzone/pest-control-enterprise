@@ -31,9 +31,9 @@ public class SomeApiTest extends DataBaseInfrastractureTest {
         final SessionFactory sessionFactory = sessionFactoryProvider.getSessionFactory();
         PersistentApplicationContext applicationContext = new PersistentApplicationContext(sessionFactory, Clock::systemDefaultZone);
 
-        PersistentWorker worker = new PersistentWorker(applicationContext, "ololo", "fuck", ImmutableSet.of());
+        PersistentWorker worker = new PersistentWorker(applicationContext, "ololo", "ololo", "fuck", ImmutableSet.of());
 
-        PersistentAdmin admin = new PersistentAdmin(applicationContext, "asd", "asd");
+        PersistentAdmin admin = new PersistentAdmin(applicationContext, "asd", "asd", "asd");
         PersistentAddress address = new PersistentAddress("some street", null, null);
         PersistentCustomer customer = new PersistentCustomer(applicationContext, "ololo", address, "asd", "asd");
 

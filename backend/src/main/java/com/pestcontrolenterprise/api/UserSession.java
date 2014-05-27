@@ -17,6 +17,8 @@ public interface UserSession extends AutoCloseable {
 
     Instant getClosed();
 
+    void changeName(String newName) throws InvalidStateException;
+
     void changePassword(String newPassword) throws InvalidStateException;
 
     @Override

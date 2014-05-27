@@ -59,6 +59,7 @@ public interface AdminSession extends UserSession {
     Stream<Customer> getCustomers() throws InvalidStateException;
 
     Worker registerWorker(
+            String login,
             String name,
             String password,
             Set<PestType> workablePestTypes
@@ -66,6 +67,7 @@ public interface AdminSession extends UserSession {
 
     Worker editWorker(
             Worker worker,
+            Optional<String> name,
             Optional<String> password,
             Optional<Set<PestType>> workablePestTypes
     ) throws InvalidStateException;
