@@ -1,6 +1,7 @@
 define([
         'models/SessionModel',
         'models/TicketsModel',
+        'models/Ticket',
         'widgets/LoginForm',
         'widgets/TicketsGrid',
         'widgets/TicketForm',
@@ -10,7 +11,7 @@ define([
         'localization'
     ],
 
-    function(SessionModel, TicketsModel, LoginForm, TicketsView, TicketForm, LoggedUserInfoView, $) {
+    function(SessionModel, TicketsModel, Ticket, LoginForm, TicketsView, TicketForm, LoggedUserInfoView, $) {
         $.parser.parse();
 
         var session = new SessionModel;
@@ -45,5 +46,12 @@ define([
             model: session
         });
         userInfoView.render();
-
+        var ticket = new Ticket({
+            customer: {name:'Ivan'},
+            pestType: {name:'crap'},
+            problemDescription: 'AAAAA!',
+            comment: '111111111111111'
+        });
+        ticket.save();
+        //ticket.save();
 });
