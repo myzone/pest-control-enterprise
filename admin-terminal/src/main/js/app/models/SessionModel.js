@@ -1,4 +1,4 @@
-define(['models/Requester','backbone'], function(requester,Backbone){
+define(['models/Requester','backbone', 'literals'], function(requester, Backbone, literals){
 
     var SessionModel = Backbone.Model.extend({
         initialize: function() {
@@ -11,12 +11,28 @@ define(['models/Requester','backbone'], function(requester,Backbone){
 
             function checkSession() {
                 if(!isActiveSession) {
-                    self.trigger('notAuthorizedError',{
-                        title: 'Ошибка авторизации',
-                        text: 'Вы не авторизированы или время сессии истекло.'
-                    });
+                    self.trigger('notAuthorizedError',literals['notAuthorizedError']);
                 }
                 return isActiveSession;
+            }
+
+            function loginCallback(response) {
+                if (response != null && response.result.types.indexOf('Admin') != -1) {
+                    isActiveSession = true;
+                    userName = response.result.login;
+                    sessionId = response.result.id;
+
+                    self.trigger('statusChanged');
+                } else {
+                    self.trigger('loginError',literals['loginError']);
+                }
+            }
+
+            function logoutCallback(response) {
+                isActiveSession = false;
+                userName = '';
+                sessionId = null;
+                self.trigger('statusChanged');
             }
 
             this.isLoggedIn = function() {
@@ -33,18 +49,7 @@ define(['models/Requester','backbone'], function(requester,Backbone){
                 if(!isActiveSession) {
                     return;
                 }
-                requester.send({
-                    procedure: "endSession",
-                    argument: {
-                        id: sessionId
-                    }
-                }, function() {
-                    isActiveSession = false;
-                    userName = '';
-                    sessionId
-                    self.trigger('statusChanged');
-                });
-
+                requester.endSession(sessionId,logoutCallback);
             };
 
             this.getSessionId = function() {
@@ -56,28 +61,7 @@ define(['models/Requester','backbone'], function(requester,Backbone){
             };
 
             this.login = function(login, pass) {
-                requester.send({
-                    procedure: "beginSession",
-                    argument: {
-                        user: {
-                            name: login
-                        },
-                        password: pass
-                    }
-                }, function(response) {
-                    if (response != null && response.result.types.indexOf("Admin") != -1) {
-                        isActiveSession = true;
-                        userName = login;
-                        sessionId = response.result.id;
-
-                        self.trigger('statusChanged');
-                    } else {
-                        self.trigger('loginError',{
-                            title: 'Ошибка авторизации',
-                            text: 'Введен неправильный логин или пароль.'
-                        });
-                    }
-                });
+                requester.beginSession(login, pass, loginCallback);
             }
         }
     });

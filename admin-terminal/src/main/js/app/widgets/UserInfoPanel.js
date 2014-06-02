@@ -6,12 +6,12 @@ define(['underscore','backbone','jquery','easyui'], function( _ , Backbone, $) {
             function onSessionStatusChanged() {
                 if(self.model.isLoggedIn()) {
                     self.$('.lbl-text').html('Вы вошли как:');
-                    self.$('.user-name').html(self.model.getUserName());
-                    self.$('.user-name').show();
+                    self.$('.user-login').html(self.model.getUserName());
+                    self.$('.user-login').show();
                     self.$('.logout-button').show();
                 } else {
                     self.$('.lbl-text').html('Вы не вошли в систему.');
-                    self.$('.user-name').hide();
+                    self.$('.user-login').hide();
                     self.$('.logout-button').hide();
                 }
             }

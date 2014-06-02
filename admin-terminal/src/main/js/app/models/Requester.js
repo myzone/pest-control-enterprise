@@ -11,17 +11,50 @@ define(function() {
                     s4() + '-' + s4() + s4() + s4();
             };
         })();
-        this.send = function(request, сallback) {
+
+        function send(request,callback) {
+            var cb = callback;
             request.id=guid();
             var xhr = new XMLHttpRequest();
             xhr.onload = function() {
-                сallback(JSON.parse(xhr.responseText));
+                var response = JSON.parse(xhr.responseText);
+                if(!response.exception) {
+                    cb(response);
+                } else {
+                    cb(null);
+                }
+
             };
             xhr.onerror = function(data) {
-                сallback(null);
+                cb(null);
             };
             xhr.open("POST", host, true);
             xhr.send(JSON.stringify(request));
+        }
+
+        this.beginSession = function(login, password, callback) {
+            function internalCallback(response) {
+                if(response !== null && response.result) response.result.login=login;
+                callback(response);
+            }
+            send({
+                procedure: "beginSession",
+                argument: {
+                    user: {
+                        login: login
+                    },
+                    password: password
+                }
+            }, internalCallback);
+        };
+
+        this.endSession = function(sessionId, callback) {
+            send({
+                procedure: "endSession",
+                argument: {
+                    id: sessionId
+                }
+            },callback);
         };
 
         return this;
