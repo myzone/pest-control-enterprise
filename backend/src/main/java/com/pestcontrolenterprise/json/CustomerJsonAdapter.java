@@ -7,17 +7,17 @@ import com.pestcontrolenterprise.api.Customer;
 import com.pestcontrolenterprise.persistent.PersistentCustomer;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author myzone
  * @date 4/30/14
  */
-public class CustomerJsonAdapter implements JsonSerializer<Customer>, JsonDeserializer<Customer> {
-
-    private final ApplicationContext applicationContext;
+public class CustomerJsonAdapter extends AbstractJsonAdapter<Customer> implements JsonSerializer<Customer>, JsonDeserializer<Customer> {
 
     public CustomerJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentCustomer.class);
     }
 
     @Override
@@ -26,7 +26,7 @@ public class CustomerJsonAdapter implements JsonSerializer<Customer>, JsonDeseri
 
         String name = context.deserialize(jsonObject.get("name"), String.class);
 
-        return (Customer) applicationContext.getPersistenceSession().get(PersistentCustomer.class, name);
+        return find(name, jsonElement);
     }
 
     @Override

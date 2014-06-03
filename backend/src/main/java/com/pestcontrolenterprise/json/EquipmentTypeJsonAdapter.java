@@ -11,12 +11,10 @@ import java.lang.reflect.Type;
  * @author myzone
  * @date 4/30/14
  */
-public class EquipmentTypeJsonAdapter implements JsonSerializer<EquipmentType>, JsonDeserializer<EquipmentType> {
-
-    private final ApplicationContext applicationContext;
+public class EquipmentTypeJsonAdapter extends AbstractJsonAdapter<EquipmentType> implements JsonSerializer<EquipmentType>, JsonDeserializer<EquipmentType> {
 
     public EquipmentTypeJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentEquipmentType.class);
     }
 
     @Override
@@ -25,7 +23,7 @@ public class EquipmentTypeJsonAdapter implements JsonSerializer<EquipmentType>, 
 
         long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
 
-        return (EquipmentType) applicationContext.getPersistenceSession().get(PersistentEquipmentType.class, id);
+        return find(id, jsonElement);
     }
 
     @Override
