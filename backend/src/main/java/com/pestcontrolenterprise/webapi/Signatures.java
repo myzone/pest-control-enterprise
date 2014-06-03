@@ -1,7 +1,9 @@
 package com.pestcontrolenterprise.webapi;
 
+import com.google.common.base.Objects;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.api.*;
+import com.pestcontrolenterprise.json.annotation.Required;
 import com.pestcontrolenterprise.util.Segment;
 
 import java.time.Instant;
@@ -56,7 +58,7 @@ public interface Signatures {
 
     class GetRequest<T> {
 
-        private Set<Predicate<T>> filters;
+        private @Required Set<Predicate<T>> filters;
 
         public GetRequest() {
             filters = emptySet();
@@ -70,12 +72,22 @@ public interface Signatures {
             this.filters = filters;
         }
 
+        @Override
+        public final String toString() {
+            return toStringHelper().toString();
+        }
+
+        protected Objects.ToStringHelper toStringHelper() {
+            return Objects.toStringHelper(this)
+                    .add("filters", filters);
+        }
+
     }
 
     class GetResponse<T> {
 
-        private Stream<T> data;
-        private Set<Predicate<T>> filters;
+        private @Required Stream<T> data;
+        private @Required Set<Predicate<T>> filters;
 
         public GetResponse() {
             data = Stream.empty();
@@ -98,11 +110,19 @@ public interface Signatures {
             this.filters = filters;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("data", data)
+                    .add("filters", filters)
+                    .toString();
+        }
+
     }
 
     class AuthorizedGetRequest<S extends UserSession, T> extends GetRequest<T> {
 
-        private S session;
+        private @Required S session;
 
         public S getSession() {
             return session;
@@ -112,12 +132,17 @@ public interface Signatures {
             this.session = session;
         }
 
+        @Override
+        protected Objects.ToStringHelper toStringHelper() {
+            return super.toStringHelper()
+                    .add("session", session);
+        }
     }
 
     class BeginSessionRequest {
 
-        private User user;
-        private String password;
+        private @Required User user;
+        private @Required String password;
 
         public User getUser() {
             return user;
@@ -135,13 +160,21 @@ public interface Signatures {
             this.password = password;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("user", user)
+                    .add("password", password)
+                    .toString();
+        }
+
     }
 
     class ModifyTaskRequest {
 
-        private WorkerSession workerSession;
-        private Task task;
-        private String comment;
+        private @Required WorkerSession workerSession;
+        private @Required Task task;
+        private @Required String comment;
 
         public WorkerSession getWorkerSession() {
             return workerSession;
@@ -167,18 +200,27 @@ public interface Signatures {
             this.comment = comment;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("workerSession", workerSession)
+                    .add("task", task)
+                    .add("comment", comment)
+                    .toString();
+        }
+
     }
 
     class AllocateTaskRequest {
 
-        private AdminSession session;
-        private ReadonlyTask.Status status;
-        private Optional<ReadonlyWorker> worker;
-        private Set<Segment<Instant>> availabilityTime;
-        private ReadonlyCustomer customer;
-        private PestType pestType;
-        private String problemDescription;
-        private String comment;
+        private @Required AdminSession session;
+        private @Required ReadonlyTask.Status status;
+        private @Required Optional<ReadonlyWorker> worker;
+        private @Required Set<Segment<Instant>> availabilityTime;
+        private @Required ReadonlyCustomer customer;
+        private @Required PestType pestType;
+        private @Required String problemDescription;
+        private @Required String comment;
 
         public AllocateTaskRequest() {
             session = null;
@@ -255,19 +297,33 @@ public interface Signatures {
             this.comment = comment;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("session", session)
+                    .add("status", status)
+                    .add("worker", worker)
+                    .add("availabilityTime", availabilityTime)
+                    .add("customer", customer)
+                    .add("pestType", pestType)
+                    .add("problemDescription", problemDescription)
+                    .add("comment", comment)
+                    .toString();
+        }
+
     }
 
     class EditTaskRequest {
 
-        private AdminSession session;
-        private Task task;
-        private Optional<ReadonlyTask.Status> status;
-        private Optional<Optional<? extends ReadonlyWorker>> worker;
-        private Optional<Set<Segment<Instant>>> availabilityTime;
-        private Optional<ReadonlyCustomer> customer;
-        private Optional<PestType> pestType;
-        private Optional<String> problemDescription;
-        private String comment;
+        private @Required AdminSession session;
+        private @Required Task task;
+        private @Required Optional<ReadonlyTask.Status> status;
+        private @Required Optional<Optional<? extends ReadonlyWorker>> worker;
+        private @Required Optional<Set<Segment<Instant>>> availabilityTime;
+        private @Required Optional<ReadonlyCustomer> customer;
+        private @Required Optional<PestType> pestType;
+        private @Required Optional<String> problemDescription;
+        private @Required String comment;
 
         public EditTaskRequest() {
             session = null;
@@ -353,15 +409,30 @@ public interface Signatures {
             this.comment = comment;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("session", session)
+                    .add("task", task)
+                    .add("status", status)
+                    .add("worker", worker)
+                    .add("availabilityTime", availabilityTime)
+                    .add("customer", customer)
+                    .add("pestType", pestType)
+                    .add("problemDescription", problemDescription)
+                    .add("comment", comment)
+                    .toString();
+        }
+
     }
 
     class RegisterCustomerRequest {
 
-        private AdminSession session;
-        private String name;
-        private Address address;
-        private String cellPhone;
-        private String email;
+        private @Required AdminSession session;
+        private @Required String name;
+        private @Required Address address;
+        private @Required String cellPhone;
+        private @Required String email;
 
         public AdminSession getSession() {
             return session;
@@ -403,16 +474,27 @@ public interface Signatures {
             this.email = email;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("session", session)
+                    .add("name", name)
+                    .add("address", address)
+                    .add("cellPhone", cellPhone)
+                    .add("email", email)
+                    .toString();
+        }
+
     }
 
     class EditCustomerRequest {
 
-        private AdminSession session;
-        private Customer customer;
-        private Optional<String> name;
-        private Optional<Address> address;
-        private Optional<String> cellPhone;
-        private Optional<String> email;
+        private @Required AdminSession session;
+        private @Required Customer customer;
+        private @Required Optional<String> name;
+        private @Required Optional<Address> address;
+        private @Required Optional<String> cellPhone;
+        private @Required Optional<String> email;
 
         public EditCustomerRequest() {
             session = null;
@@ -471,15 +553,27 @@ public interface Signatures {
             this.email = email;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("session", session)
+                    .add("customer", customer)
+                    .add("name", name)
+                    .add("address", address)
+                    .add("cellPhone", cellPhone)
+                    .add("email", email)
+                    .toString();
+        }
+
     }
 
     class RegisterWorkerRequest {
 
-        private AdminSession session;
-        private String login;
-        private String name;
-        private String password;
-        private Set<PestType> workablePestTypes;
+        private @Required AdminSession session;
+        private @Required String login;
+        private @Required String name;
+        private @Required String password;
+        private @Required Set<PestType> workablePestTypes;
 
         public RegisterWorkerRequest() {
             session = null;
@@ -529,15 +623,26 @@ public interface Signatures {
             this.workablePestTypes = workablePestTypes;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("session", session)
+                    .add("login", login)
+                    .add("name", name)
+                    .add("password", password)
+                    .add("workablePestTypes", workablePestTypes)
+                    .toString();
+        }
+
     }
 
     class EditWorkerRequest {
 
-        private AdminSession session;
-        private Worker worker;
-        private Optional<String> name;
-        private Optional<String> password;
-        private Optional<Set<PestType>> workablePestTypes;
+        private @Required AdminSession session;
+        private @Required Worker worker;
+        private @Required Optional<String> name;
+        private @Required Optional<String> password;
+        private @Required Optional<Set<PestType>> workablePestTypes;
 
         public EditWorkerRequest() {
             session = null;
@@ -585,6 +690,17 @@ public interface Signatures {
 
         public void setWorkablePestTypes(Optional<Set<PestType>> workablePestTypes) {
             this.workablePestTypes = workablePestTypes;
+        }
+
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("session", session)
+                    .add("worker", worker)
+                    .add("name", name)
+                    .add("password", password)
+                    .add("workablePestTypes", workablePestTypes)
+                    .toString();
         }
 
     }
