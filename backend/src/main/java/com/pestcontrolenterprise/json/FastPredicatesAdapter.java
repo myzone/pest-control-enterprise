@@ -2,6 +2,7 @@ package com.pestcontrolenterprise.json;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
+import com.pestcontrolenterprise.api.ReadonlyTask;
 import com.pestcontrolenterprise.webapi.FastPredicates;
 
 import java.lang.reflect.Type;
@@ -10,6 +11,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.pestcontrolenterprise.webapi.FastPredicates.UserByNamePredicate;
+import static com.pestcontrolenterprise.webapi.FastPredicates.TaskByIdPredicate;
+import static com.pestcontrolenterprise.webapi.FastPredicates.TaskByStatusPredicate;
 
 /**
  * @author myzone
@@ -27,6 +30,22 @@ public class FastPredicatesAdapter implements JsonSerializer<Predicate<?>>, Json
 
                 return jsonObject;
             })
+            .put(TaskByIdPredicate.class, (src, typeOfSrc, context) -> {
+                JsonObject jsonObject = new JsonObject();
+
+                jsonObject.add("name", context.serialize("taskById", String.class));
+                jsonObject.add("id", context.serialize(((TaskByIdPredicate) src).getTaskId(), Long.class));
+
+                return jsonObject;
+            })
+            .put(TaskByStatusPredicate.class, (src, typeOfSrc, context) -> {
+                JsonObject jsonObject = new JsonObject();
+
+                jsonObject.add("name", context.serialize("taskByStatus", String.class));
+                jsonObject.add("status", context.serialize(((TaskByStatusPredicate) src).getStatus(), ReadonlyTask.Status.class));
+
+                return jsonObject;
+            })
             .build();
 
     Map<String, JsonDeserializer<Predicate<?>>> deserializers = ImmutableMap
@@ -35,6 +54,16 @@ public class FastPredicatesAdapter implements JsonSerializer<Predicate<?>>, Json
                 JsonObject jsonObject = (JsonObject) json;
 
                 return FastPredicates.userByName(context.deserialize(jsonObject.get("username"), String.class));
+            })
+            .put("taskById", (json, typeOfT, context) -> {
+                JsonObject jsonObject = (JsonObject) json;
+
+                return FastPredicates.taskById(context.deserialize(jsonObject.get("id"), Long.class));
+            })
+            .put("taskByStatus", (json, typeOfT, context) -> {
+                JsonObject jsonObject = (JsonObject) json;
+
+                return FastPredicates.taskByStatus(context.deserialize(jsonObject.get("status"), ReadonlyTask.Status.class));
             })
             .build();
 
