@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author myzone
  * @date 04-May-14
  */
-public class OptionalTypeAdapterFactory  implements TypeAdapterFactory {
+public class OptionalTypeAdapterFactory implements TypeAdapterFactory {
 
     /**
      * {@inheritDoc}

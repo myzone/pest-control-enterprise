@@ -78,6 +78,7 @@ public class MainEndpoint {
 
     private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
         endpointBuilder.withGsonBuilder((gsonBuilder) -> gsonBuilder
+                        .registerTypeAdapterFactory(new RequiredFieldsEnsurerFactory())
                         .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
                         .registerTypeHierarchyAdapter(Throwable.class, new ThrowableJsonAdapter<>())
                         .registerTypeHierarchyAdapter(Map.Entry.class, new EntryJsonAdapter())
