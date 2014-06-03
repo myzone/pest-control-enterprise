@@ -1,3 +1,14 @@
+<style>
+in {
+  background-color: green
+}
+out {
+  background-color: red
+}
+</style>
+
+<in>
+```js
 {
 	"id": "42",
 	"procedure": "beginSession",
@@ -8,7 +19,9 @@
         "password": "fuck"
     }
 }
-
+```
+<out>
+```js
 {
     "id": "42",
     "procedure": "beginSession",
@@ -21,9 +34,10 @@
         ]
     }
 }
-
+```
+<out>
 ------------------------------------------------------
-
+```js
 {
 	"id": "42",
 	"procedure": "endSession",
@@ -31,16 +45,17 @@
     	"id": 30
      }
 }
-
+```
+```js
 {
     "id": "42",
     "procedure": "endSession",
     "result": null
 }
-
+```
 ------------------------------------------------------
 
-
+```js
 {
 	"id": "42",
 	"procedure": "getAssignedTasks", 
@@ -51,7 +66,8 @@
         "filters": []
     }
 }
-
+```
+```js
 {
     "id": "42",
     "procedure": "getAssignedTasks",
@@ -104,9 +120,9 @@
         }
     ]
 }
-
+```
 ------------------------------------------------------
-
+```js
 {
 	"id": "42",
 	"procedure": "startTask", 
@@ -120,9 +136,11 @@
         "comment": "some msg"
     }
 }
-
+```
+```js
 {
     "id": "42",
     "procedure": "startTask",
     "result": null
 }
+```
