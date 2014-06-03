@@ -1,13 +1,17 @@
 define(['models/Requester','backbone', 'literals'], function(requester, Backbone, literals){
 
     var SessionModel = Backbone.Model.extend({
+        set: function() {},
+        destroy: function() {},
+        save: function() {},
+        fetch: function() {},
+        clear: function() {},
         initialize: function() {
             var self = this;
 
             var isActiveSession = false;
             var userName = '';
             var sessionId = null;
-
 
             function checkSession() {
                 if(!isActiveSession) {
@@ -34,6 +38,9 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
                 sessionId = null;
                 self.trigger('statusChanged');
             }
+            this.toJSON = function() {
+                return {id: sessionId};
+            };
 
             this.isLoggedIn = function() {
                 return isActiveSession;
@@ -49,7 +56,7 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
                 if(!isActiveSession) {
                     return;
                 }
-                requester.endSession(sessionId,logoutCallback);
+                requester.endSession(this,logoutCallback);
             };
 
             this.getSessionId = function() {

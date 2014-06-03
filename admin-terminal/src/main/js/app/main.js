@@ -27,6 +27,36 @@ define([
             loginForm.render();
         });
 
+        session.on('statusChanged', function() {
+           if(session.isLoggedIn() === true) {
+               var ticket = new Ticket({id:1, session: session});
+               ticket.fetch({
+                   success: function() {
+                       _.delay(function() {
+                           ticket.set('problemDescription','new comment');
+                           ticket.set('comment','new comment');
+                           console.log(ticket.save({},{
+                               success: function() {
+                                   alert(JSON.stringify(ticket));
+                                   console.log(ticket.getTicketHistory());
+                                   console.log(JSON.stringify(ticket));
+                               }
+                           }));
+                       },100);
+                   }
+               });
+//               ticket.set('comment', 'another comment!');
+               /*ticket.set({
+                   session: session,
+                   customer: {name:'Ivan'},
+                   pestType: {name:'crap'},
+                   problemDescription: 'AAAAA!',
+                   comment: '111111111111111'
+               });*/
+               //ticket.save();
+           }
+        });
+
         var md = new TicketsModel;
         md.setSession(session);
 
@@ -46,12 +76,5 @@ define([
             model: session
         });
         userInfoView.render();
-        var ticket = new Ticket({
-            customer: {name:'Ivan'},
-            pestType: {name:'crap'},
-            problemDescription: 'AAAAA!',
-            comment: '111111111111111'
-        });
-        ticket.save();
-        //ticket.save();
+
 });

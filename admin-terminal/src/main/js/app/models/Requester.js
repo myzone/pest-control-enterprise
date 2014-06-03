@@ -1,4 +1,4 @@
-define(function() {
+define(['underscore'], function( _ ) {
     function Requester(host) {
         var guid = (function() {
             function s4() {
@@ -48,14 +48,37 @@ define(function() {
             }, internalCallback);
         };
 
-        this.endSession = function(sessionId, callback) {
+        this.endSession = function(session, callback) {
             send({
                 procedure: "endSession",
-                argument: {
-                    id: sessionId
-                }
+                argument: session
             },callback);
         };
+
+        this.allocateTask = function(ticket, callback) {
+            send({
+                procedure: "allocateTask",
+                argument: ticket
+            }, callback);
+        };
+
+        this.editTask  = function(changes, callback) {
+            send({
+                procedure: "editTask",
+                argument: changes
+            }, callback);
+        }
+
+        this.getTasks = function(session,filters, callback) {
+            var arguments = {
+                session: session,
+                filters: filters
+            };
+            send({
+                procedure: "getTasks",
+                argument: arguments
+            }, callback);
+        }
 
         return this;
     }
