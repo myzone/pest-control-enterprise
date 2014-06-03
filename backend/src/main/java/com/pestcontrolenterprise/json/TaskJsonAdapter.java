@@ -21,12 +21,10 @@ import static com.pestcontrolenterprise.api.ReadonlyTask.TaskHistoryEntry;
  * @author myzone
  * @date 4/29/14
  */
-public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<Task> {
-
-    private final ApplicationContext applicationContext;
+public class TaskJsonAdapter extends AbstractJsonAdapter<Task> implements JsonSerializer<Task>, JsonDeserializer<Task> {
 
     public TaskJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentTask.class);
     }
 
     @Override
@@ -35,7 +33,7 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
 
         long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
 
-        return (Task) applicationContext.getPersistenceSession().get(PersistentTask.class, id);
+        return find(id, jsonElement);
     }
 
     @Override

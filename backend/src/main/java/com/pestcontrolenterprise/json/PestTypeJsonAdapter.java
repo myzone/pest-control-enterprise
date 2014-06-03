@@ -11,12 +11,10 @@ import java.lang.reflect.Type;
  * @author myzone
  * @date 4/30/14
  */
-public class PestTypeJsonAdapter implements JsonSerializer<PestType>, JsonDeserializer<PestType> {
-
-    private final ApplicationContext applicationContext;
+public class PestTypeJsonAdapter extends AbstractJsonAdapter<PestType> implements JsonSerializer<PestType>, JsonDeserializer<PestType> {
 
     public PestTypeJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentPestType.class);
     }
 
     @Override
@@ -25,7 +23,7 @@ public class PestTypeJsonAdapter implements JsonSerializer<PestType>, JsonDeseri
 
         String name = context.deserialize(jsonObject.get("name"), String.class);
 
-        return (PestType) applicationContext.getPersistenceSession().get(PersistentPestType.class, name);
+        return find(name, jsonElement);
     }
 
     @Override

@@ -6,7 +6,9 @@ import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Admin;
 import com.pestcontrolenterprise.api.ReadonlyWorker;
+import com.pestcontrolenterprise.api.Task;
 import com.pestcontrolenterprise.api.User;
+import com.pestcontrolenterprise.persistent.PersistentTask;
 import com.pestcontrolenterprise.persistent.PersistentUser;
 
 import java.lang.reflect.Type;
@@ -15,12 +17,10 @@ import java.lang.reflect.Type;
  * @author myzone
  * @date 4/29/14
  */
-public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<User> {
-
-    private final ApplicationContext applicationContext;
+public class UserJsonAdapter extends AbstractJsonAdapter<User> implements JsonSerializer<User>, JsonDeserializer<User> {
 
     public UserJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentUser.class);
     }
 
     @Override
@@ -28,9 +28,8 @@ public class UserJsonAdapter implements JsonSerializer<User>, JsonDeserializer<U
         JsonObject jsonObject = (JsonObject) jsonElement;
 
         String login = context.deserialize(jsonObject.get("login"), String.class);
-        PersistentUser user = (PersistentUser) applicationContext.getPersistenceSession().get(PersistentUser.class, login);
 
-        return user;
+        return find(login, jsonElement);
     }
 
     @Override

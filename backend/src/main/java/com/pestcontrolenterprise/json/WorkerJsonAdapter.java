@@ -14,28 +14,24 @@ import java.lang.reflect.Type;
  * @author myzone
  * @date 5/4/14
  */
-public class WorkerJsonAdapter implements JsonSerializer<ReadonlyWorker>, JsonDeserializer<ReadonlyWorker> {
+public class WorkerJsonAdapter extends AbstractJsonAdapter<ReadonlyWorker> implements JsonSerializer<ReadonlyWorker>, JsonDeserializer<ReadonlyWorker> {
 
-    private final ApplicationContext applicationContext;
     private final UserJsonAdapter userJsonAdapter;
 
     public WorkerJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentWorker.class);
 
         userJsonAdapter = new UserJsonAdapter(applicationContext);
     }
 
-    @Override
     public ReadonlyWorker deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = (JsonObject) jsonElement;
 
-        String name = context.deserialize(jsonObject.get("name"), String.class);
-        PersistentWorker worker = (PersistentWorker) applicationContext.getPersistenceSession().get(PersistentWorker.class, name);
+        String login = context.deserialize(jsonObject.get("login"), String.class);
 
-        return worker;
+        return find(login, jsonElement);
     }
 
-    @Override
     public JsonObject serialize(ReadonlyWorker worker, Type type, JsonSerializationContext context) {
         JsonObject jsonObject = userJsonAdapter.serialize(worker, type, context);
 

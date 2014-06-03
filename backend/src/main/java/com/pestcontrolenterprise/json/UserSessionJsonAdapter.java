@@ -5,22 +5,23 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.AdminSession;
+import com.pestcontrolenterprise.api.User;
 import com.pestcontrolenterprise.api.UserSession;
 import com.pestcontrolenterprise.api.WorkerSession;
 import com.pestcontrolenterprise.persistent.PersistentUser;
 
 import java.lang.reflect.Type;
 
+import static com.pestcontrolenterprise.persistent.PersistentUser.PersistentUserSession;
+
 /**
  * @author myzone
  * @date 4/29/14
  */
-public class UserSessionJsonAdapter implements JsonSerializer<UserSession>, JsonDeserializer<UserSession> {
-
-    private final ApplicationContext applicationContext;
+public class UserSessionJsonAdapter extends AbstractJsonAdapter<UserSession> implements JsonSerializer<UserSession>, JsonDeserializer<UserSession> {
 
     public UserSessionJsonAdapter(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+        super(applicationContext, PersistentUserSession.class);
     }
 
     @Override
@@ -29,7 +30,7 @@ public class UserSessionJsonAdapter implements JsonSerializer<UserSession>, Json
 
         long id = context.deserialize(jsonObject.get("id"), Long.TYPE);
 
-        return (UserSession) applicationContext.getPersistenceSession().get(PersistentUser.PersistentUserSession.class, id);
+        return find(id, jsonElement);
     }
 
     @Override
