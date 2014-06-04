@@ -2,6 +2,8 @@ package com.pestcontrolenterprise.api;
 
 import com.google.common.collect.ImmutableSet;
 
+import static com.pestcontrolenterprise.api.Admin.AdminSession;
+
 /**
  * @author myzone
  * @date 4/25/14

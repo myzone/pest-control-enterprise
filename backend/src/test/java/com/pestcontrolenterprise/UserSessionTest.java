@@ -2,7 +2,7 @@ package com.pestcontrolenterprise;
 
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.api.PestType;
-import com.pestcontrolenterprise.api.WorkerSession;
+import com.pestcontrolenterprise.api.Worker;
 import com.pestcontrolenterprise.persistent.PersistentApplicationContext;
 import com.pestcontrolenterprise.persistent.PersistentWorker;
 import org.junit.Test;
@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.pestcontrolenterprise.api.ReadonlyWorker.WorkerSession;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 

@@ -4,14 +4,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationContext;
-import com.pestcontrolenterprise.api.AdminSession;
-import com.pestcontrolenterprise.api.User;
-import com.pestcontrolenterprise.api.UserSession;
-import com.pestcontrolenterprise.api.WorkerSession;
-import com.pestcontrolenterprise.persistent.PersistentUser;
 
 import java.lang.reflect.Type;
 
+import static com.pestcontrolenterprise.api.Admin.AdminSession;
+import static com.pestcontrolenterprise.api.ReadonlyWorker.WorkerSession;
+import static com.pestcontrolenterprise.api.User.UserSession;
 import static com.pestcontrolenterprise.persistent.PersistentUser.PersistentUserSession;
 
 /**

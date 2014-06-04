@@ -2,8 +2,6 @@ package com.pestcontrolenterprise.endpoint.netty;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.endpoint.Endpoint;
 import io.netty.bootstrap.Bootstrap;
@@ -27,8 +25,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.pestcontrolenterprise.endpoint.Endpoint.Client;
-import static com.pestcontrolenterprise.endpoint.Endpoint.Host;
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 

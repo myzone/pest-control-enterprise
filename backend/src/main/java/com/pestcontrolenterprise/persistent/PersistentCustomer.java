@@ -3,13 +3,15 @@ package com.pestcontrolenterprise.persistent;
 import com.google.common.base.Objects;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Address;
-import com.pestcontrolenterprise.api.AdminSession;
 import com.pestcontrolenterprise.api.Customer;
 import com.pestcontrolenterprise.api.InvalidStateException;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
+import static com.pestcontrolenterprise.api.Admin.AdminSession;
 import static com.pestcontrolenterprise.api.InvalidStateException.inactiveSession;
 
 /**

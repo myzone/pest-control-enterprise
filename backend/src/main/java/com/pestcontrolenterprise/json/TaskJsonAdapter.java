@@ -8,7 +8,6 @@ import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.persistent.PersistentTask;
 import com.pestcontrolenterprise.util.Segment;
-import org.javatuples.Pair;
 
 import java.lang.reflect.Type;
 import java.time.Instant;

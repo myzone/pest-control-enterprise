@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.util.Segment;
-import org.javatuples.Pair;
 
 import java.time.Instant;
 import java.util.Optional;

@@ -4,8 +4,6 @@ import com.google.common.base.Objects;
 import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.util.PartialSupplier;
 
-import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
