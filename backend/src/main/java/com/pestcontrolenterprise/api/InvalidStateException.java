@@ -28,7 +28,9 @@ public abstract class InvalidStateException extends Exception {
         return new AuthenticationException(user);
     }
 
-
+    public static ExpiredTimeTokenException expiredTimeToken(String token) {
+        return new ExpiredTimeTokenException(token);
+    }
 
     public static class InactiveSessionException extends NotEnoughAccessException {
 
@@ -84,5 +86,21 @@ public abstract class InvalidStateException extends Exception {
 
     }
 
+
+    public static class ExpiredTimeTokenException extends InvalidStateException {
+
+        private final String token;
+
+        protected ExpiredTimeTokenException(String token) {
+            super("Token " + token + " is expired");
+
+            this.token = token;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+    }
 
 }

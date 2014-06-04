@@ -33,6 +33,7 @@ public interface Signatures {
     Procedure<String, GetRequest<User>, GetResponse<User>, RuntimeException> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {}, new TypeToken<RuntimeException>() {});
     Procedure<String, GetRequest<PestType>, GetResponse<PestType>, RuntimeException> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {}, new TypeToken<RuntimeException>() {});
     Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>, RuntimeException> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, Void, String, RuntimeException> getCurrentTimeToken = Procedure.of("getCurrentTimeToken", new TypeToken<Void>() {}, new TypeToken<String>() {});
 
     Procedure<String, BeginSessionRequest, UserSession, InvalidStateException> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {}, new TypeToken<InvalidStateException>() {});
     Procedure<String, UserSession, Void, InvalidStateException> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {}, new TypeToken<InvalidStateException>() {});

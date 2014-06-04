@@ -62,18 +62,19 @@ public class MainEndpoint {
         ));
 
         NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder = NettyRpcEndpoint.builder(String.class);
+        PersistentPestControlEnterprise pestControlEnterprise = new PersistentPestControlEnterprise(applicationContext);
 
         populateDbWithTestData(applicationContext);
         runServices(applicationContext);
-        configureJson(endpointBuilder, applicationContext);
-        configureHandlers(endpointBuilder, applicationContext);
+        configureJson(endpointBuilder, applicationContext, pestControlEnterprise);
+        configureHandlers(endpointBuilder, pestControlEnterprise);
 
         endpointBuilder
                 .build()
                 .bind(port);
     }
 
-    private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
+    private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext, PestControlEnterprise pestControlEnterprise) {
         endpointBuilder.withGsonBuilder((gsonBuilder) -> gsonBuilder
                         .registerTypeAdapterFactory(new RequiredFieldsEnsurerFactory())
                         .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
@@ -88,7 +89,7 @@ public class MainEndpoint {
                         .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
                         .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
+                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext, pestControlEnterprise))
                         .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
                         .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
                         .setPrettyPrinting()
@@ -136,14 +137,13 @@ public class MainEndpoint {
         adminSession.close();
     }
 
-    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) throws InvalidStateException {
-        PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationContext);
-
+    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, PestControlEnterprise pestControlEnterprise) throws InvalidStateException {
         endpointBuilder
                 .withHandlerPair(plus, integers -> integers.stream().reduce(Math::addExact).orElse(0))
-                .withHandlerPair(getUsers, request -> applyFilters(persistentPestControlEnterprise.getUsers(), request.getFilters()))
-                .withHandlerPair(getPestTypes, request -> applyFilters(persistentPestControlEnterprise.getPestTypes(), request.getFilters()))
-                .withHandlerPair(getRequiredEquipment, pestType -> persistentPestControlEnterprise.getRequiredEquipment(pestType).entrySet())
+                .withHandlerPair(getUsers, request -> applyFilters(pestControlEnterprise.getUsers(), request.getFilters()))
+                .withHandlerPair(getPestTypes, request -> applyFilters(pestControlEnterprise.getPestTypes(), request.getFilters()))
+                .withHandlerPair(getRequiredEquipment, pestType -> pestControlEnterprise.getRequiredEquipment(pestType).entrySet())
+                .withHandlerPair(getCurrentTimeToken, none -> pestControlEnterprise.getCurrentTimeToken())
                 .withHandlerPair(beginSession, beginSessionRequest -> beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword()))
                 .withHandlerPair(endSession, userSession -> {
                     userSession.close();

@@ -19,4 +19,6 @@ public interface PestControlEnterprise {
 
     ImmutableMap<EquipmentType, Integer> getRequiredEquipment(PestType pestType);
 
+    String getCurrentTimeToken();
+
 }

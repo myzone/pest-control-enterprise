@@ -6,6 +6,8 @@ import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
 import org.hibernate.Session;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -16,19 +18,22 @@ import java.util.stream.Stream;
 public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
     private final ApplicationContext applicationContext;
+    private final DateTimeFormatter timeFormatter;
 
     public PersistentPestControlEnterprise(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+
+        timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHH");
     }
 
     @Override
     public Stream<User> getUsers() {
-        return new HibernateStream<>(getPersistenceSession().createCriteria(PersistentUser.class));
+        return new HibernateStream<>(applicationContext.getPersistenceSession().createCriteria(PersistentUser.class));
     }
 
     @Override
     public Stream<PestType> getPestTypes() {
-        return new HibernateStream<>(getPersistenceSession().createCriteria(PersistentPestType.class));
+        return new HibernateStream<>(applicationContext.getPersistenceSession().createCriteria(PersistentPestType.class));
     }
 
     @Override
@@ -41,8 +46,9 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
         return pestType.getRequiredEquipment();
     }
 
-    protected Session getPersistenceSession() {
-        return applicationContext.getPersistenceSession();
+    @Override
+    public String getCurrentTimeToken() {
+        return timeFormatter.format(LocalDateTime.now(applicationContext.getClock()));
     }
 
 }

@@ -21,6 +21,8 @@ public interface User {
 
         long getId();
 
+        String getKey();
+
         Instant getOpened();
 
         Instant getClosed();
