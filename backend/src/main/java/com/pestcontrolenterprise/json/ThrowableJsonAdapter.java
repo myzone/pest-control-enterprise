@@ -6,8 +6,6 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * @author myzone

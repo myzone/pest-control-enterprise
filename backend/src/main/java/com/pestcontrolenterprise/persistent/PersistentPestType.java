@@ -8,7 +8,6 @@ import com.pestcontrolenterprise.api.PestType;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
-import java.util.Collections;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;

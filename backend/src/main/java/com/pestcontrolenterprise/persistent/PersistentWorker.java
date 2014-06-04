@@ -12,9 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.pestcontrolenterprise.api.InvalidStateException.authenticationFailed;
-import static com.pestcontrolenterprise.api.InvalidStateException.illegalTasksStatus;
-import static com.pestcontrolenterprise.api.InvalidStateException.notEnoughAccess;
+import static com.pestcontrolenterprise.api.InvalidStateException.*;
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
 import static org.hibernate.criterion.Restrictions.eq;
 
@@ -59,7 +57,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
     }
 
     @Override
-    public void setWorkablePestTypes(AdminSession session, ImmutableSet<PestType> workablePestTypes) throws IllegalStateException {
+    public void setWorkablePestTypes(Admin.AdminSession session, ImmutableSet<PestType> workablePestTypes) throws IllegalStateException {
         try (QuiteAutoCloseable lock = writeLock()) {
             if (!session.isStillActive(getApplicationContext().getClock()))
                 throw new IllegalStateException();
@@ -69,12 +67,12 @@ public class PersistentWorker extends PersistentUser implements Worker {
     }
 
     @Override
-    public void setName(AdminSession session, String newName) throws InvalidStateException {
+    public void setName(Admin.AdminSession session, String newName) throws InvalidStateException {
         super.setName(session, newName);
     }
 
     @Override
-    public void setPassword(AdminSession session, String newPassword) throws IllegalStateException {
+    public void setPassword(Admin.AdminSession session, String newPassword) throws IllegalStateException {
        super.setPassword(session, newPassword);
     }
 

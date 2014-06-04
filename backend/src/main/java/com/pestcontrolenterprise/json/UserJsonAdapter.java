@@ -6,9 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.Admin;
 import com.pestcontrolenterprise.api.ReadonlyWorker;
-import com.pestcontrolenterprise.api.Task;
 import com.pestcontrolenterprise.api.User;
-import com.pestcontrolenterprise.persistent.PersistentTask;
 import com.pestcontrolenterprise.persistent.PersistentUser;
 
 import java.lang.reflect.Type;

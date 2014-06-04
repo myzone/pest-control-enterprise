@@ -1,5 +1,7 @@
 package com.pestcontrolenterprise.api;
 
+import static com.pestcontrolenterprise.api.Admin.AdminSession;
+
 /**
  * @author myzone
  * @date 4/25/14

@@ -6,7 +6,6 @@ import com.pestcontrolenterprise.api.EquipmentType;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
-import java.util.UUID;
 
 /**
  * @author myzone

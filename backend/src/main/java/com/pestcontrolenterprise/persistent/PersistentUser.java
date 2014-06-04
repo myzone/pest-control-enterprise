@@ -4,7 +4,6 @@ import com.google.common.base.Objects;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.InvalidStateException;
 import com.pestcontrolenterprise.api.User;
-import com.pestcontrolenterprise.api.UserSession;
 
 import javax.persistence.*;
 import java.time.Duration;

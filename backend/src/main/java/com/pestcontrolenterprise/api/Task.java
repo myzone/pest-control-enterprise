@@ -6,6 +6,8 @@ import com.pestcontrolenterprise.util.Segment;
 import java.time.Instant;
 import java.util.Optional;
 
+import static com.pestcontrolenterprise.api.User.UserSession;
+
 /**
  * @author myzone
  * @date 4/29/14
