@@ -1,6 +1,7 @@
 package com.pestcontrolenterprise;
 
 import com.google.common.collect.ImmutableSet;
+import com.pestcontrolenterprise.api.InvalidStateException;
 import com.pestcontrolenterprise.api.PestType;
 import com.pestcontrolenterprise.api.Worker;
 import com.pestcontrolenterprise.persistent.PersistentApplicationContext;
@@ -73,7 +74,7 @@ public class UserSessionTest extends DataBaseInfrastractureTest {
         fuck.getCurrentTasks();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = InvalidStateException.class)
     public void testSessionTimeout() throws Exception {
         Instant before = Instant.EPOCH;
         Instant after = before.plus(2, ChronoUnit.HOURS);

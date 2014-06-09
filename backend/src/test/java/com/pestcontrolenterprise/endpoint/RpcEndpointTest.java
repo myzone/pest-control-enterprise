@@ -38,10 +38,10 @@ public abstract class RpcEndpointTest {
 
         NettyRpcEndpoint.RpcClient<ServiceSignature.MethodType> client = getRpcEndpoint().client("localhost", getPort());
 
-        Consumer<PartialSupplier<Void, RuntimeException>> voidConsumer = mock(Consumer.class);
+        Consumer<Void> voidConsumer = mock(Consumer.class);
         Consumer<String> stringConsumer = mock(Consumer.class);
 
-        client.call(ServiceSignature.SET, value, voidConsumer);
+        client.call(ServiceSignature.SET, value, voidSupplier -> voidConsumer.accept(voidSupplier.get()));
         verify(voidConsumer, timeout(100)).accept(null);
 
         client.call(ServiceSignature.GET, null, supplier -> {
