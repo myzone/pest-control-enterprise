@@ -48,6 +48,8 @@ public class PersistentCustomer extends PersistentObject implements Customer {
         this.address = address;
         this.cellPhone = cellPhone;
         this.email = email;
+
+        save();
     }
 
     @Override
@@ -83,6 +85,8 @@ public class PersistentCustomer extends PersistentObject implements Customer {
                 throw inactiveSession();
 
             this.address = address;
+
+            update();
         }
     }
 
@@ -93,6 +97,8 @@ public class PersistentCustomer extends PersistentObject implements Customer {
                 throw inactiveSession();
 
             this.cellPhone = cellPhone;
+
+            update();
         }
     }
 
@@ -103,6 +109,8 @@ public class PersistentCustomer extends PersistentObject implements Customer {
                 throw inactiveSession();
 
             this.email = email;
+
+            update();
         }
     }
 
