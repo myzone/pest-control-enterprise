@@ -126,8 +126,8 @@ public class MainEndpoint {
         PersistentPestType crap = new PersistentPestType(applicationContext, "Тараканы", "", ImmutableMap.of(trowel, 2));
         PersistentPestType shit = new PersistentPestType(applicationContext, "Прусаки", "", ImmutableMap.of(trowel, 1));
 
-        PersistentCustomer customer1 = new PersistentCustomer(applicationContext, "Иванов Василий", new PersistentAddress("Проспект Шевченка 2", null, null), "asd", "asd");
-        PersistentCustomer customer2 = new PersistentCustomer(applicationContext, "Петров Гена", new PersistentAddress("Канатная 2а", null, null), "asd", "asd");
+        PersistentCustomer customer1 = new PersistentCustomer(applicationContext, "Иванов Василий", new PersistentAddress("Проспект Шевченка 2", null, null), "00000000000", "first@gmail.com");
+        PersistentCustomer customer2 = new PersistentCustomer(applicationContext, "Петров Гена", new PersistentAddress("Канатная 2а", null, null), "1111111111111", "second@gmail.com");
         PersistentWorker worker = new PersistentWorker(applicationContext, "worker", "worker", "fuck", ImmutableSet.of(crap, shit));
         PersistentAdmin admin = new PersistentAdmin(applicationContext, "myzone", "myzone", "fuck");
 

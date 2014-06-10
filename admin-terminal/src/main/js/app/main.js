@@ -2,6 +2,7 @@ define([
         'models/SessionModel',
         'models/TicketsModel',
         'models/Ticket',
+        'models/Customer',
         'widgets/LoginForm',
         'widgets/TicketsGrid',
         'widgets/TicketForm',
@@ -11,9 +12,8 @@ define([
         'localization'
     ],
 
-    function(SessionModel, TicketsModel, Ticket, LoginForm, TicketsView, TicketForm, LoggedUserInfoView, $) {
+    function(SessionModel, TicketsModel, Ticket, Customer, LoginForm, TicketsView, TicketForm, LoggedUserInfoView, $) {
         $.parser.parse();
-
         var session = new SessionModel;
         session.on('loginError',function(msg) {
             $.messager.alert(msg.title,msg.text,'error');
@@ -29,7 +29,22 @@ define([
 
         session.on('statusChanged', function() {
            if(session.isLoggedIn() === true) {
-               var ticket = new Ticket({id:1, session: session});
+               /*var customer = new Customer(
+                   {
+                       session: session,
+                       name: 'Петров Гена'
+                   });
+               console.log(customer.isValid());
+               console.log(customer.isNew());
+               customer.fetch({
+                   success: function() {
+                       customer.set('cellPhone',customer.get('cellPhone')+'7');
+                       console.log(customer.isValid());
+                       console.log(customer.isNew());
+                       customer.save();
+                   }
+               });*/
+               /*var ticket = new Ticket({id:1, session: session});
                ticket.fetch({
                    success: function() {
                        _.delay(function() {
@@ -44,7 +59,7 @@ define([
                            }));
                        },100);
                    }
-               });
+               });*/
 //               ticket.set('comment', 'another comment!');
                /*ticket.set({
                    session: session,
@@ -68,7 +83,7 @@ define([
         tv.setIdField('ticketid');
         tv.render();
         tv.on('createRequest', function(){
-            var form = new TicketForm;
+            var form = new TicketForm({el: $('#tabs'), session: session});
             form.render();
         });
         var userInfoView = new LoggedUserInfoView({
@@ -76,5 +91,4 @@ define([
             model: session
         });
         userInfoView.render();
-
 });

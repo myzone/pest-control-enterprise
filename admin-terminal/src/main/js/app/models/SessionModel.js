@@ -13,6 +13,41 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
             var userName = '';
             var sessionId = null;
 
+            this.toJSON = function() {
+                return {id: sessionId};
+            };
+
+            //try to load session from sessionStorage
+            if(isSessionStorageAvailable()) {
+                var session = JSON.parse(sessionStorage.getItem('session'));
+                if(session !== null) {
+                    sessionId = session.id;
+                    userName = session.user;
+                    requester.getTasks(this,[
+                        {
+                            name: 'taskById',
+                            id: -1
+                        }
+                    ],function(response){
+                        if(response === null || response.exception) {
+                            userName = '';
+                            sessionId = false;
+                        } else {
+                            isActiveSession = true;
+                            self.trigger('statusChanged');
+                        }
+                    });
+                }
+            }
+
+            function isSessionStorageAvailable() {
+                try {
+                    return 'sessionStorage' in window && window['sessionStorage'] !== null;
+                } catch (e) {
+                    return false;
+                }
+            }
+
             function checkSession() {
                 if(!isActiveSession) {
                     self.trigger('notAuthorizedError',literals['notAuthorizedError']);
@@ -25,7 +60,9 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
                     isActiveSession = true;
                     userName = response.result.login;
                     sessionId = response.result.id;
-
+                    if(isSessionStorageAvailable()) {
+                        sessionStorage.setItem('session',JSON.stringify({id:sessionId,user:userName}));
+                    }
                     self.trigger('statusChanged');
                 } else {
                     self.trigger('loginError',literals['loginError']);
@@ -38,9 +75,6 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
                 sessionId = null;
                 self.trigger('statusChanged');
             }
-            this.toJSON = function() {
-                return {id: sessionId};
-            };
 
             this.isLoggedIn = function() {
                 return isActiveSession;
@@ -55,6 +89,9 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
             this.logout = function() {
                 if(!isActiveSession) {
                     return;
+                }
+                if(isSessionStorageAvailable()) {
+                    sessionStorage.removeItem('session');
                 }
                 requester.endSession(this,logoutCallback);
             };
