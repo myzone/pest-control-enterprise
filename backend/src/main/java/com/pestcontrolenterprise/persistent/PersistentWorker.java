@@ -5,11 +5,16 @@ import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.api.InvalidStateException.*;
@@ -108,11 +113,15 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public Stream<Task> getAssignedTasks() throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return new HibernateStream<>(getApplicationContext()
-                    .getPersistenceSession()
-                    .createCriteria(ReadonlyTask.class)
-                    .add(eq("status", Status.ASSIGNED))
-                    .add(eq("executor", user)));
+            return new HibernateStream<>(criteriaConsumer -> getApplicationContext().withPersistenceSession(session -> {
+                Criteria criteria = session.createCriteria(ReadonlyTask.class)
+                        .add(eq("status", Status.ASSIGNED))
+                        .add(eq("executor", user));
+
+                criteria = criteriaConsumer.apply(criteria);
+
+                return criteria.list();
+            }));
         }
 
         @Override
@@ -120,11 +129,15 @@ public class PersistentWorker extends PersistentUser implements Worker {
         public Stream<Task> getCurrentTasks() throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return new HibernateStream<>(getApplicationContext()
-                    .getPersistenceSession()
-                    .createCriteria(ReadonlyTask.class)
-                    .add(eq("status", Status.IN_PROGRESS))
-                    .add(eq("executor", user)));
+            return new HibernateStream<>(criteriaConsumer -> getApplicationContext().withPersistenceSession(session -> {
+                Criteria criteria = session.createCriteria(ReadonlyTask.class)
+                        .add(eq("status", Status.IN_PROGRESS))
+                        .add(eq("executor", user));
+
+                criteria = criteriaConsumer.apply(criteria);
+
+                return criteria.list();
+            }));
         }
 
         @Override

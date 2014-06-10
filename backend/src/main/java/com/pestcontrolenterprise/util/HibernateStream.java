@@ -1,5 +1,6 @@
 package com.pestcontrolenterprise.util;
 
+import com.google.common.collect.ImmutableList;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 
@@ -13,25 +14,40 @@ import java.util.stream.*;
  */
 public class HibernateStream<T> implements Stream<T> {
 
-    protected final Criteria criteria;
-    protected final List<Predicate<? super T>> predicates;
+    protected final Function<Function<Criteria, Criteria>, List<T>> resolver;
 
-    public HibernateStream(Criteria criteria) {
-        this.criteria = criteria;
+    protected final List<HibernatePredicate<? super T>> hibernatePredicates;
+    protected final List<Predicate<? super T>> nativePredicates;
 
-        predicates = new ArrayList<>();
+    public HibernateStream(Function<Function<Criteria, Criteria>, List<T>> resolver) {
+        this.resolver = resolver;
+
+        hibernatePredicates = new ArrayList<>();
+        nativePredicates = new ArrayList<>();
+    }
+
+    public HibernateStream(Function<Function<Criteria, Criteria>, List<T>> resolver, List<HibernatePredicate<? super T>> hibernatePredicates, List<Predicate<? super T>> nativePredicates) {
+        this.resolver = resolver;
+        this.hibernatePredicates = hibernatePredicates;
+        this.nativePredicates = nativePredicates;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Stream<T> filter(Predicate<? super T> predicate) {
         if (predicate instanceof HibernatePredicate) {
-            ((HibernatePredicate<? super T>) predicate).describeItself(criteria);
-        } else {
-            predicates.add(predicate);
-        }
+            List<HibernatePredicate<? super T>> hibernatePredicates = new ArrayList<>(this.hibernatePredicates);
 
-        return this;
+            hibernatePredicates.add((HibernatePredicate<? super T>) predicate);
+
+            return new HibernateStream<>(resolver, hibernatePredicates, nativePredicates);
+        } else {
+            List<Predicate<? super T>> nativePredicates = new ArrayList<>(this.nativePredicates);
+
+            nativePredicates.add(predicate);
+
+            return new HibernateStream<>(resolver, hibernatePredicates, nativePredicates);
+        }
     }
 
     @Override
@@ -161,7 +177,7 @@ public class HibernateStream<T> implements Stream<T> {
 
     @Override
     public long count() {
-        return ((Number) criteria.setProjection(Projections.rowCount()).uniqueResult()).longValue();
+        return endHack().count();
     }
 
     @Override
@@ -230,9 +246,15 @@ public class HibernateStream<T> implements Stream<T> {
 
     @SuppressWarnings("unchecked")
     protected Stream<T> endHack() {
-        Stream<T> result = criteria.list().stream();
+        Stream<T> result = resolver.apply(criteria -> {
+            for (HibernatePredicate<? super T> hibernatePredicate : hibernatePredicates) {
+                criteria = hibernatePredicate.describeItself(criteria);
+            }
 
-        for (Predicate<? super T> predicate : predicates) {
+            return criteria;
+        }).stream();
+
+        for (Predicate<? super T> predicate : nativePredicates) {
             result = result.filter(predicate);
         }
 
@@ -241,7 +263,7 @@ public class HibernateStream<T> implements Stream<T> {
 
     public interface HibernatePredicate<T> extends Predicate<T> {
 
-        void describeItself(Criteria criteria);
+        Criteria describeItself(Criteria criteria);
 
     }
 

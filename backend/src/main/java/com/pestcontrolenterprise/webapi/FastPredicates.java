@@ -73,8 +73,8 @@ public class FastPredicates {
         }
 
         @Override
-        public void describeItself(Criteria criteria) {
-            criteria.add(eq("name", getUsername()));
+        public Criteria describeItself(Criteria criteria) {
+            return criteria.add(eq("name", getUsername()));
         }
 
     }

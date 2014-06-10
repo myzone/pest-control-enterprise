@@ -4,10 +4,13 @@ import com.google.common.collect.ImmutableMap;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import static org.hibernate.criterion.Restrictions.eq;
 
 /**
  * @author myzone
@@ -23,12 +26,25 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
     @Override
     public Stream<User> getUsers() {
-        return new HibernateStream<>(getPersistenceSession().createCriteria(PersistentUser.class));
+
+        return new HibernateStream<>(criteriaConsumer -> applicationContext.withPersistenceSession(session -> {
+            Criteria criteria = session.createCriteria(PersistentUser.class);
+
+            criteria = criteriaConsumer.apply(criteria);
+
+            return criteria.list();
+        }));
     }
 
     @Override
     public Stream<PestType> getPestTypes() {
-        return new HibernateStream<>(getPersistenceSession().createCriteria(PersistentPestType.class));
+        return new HibernateStream<>(criteriaConsumer -> applicationContext.withPersistenceSession(session -> {
+            Criteria criteria = session.createCriteria(PersistentPestType.class);
+
+            criteria = criteriaConsumer.apply(criteria);
+
+            return criteria.list();
+        }));
     }
 
     @Override
@@ -39,10 +55,6 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
     @Override
     public ImmutableMap<EquipmentType, Integer> getRequiredEquipment(PestType pestType) {
         return pestType.getRequiredEquipment();
-    }
-
-    protected Session getPersistenceSession() {
-        return applicationContext.getPersistenceSession();
     }
 
 }

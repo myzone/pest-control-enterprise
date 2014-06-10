@@ -5,6 +5,7 @@ import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
 import com.pestcontrolenterprise.util.Segment;
+import org.hibernate.Criteria;
 
 import javax.persistence.Entity;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
 
 import static com.pestcontrolenterprise.api.InvalidStateException.authenticationFailed;
 import static com.pestcontrolenterprise.api.ReadonlyTask.Status;
+import static org.hibernate.criterion.Restrictions.eq;
 
 /**
  * @author myzone
@@ -111,9 +113,13 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         public Stream<Task> getTasks() throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return new HibernateStream<>(getApplicationContext()
-                    .getPersistenceSession()
-                    .createCriteria(PersistentTask.class));
+            return new HibernateStream<>(criteriaConsumer -> getApplicationContext().withPersistenceSession(session -> {
+                Criteria criteria = session.createCriteria(PersistentTask.class);
+
+                criteria = criteriaConsumer.apply(criteria);
+
+                return criteria.list();
+            }));
         }
 
         @Override
@@ -138,9 +144,13 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         public Stream<Customer> getCustomers() throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return new HibernateStream<>(getApplicationContext()
-                    .getPersistenceSession()
-                    .createCriteria(PersistentCustomer.class));
+            return new HibernateStream<>(criteriaConsumer -> getApplicationContext().withPersistenceSession(session -> {
+                Criteria criteria = session.createCriteria(PersistentCustomer.class);
+
+                criteria = criteriaConsumer.apply(criteria);
+
+                return criteria.list();
+            }));
         }
 
         @Override
@@ -165,9 +175,13 @@ public class PersistentAdmin extends PersistentUser implements Admin {
         public Stream<Worker> getWorkers() throws InvalidStateException {
             ensureAndHoldOpened();
 
-            return new HibernateStream<>(getApplicationContext()
-                    .getPersistenceSession()
-                    .createCriteria(PersistentWorker.class));
+            return new HibernateStream<>(criteriaConsumer -> getApplicationContext().withPersistenceSession(session -> {
+                Criteria criteria = session.createCriteria(PersistentWorker.class);
+
+                criteria = criteriaConsumer.apply(criteria);
+
+                return criteria.list();
+            }));
         }
 
     }

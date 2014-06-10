@@ -32,6 +32,7 @@ public abstract class RpcEndpointTest {
 
     protected abstract short getPort();
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testSetAndGet() throws Exception {
         final String value = "foo";

@@ -9,9 +9,7 @@ import com.pestcontrolenterprise.json.*;
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.service.AssignerService;
 import com.pestcontrolenterprise.util.HibernateStream;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.ImprovedNamingStrategy;
@@ -224,14 +222,9 @@ public class MainEndpoint {
     }
 
     private static void runServices(ApplicationContext applicationContext) {
-        Session persistenceSession = applicationContext.getPersistenceSession();
         String currentServicePassword = UUID.randomUUID().toString();
 
         PersistentAdmin admin = new PersistentAdmin(applicationContext, AssignerService.class.getCanonicalName(), AssignerService.class.getSimpleName(), currentServicePassword);
-
-        Transaction transaction = persistenceSession.beginTransaction();
-        persistenceSession.saveOrUpdate(admin);
-        transaction.commit();
 
         ForkJoinPool forkJoinPool = ForkJoinPool.commonPool();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();

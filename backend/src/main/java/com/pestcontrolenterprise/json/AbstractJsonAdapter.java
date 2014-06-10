@@ -23,7 +23,7 @@ public abstract class AbstractJsonAdapter<T> implements JsonSerializer<T>, JsonD
 
     @SuppressWarnings("unchecked")
     protected T find(Serializable key, JsonElement jsonRepresentation) {
-        T result = (T) applicationContext.getPersistenceSession().get(targetClass, key);
+        T result = (T) applicationContext.withPersistenceSession(session -> session.get(targetClass, key));
 
         if (result == null)
             throw new ObjectNotFoundException(targetClass, jsonRepresentation);

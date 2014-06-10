@@ -1,14 +1,14 @@
 package com.pestcontrolenterprise.persistent;
 
 import com.pestcontrolenterprise.ApplicationContext;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 import java.time.Clock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -24,30 +24,33 @@ public class PersistentApplicationContext implements ApplicationContext {
     private final boolean id = INSTANCE_ID;
 
     @Transient
-    private final ThreadLocal<Session> threadLocalPersistenceSession;
+    private final Supplier<Session> sessionSupplier;
 
     @Transient
     private final Supplier<Clock> clockSupplier;
 
     public PersistentApplicationContext(SessionFactory sessionFactory, Supplier<Clock> clockSupplier) {
         this.clockSupplier = clockSupplier;
-        threadLocalPersistenceSession = ThreadLocal.withInitial(() -> {
-            Session persistenceSession = sessionFactory.openSession();
 
+        sessionSupplier = () -> {
+            Session persistenceSession = sessionFactory.openSession();
 
             Transaction transaction = persistenceSession.beginTransaction();
             persistenceSession.saveOrUpdate(this);
             transaction.commit();
-            persistenceSession.flush();
 
             return persistenceSession;
-        });
-
+        };
     }
 
     @Override
-    public Session getPersistenceSession() {
-        return threadLocalPersistenceSession.get();
+    public <T> T withPersistenceSession(Function<Session, T> sessionConsumer) {
+        Session session = sessionSupplier.get();
+        try {
+            return sessionConsumer.apply(session);
+        } finally {
+            session.close();
+        }
     }
 
     @Override
