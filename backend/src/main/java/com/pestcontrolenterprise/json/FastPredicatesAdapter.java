@@ -13,6 +13,9 @@ import java.util.function.Predicate;
 import static com.pestcontrolenterprise.webapi.FastPredicates.UserByNamePredicate;
 import static com.pestcontrolenterprise.webapi.FastPredicates.TaskByIdPredicate;
 import static com.pestcontrolenterprise.webapi.FastPredicates.TaskByStatusPredicate;
+import static com.pestcontrolenterprise.webapi.FastPredicates.CustomerByNamePredicate;
+import static com.pestcontrolenterprise.webapi.FastPredicates.CustomerAutocompletePredicate;
+
 
 /**
  * @author myzone
@@ -46,6 +49,22 @@ public class FastPredicatesAdapter implements JsonSerializer<Predicate<?>>, Json
 
                 return jsonObject;
             })
+            .put(CustomerByNamePredicate.class, (src, typeOfSrc, context) -> {
+                JsonObject jsonObject = new JsonObject();
+
+                jsonObject.add("name", context.serialize("customerByName", String.class));
+                jsonObject.add("customer", context.serialize(((CustomerByNamePredicate) src).getName(), String.class));
+
+                return jsonObject;
+            })
+            .put(CustomerAutocompletePredicate.class, (src, typeOfSrc, context) -> {
+                JsonObject jsonObject = new JsonObject();
+
+                jsonObject.add("name", context.serialize("customerAutocomplete", String.class));
+                jsonObject.add("search", context.serialize(((CustomerAutocompletePredicate) src).getSearch(), String.class));
+
+                return jsonObject;
+            })
             .build();
 
     Map<String, JsonDeserializer<Predicate<?>>> deserializers = ImmutableMap
@@ -64,6 +83,16 @@ public class FastPredicatesAdapter implements JsonSerializer<Predicate<?>>, Json
                 JsonObject jsonObject = (JsonObject) json;
 
                 return FastPredicates.taskByStatus(context.deserialize(jsonObject.get("status"), ReadonlyTask.Status.class));
+            })
+            .put("customerByName", (json, typeOfT, context) -> {
+                JsonObject jsonObject = (JsonObject) json;
+
+                return FastPredicates.customerByName(context.deserialize(jsonObject.get("customer"), String.class));
+            })
+            .put("customerAutocomplete", (json, typeOfT, context) -> {
+                JsonObject jsonObject = (JsonObject) json;
+
+                return FastPredicates.customerAutocomplete(context.deserialize(jsonObject.get("search"), String.class));
             })
             .build();
 

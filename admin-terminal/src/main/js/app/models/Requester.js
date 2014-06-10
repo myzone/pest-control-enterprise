@@ -29,6 +29,7 @@ define(['underscore'], function( _ ) {
                 cb(null);
             };
             xhr.open("POST", host, true);
+            console.log(JSON.stringify(request));
             xhr.send(JSON.stringify(request));
         }
 
@@ -67,7 +68,7 @@ define(['underscore'], function( _ ) {
                 procedure: "editTask",
                 argument: changes
             }, callback);
-        }
+        };
 
         this.getTasks = function(session,filters, callback) {
             var arguments = {
@@ -78,7 +79,50 @@ define(['underscore'], function( _ ) {
                 procedure: "getTasks",
                 argument: arguments
             }, callback);
-        }
+        };
+
+        this.getPestTypes = function(callback) {
+            send({
+                procedure: "getPestTypes",
+                argument: {
+                    session: null
+                }
+            }, callback);
+        };
+
+        this.getCustomers  = function(session,filters,callback) {
+            var arguments = {
+                session: session,
+                filters: filters
+            };
+            send({
+                procedure: "getCustomers",
+                argument: arguments
+            }, callback);
+        };
+
+        this.registerCustomer = function(session,customer,callback) {
+            var arguments = {
+                session: session
+            };
+            _.extend(arguments,customer.toJSON());
+            send({
+                procedure: "registerCustomer",
+                argument: arguments
+            }, callback);
+        };
+
+        this.editCustomer = function(session,customer,callback) {
+            var arguments = {
+                session: session,
+                customer: {name: customer.get('name')}
+            };
+            _.extend(arguments,customer.toJSON());
+            send({
+                procedure: "editCustomer",
+                argument: arguments
+            }, callback);
+        };
 
         return this;
     }

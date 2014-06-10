@@ -8,27 +8,57 @@
         <link rel="stylesheet" type="text/css" href="themes/icon.css">
         <link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.10.4.custom.css">
         <link rel="stylesheet" type="text/css" href="styles.css">
-
+        <script type="text/template" id="customer-form-template">
+            <tr>
+                <td colspan="2"><b><%= lblCustomerName %>:</b></td>
+            </tr>
+            <tr>
+                <td class="placeholder">&nbsp;</td>
+                <td><input id="customerName" name="customerName" class="easyui-combobox validable" style="width:200px" type="text"
+                           data-options="required:true,validType:'length[1,100]',hasDownArrow:false"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><b><%= lblAddress %>:</b></td>
+            </tr>
+            <tr>
+                <td class="placeholder">&nbsp;</td>
+                <td><input id="address" name="address" class="easyui-combobox validable" style="width:200px" type="text"
+                           data-options="required:true,validType:'length[1,200]',hasDownArrow:false"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><b><%= lblEmail %>:</b></td>
+            </tr>
+            <tr>
+                <td class="placeholder">&nbsp;</td>
+                <td><input id="email" name="email" class="easyui-validatebox validable" type="email"
+                           data-options="required:true,validType:'email'"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><b><%= lblPhoneNumber %>:</b></td>
+            </tr>
+            <tr>
+                <td class="placeholder">&nbsp;</td>
+                <td><input id="cellPhone" name="cellPhone" class="easyui-validatebox validable" type="text"
+                           data-options="required:true,validType:'length[1,100]'"/></td>
+            </tr>
+        </script>
         <script type="text/template" id="ticket-form-template">
-            <div id="ticket-form" class="easyui-dialog" title="<%= lblTitle %>"
-                    data-options="
-                    iconCls: 'icon-call',
-                    buttons: '#new-ticket-buttons',
-                    modal: true,
-                    collapsible: false,
-                    minimizable: false,
-                    maximizable: false,
-                    resizable: false">
+            <div id="ticket-form">
+                <br/>
+                <h2><%= lblTitle %></h2>
                 <table border="0" cellpadding="2" cellspacing="2">
                     <tr>
-                        <td><%= lblPestType %>:</td>
+                        <td colspan="2"><b><%= lblPestType %>:</b></td>
+                    </tr>
+                    <tr>
+                        <td class="placeholder">&nbsp;</td>
                         <td>
-                            <select id="pestType" name="pestType" class="easyui-combobox"
+                            <select id="pestType" name="pestType" style="width:200px" class="easyui-combobox validable"
                                     data-options="
                                         valueField: 'id',
                                         textField: 'text',
                                         required: true">
-                                <option value=" "><%= lblSelectPestType %></option>
+                                <!--<option value=" "><%= lblSelectPestType %></option>
                                 <option value="I">Ants</option>
                                 <option value="A">Bedbugs (Inspection only)</option>
                                 <option value="R">Carpet beetle</option>
@@ -43,55 +73,30 @@
                                 <option value="E">Rats</option>
                                 <option value="Q">Silverfish</option>
                                 <option value="K">Wasps</option>
-                                <option value="U">Woodlouse</option>
+                                <option value="U">Woodlouse</option>-->
                             </select>
                         </td>
                     </tr>
                     <tr>
-                        <td><%= lblBriefDescription %>:</td>
+                        <td colspan="2"><b><%= lblBriefDescription %>:</b></td>
+                    </tr>
+                    <tr>
+                        <td class="placeholder">&nbsp;</td>
                         <td>
-                            <textarea id="problemDescription" name="problemDescription" class="easyui-validatebox"
+                            <textarea id="problemDescription" name="problemDescription" class="easyui-validatebox validable"
                                     data-options="required:true,validType:'length[1,2048]'"></textarea>
                         </td>
                     </tr>
                     <tr>
-                        <td><%= lblCustomerName %>:</td>
-                        <td><input id="customerName" name="customerName" class="easyui-validatebox" type="text"
-                                   data-options="required:true,validType:'length[1,100]'"/></td>
+                        <td colspan="2"><b><%= lblPreferredDay %>:</b></td>
                     </tr>
                     <tr>
-                        <td><%= lblHouseNumber %>:</td>
-                        <td><input id="houseNumber" name="houseNumber" class="easyui-validatebox" type="text"
-                                   data-options="required:true,validType:'length[1,100]'"/></td>
-                    </tr>
-                    <tr>
-                        <td><%= lblStreet %>:</td>
-                        <td><input id="street" name="street" class="easyui-validatebox" type="text"
-                                   data-options="required:true,validType:'length[1,100]'"/></td>
-                    </tr>
-                    <tr>
-                        <td><%= lblTown %>:</td>
-                        <td><input id="town" name="town" class="easyui-validatebox" type="text"
-                                   data-options="required:true,validType:'length[1,100]'"/></td>
-                    </tr>
-                    <tr>
-                        <td><%= lblPreferredDay %>:</td>
+                        <td class="placeholder">&nbsp;</td>
                         <td>
-                            <div id="calendar" class="easyui-calendar" style="width:180px;height:180px;" data-options="
-                                firstDay: 1
-                            "></div>
+                            <input id="calendar" class="easyui-datebox validable" style="width:200px" required="required">
                         </td>
                     </tr>
-                    <tr>
-                        <td><%= lblEmail %>:</td>
-                        <td><input id="email" name="email" class="easyui-validatebox" type="email"
-                                   data-options="required:true,validType:'email'"/></td>
-                    </tr>
-                    <tr>
-                        <td><%= lblPhoneNumber %>:</td>
-                        <td><input id="phone" name="phone" class="easyui-validatebox" type="text"
-                                   data-options="required:true,validType:'length[1,100]'"/></td>
-                    </tr>
+
                 </table>
                 <div id="new-ticket-buttons">
                     <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblSubmit %></a>
