@@ -43,8 +43,8 @@ public class FastPredicates {
         }
 
         @Override
-        public void describeItself(Criteria criteria) {
-            criteria.add(ilike("name", getSearch()));
+        public Criteria describeItself(Criteria criteria) {
+            return criteria.add(ilike("name", getSearch()));
         }
 
     }
@@ -61,7 +61,9 @@ public class FastPredicates {
         public boolean test(Customer customer) { return customer.getName().equals(name); }
 
         @Override
-        public void describeItself(Criteria criteria) { criteria.add(eq("name", getName())); }
+        public Criteria describeItself(Criteria criteria) {
+            return criteria.add(eq("name", getName()));
+        }
 
     }
 
@@ -77,7 +79,9 @@ public class FastPredicates {
         public boolean test(Task task) { return task.getStatus() == status; }
 
         @Override
-        public void describeItself(Criteria criteria) { criteria.add(eq("status", getStatus())); }
+        public Criteria describeItself(Criteria criteria) {
+            return criteria.add(eq("status", getStatus()));
+        }
 
     }
 
@@ -93,7 +97,9 @@ public class FastPredicates {
         public boolean test(Task task) { return taskid == task.getId(); }
 
         @Override
-        public void describeItself(Criteria criteria) { criteria.add(eq("id", getTaskId())); }
+        public Criteria describeItself(Criteria criteria) {
+            return criteria.add(eq("id", getTaskId()));
+        }
     }
 
     public static class UserByNamePredicate implements HibernatePredicate<User> {

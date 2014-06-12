@@ -42,6 +42,28 @@ function(Backbone, _ , literals, requester, Customer, $) {
                //}
            });
 
+           this.submit = function(callback, onerror) {
+                if(customer.has('address')) {
+                    var addr = customer.get('address');
+                    addr.representation =  _.escape(self.$('#address').combobox('getValue'));
+                    customer.set('address',addr,{silent: true});
+                }
+                customer.set({
+                    name: _.escape(self.$('#customerName').combobox('getValue')),
+                    email: _.escape(self.$('#email').val()),
+                    cellPhone: _.escape(self.$('#cellPhone').val())
+                },{silent:true});
+
+                customer.save({},{
+                    success: callback,
+                    error: onerror
+                })
+           };
+
+           this.getValue = function() {
+                return {customer: {name: customer.get('name')}};
+           };
+
            this.render = function() {
                $.parser.parse(this.$el.append(this.template(literals.customerForm)));
 

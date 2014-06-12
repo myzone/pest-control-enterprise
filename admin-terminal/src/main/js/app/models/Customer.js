@@ -24,8 +24,6 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
         },
         constructor: function() {
 
-            var is_new = true;
-
             var syncHandlers = {
                 read: function(model, options){
                     requester.getCustomers(
@@ -35,8 +33,8 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
                         }],
                         function(response){
                             if(response !==null && response.result!== undefined) {
-                                is_new = false;
                                 options.success(response.result.data[0]);
+                                model.set('id',model.get('name'));
                             } else {
                                 options.error(response);
                             }
@@ -47,8 +45,8 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
                         model.get('session'),model,
                         function(response){
                             if(response !==null && response.result!== undefined) {
-                                is_new = false;
                                 options.success(response.result);
+                                model.set('id',model.get('name'));
                             } else {
                                 options.error(response);
                             }
@@ -59,6 +57,7 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
                         function(response){
                             if(response !==null && response.result!== undefined) {
                                 options.success(response.result);
+                                model.set('id',model.get('name'));
                             } else {
                                 options.error(response);
                             }
@@ -68,19 +67,6 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
             };
 
             var originalSet = this.set;
-
-            this.isNew = function() {
-                return is_new;
-            };
-
-            this.set = function() {
-                originalSet.apply(this,arguments);
-                if(this.attributes.name) {
-                    originalSet.call(this,{id: this.attributes.name});
-                    if(this.isValid()) is_new=false;
-                }
-                return this;
-            };
 
             this.toJSON = function() {
                 return _.omit(this.attributes, 'id','session');

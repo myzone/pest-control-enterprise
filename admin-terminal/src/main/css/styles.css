@@ -1,9 +1,12 @@
-#ticket-form table tr td input{
-    width:200px;
+#ticket-form table tr td .validable {
+    width:250px;
 }
-#ticket-form table tr td textarea{
-    width:200px;
+
+#ticket-form {
+    margin-left: 20px;
+    margin-top: 20px;
 }
+
 #ticket-form table tr td.placeholder {
     width:50px;
 }

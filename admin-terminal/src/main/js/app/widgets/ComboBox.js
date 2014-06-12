@@ -23,7 +23,15 @@ define(['backbone','underscore', 'jquery' ,'easyui'], function(Backbone, _ , $) 
                         return true;
                     }
                 });
-            }
+
+            };
+
+            this.getValue = function() {
+                return this.$el.combobox('getValue');
+            };
+
+
+
         }
     });
     return comboBox;
