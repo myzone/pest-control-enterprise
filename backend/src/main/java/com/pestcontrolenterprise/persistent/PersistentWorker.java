@@ -7,6 +7,7 @@ import com.pestcontrolenterprise.api.*;
 import com.pestcontrolenterprise.util.HibernateStream;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
 import java.util.Optional;
 import java.util.Set;
@@ -23,7 +24,7 @@ import static org.hibernate.criterion.Restrictions.eq;
 @Entity
 public class PersistentWorker extends PersistentUser implements Worker {
 
-    @ManyToMany(targetEntity = PersistentPestType.class)
+    @ManyToMany(targetEntity = PersistentPestType.class, fetch = FetchType.EAGER)
     protected volatile Set<PestType> workablePestTypes;
 
     @Deprecated
