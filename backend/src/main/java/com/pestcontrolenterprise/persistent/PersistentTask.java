@@ -56,7 +56,7 @@ public class PersistentTask extends PersistentObject implements Task {
     @Column
     protected volatile String problemDescription;
 
-    @ManyToMany(targetEntity = SimpleTaskHistoryEntry.class)
+    @ManyToMany(targetEntity = SimpleTaskHistoryEntry.class, fetch = FetchType.EAGER)
     protected volatile List<TaskHistoryEntry> taskHistory;
 
     @Deprecated

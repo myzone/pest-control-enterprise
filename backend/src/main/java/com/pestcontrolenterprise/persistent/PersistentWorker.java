@@ -9,6 +9,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +29,7 @@ import static org.hibernate.criterion.Restrictions.eq;
 @Entity
 public class PersistentWorker extends PersistentUser implements Worker {
 
-    @ManyToMany(targetEntity = PersistentPestType.class)
+    @ManyToMany(targetEntity = PersistentPestType.class, fetch = FetchType.EAGER)
     protected volatile Set<PestType> workablePestTypes;
 
     @Deprecated
