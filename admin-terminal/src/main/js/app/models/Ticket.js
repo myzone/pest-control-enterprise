@@ -9,7 +9,7 @@ define(['models/Requester','backbone', 'literals', 'underscore'], function(reque
             customer: null, // required field. need to register new customer or use existing customer (by name)
             pestType: null, // required field {name: 'key'}
             problemDescription: null, //need to escape
-            comment: null // need to escape
+            comment: '' // need to escape
         },
 
         constructor: function(session) {
@@ -103,7 +103,6 @@ define(['models/Requester','backbone', 'literals', 'underscore'], function(reque
                     update: syncUpdate,
                     delete: function() {console.log('Delete unsupported');}
                 }
-                console.log(method);
                 return methodMap[method](model,options);
             };
             Backbone.Model.apply(this, arguments);
