@@ -334,13 +334,6 @@ public class PersistentTask extends PersistentObject implements Task {
 
             try (QuiteAutoCloseable lock1 = that.readLock()) {
                 if (id != that.id) return false;
-                if (!availabilityTime.equals(that.availabilityTime)) return false;
-                if (!customer.equals(that.customer)) return false;
-                if (!executor.equals(that.executor)) return false;
-                if (!pestType.equals(that.pestType)) return false;
-                if (!problemDescription.equals(that.problemDescription)) return false;
-                if (status != that.status) return false;
-                if (!taskHistory.equals(that.taskHistory)) return false;
             }
 
             return true;
@@ -350,15 +343,7 @@ public class PersistentTask extends PersistentObject implements Task {
     @Override
     public int hashCode() {
         try (QuiteAutoCloseable lock = readLock()) {
-            int result = (int) (id ^ (id >>> 32));
-            result = 31 * result + status.hashCode();
-            result = 31 * result + executor.hashCode();
-            result = 31 * result + availabilityTime.hashCode();
-            result = 31 * result + customer.hashCode();
-            result = 31 * result + pestType.hashCode();
-            result = 31 * result + problemDescription.hashCode();
-            result = 31 * result + taskHistory.hashCode();
-            return result;
+            return (int) (id ^ (id >>> 32));
         }
     }
 
@@ -366,6 +351,7 @@ public class PersistentTask extends PersistentObject implements Task {
     public String toString() {
         try (QuiteAutoCloseable lock = readLock()) {
             return Objects.toStringHelper(this)
+                    .add("id", id)
                     .add("status", status)
                     .add("executor", executor)
                     .add("availabilityTime", availabilityTime)
@@ -439,6 +425,23 @@ public class PersistentTask extends PersistentObject implements Task {
                     .add("instant", instant)
                     .add("causer", causer)
                     .add("comment", comment);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof SimpleTaskHistoryEntry)) return false;
+
+            SimpleTaskHistoryEntry that = (SimpleTaskHistoryEntry) o;
+
+            if (id != that.id) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return (int) (id ^ (id >>> 32));
         }
 
     }
@@ -576,9 +579,10 @@ public class PersistentTask extends PersistentObject implements Task {
 
         @Override
         public int hashCode() {
-            int result = oldValue != null ? oldValue.hashCode() : 0;
-            result = 31 * result + (newValue != null ? newValue.hashCode() : 0);
-            return result;
+            return Objects.hashCode(
+                    oldValue,
+                    newValue
+            );
         }
 
         @Override

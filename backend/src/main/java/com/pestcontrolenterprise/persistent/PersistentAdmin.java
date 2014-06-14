@@ -9,6 +9,7 @@ import org.hibernate.Criteria;
 
 import javax.persistence.Entity;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -118,7 +119,7 @@ public class PersistentAdmin extends PersistentUser implements Admin {
 
                 criteria = criteriaConsumer.apply(criteria);
 
-                return criteria.list();
+                return new HashSet<Task>(criteria.list());
             }));
         }
 
@@ -149,7 +150,7 @@ public class PersistentAdmin extends PersistentUser implements Admin {
 
                 criteria = criteriaConsumer.apply(criteria);
 
-                return criteria.list();
+                return new HashSet<Customer>(criteria.list());
             }));
         }
 
@@ -180,7 +181,7 @@ public class PersistentAdmin extends PersistentUser implements Admin {
 
                 criteria = criteriaConsumer.apply(criteria);
 
-                return criteria.list();
+                return new HashSet<Worker>(criteria.list());
             }));
         }
 

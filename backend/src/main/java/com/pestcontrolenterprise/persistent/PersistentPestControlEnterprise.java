@@ -7,6 +7,7 @@ import com.pestcontrolenterprise.util.HibernateStream;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -32,7 +33,7 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
             criteria = criteriaConsumer.apply(criteria);
 
-            return criteria.list();
+            return new HashSet<User>(criteria.list());
         }));
     }
 
@@ -43,7 +44,7 @@ public class PersistentPestControlEnterprise implements PestControlEnterprise {
 
             criteria = criteriaConsumer.apply(criteria);
 
-            return criteria.list();
+            return new HashSet<PestType>(criteria.list());
         }));
     }
 

@@ -80,11 +80,11 @@ public class PersistentPestType extends PersistentObject implements PestType {
 
     @Override
     public int hashCode() {
-        int result = 0;
-        result = 31 * result + name.hashCode();
-        result = 31 * result + description.hashCode();
-        result = 31 * result + requiredEquipment.hashCode();
-        return result;
+        return Objects.hashCode(
+                name,
+                description,
+                requiredEquipment
+        );
     }
 
     @Override

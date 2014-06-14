@@ -11,6 +11,7 @@ import org.hibernate.Session;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -121,7 +122,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
 
                 criteria = criteriaConsumer.apply(criteria);
 
-                return criteria.list();
+                return new HashSet<Task>(criteria.list());
             }));
         }
 
@@ -137,7 +138,7 @@ public class PersistentWorker extends PersistentUser implements Worker {
 
                 criteria = criteriaConsumer.apply(criteria);
 
-                return criteria.list();
+                return new HashSet<Task>(criteria.list());
             }));
         }
 

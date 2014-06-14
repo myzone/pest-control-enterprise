@@ -14,19 +14,19 @@ import java.util.stream.*;
  */
 public class HibernateStream<T> implements Stream<T> {
 
-    protected final Function<Function<Criteria, Criteria>, List<T>> resolver;
+    protected final Function<Function<Criteria, Criteria>, ? extends Collection<T>> resolver;
 
     protected final List<HibernatePredicate<? super T>> hibernatePredicates;
     protected final List<Predicate<? super T>> nativePredicates;
 
-    public HibernateStream(Function<Function<Criteria, Criteria>, List<T>> resolver) {
+    public HibernateStream(Function<Function<Criteria, Criteria>, ? extends Collection<T>> resolver) {
         this.resolver = resolver;
 
         hibernatePredicates = new ArrayList<>();
         nativePredicates = new ArrayList<>();
     }
 
-    public HibernateStream(Function<Function<Criteria, Criteria>, List<T>> resolver, List<HibernatePredicate<? super T>> hibernatePredicates, List<Predicate<? super T>> nativePredicates) {
+    public HibernateStream(Function<Function<Criteria, Criteria>, ? extends Collection<T>> resolver, List<HibernatePredicate<? super T>> hibernatePredicates, List<Predicate<? super T>> nativePredicates) {
         this.resolver = resolver;
         this.hibernatePredicates = hibernatePredicates;
         this.nativePredicates = nativePredicates;
