@@ -19,7 +19,8 @@ require.config({
         underscore: '../underscore',
         backbone: '../backbone',
         easyui: '../easyui',
-        localization: '../easyui-lang-ru'
+        localization: '../easyui-lang-ru',
+        moment: '../moment'
     }
 });
 

@@ -2,6 +2,10 @@
     width:250px;
 }
 
+.editTicket {
+    display: none;
+}
+
 #ticket-form {
     margin-left: 20px;
     margin-top: 20px;
@@ -57,7 +61,10 @@
     border-width: 1px;
     border-color: #cccccc;
 }
-.color-status.opened
+
+/*['OPEN','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED','CANCELED']*/
+
+.color-status.open
 {
     background-color: green;
 }
@@ -65,11 +72,11 @@
 {
     background-color: greenyellow;
 }
-.color-status.started
+.color-status.in_progress
 {
     background-color: #ffab3f;
 }
-.color-status.finished
+.color-status.resolved
 {
     background-color: cornflowerblue;
 }
@@ -77,6 +84,12 @@
 {
     background-color: #aaaaaa;
 }
+
+.color-status.canceled
+{
+    background-color: #aaaaaa;
+}
+
 *{
     font-size:12px;
 }

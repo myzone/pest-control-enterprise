@@ -1,63 +1,76 @@
-define(['backbone'], function(Backbone) {
+define(
+    ['backbone', 'literals', 'models/SessionModel', 'models/Ticket', 'models/Requester', 'underscore'],
+    function(Backbone, literals, session, Ticket, requester, _) {
 
-    var TicketsModel = Backbone.Model.extend({
+    var TicketsModel = Backbone.Collection.extend({
+        model: Ticket,
         initialize: function() {
             var self = this;
-            var sessionModel;
+            var sessionModel = session;
 
-            var columns=[[
-                {field:'colorStatus',title:''},
-                {field:'ticketid',title:'Заявка #'},
-                {field:'status',title:'Состояние'},
-                {field:'creationDate',title:'Создана'},
-                {field:'age',title:'Возраст'},
-                {field:'lastModified',title:'Последнее изменение'},
-                {field:'type',title:'Тип заявки / Описание'},
-                {field:'worker',title:'Ответственный сотрудник'}
-            ]];
+            var columns=literals.ticketsGridColumns;
             var data=[];
-            var statusClasses=['opened','assigned','started','finished','closed'];
-            var statusDescription=['Открыта','Назначена','Исполняется','Завершена','Закрыта'];
-            var persons=['-','Вася Пупкин','Иван Иванов','Петр Петров','Иван Иванов'];
-            for(var i=0; i<100;i++) {
-                var mod=i % 5;
-                var sample= {
-                    colorStatus:"<div class='color-status "+statusClasses[mod]+"'></div>",
-                    ticketid:i+1000,
-                    status:statusDescription[mod],
-                    creationDate:'2014-05-06 10:40',
-                    age:'1 ч. 30 мин.',
-                    lastModified:'2014-05-06 10:40',
-                    type:'<b>Тараканы</b><br/><span>Они заполонили всю планету!</span>',
-                    worker:persons[mod]
-                };
-                data[i]=sample;
-            }
+            var statusClasses=literals.statusClasses;
+            var statusDescription=literals.statusDescriptions;
+
+            this.listenTo(sessionModel,'statusChanged',function() {
+                if(sessionModel.isLoggedIn())
+                    this.trigger('refresh');
+            });
 
             this.getColumns = function() {
                 return columns;
             };
 
+
+
             this.getData = function(param, successCb, errorCb) {
+                var total = param.page*param.rows;
+
                 if(sessionModel.getSessionId()===null) {
                     errorCb("Session error!");
                     return false;
                 }
-                var response={
-                    total: data.length,
-                    rows: data.slice((param.page-1)*param.rows,(param.page-1)*param.rows+param.rows)
-                };
-                successCb(response);
+
+                if(self.models.length<total || !param.rows) {
+                    var count = param.rows;
+                    var offset = (param.page-1)*param.rows;
+                    var response = null;
+                    var filters = [];
+                    if(param.rows) {
+                        filters = [{
+                            name: 'paging',
+                            offset: offset,
+                            count: count
+                        }];
+                    }
+                    requester.getTasks(
+                        sessionModel, filters,
+                        function(response) {
+                            if(response !==null && response.result!== undefined) {
+                                self.set(response.result.data,{silent:true});
+                                var totalField = self.models.length;
+                                if(response.result.data.length === count) {
+                                    totalField++;
+                                }
+                                var response = {
+                                    total: totalField,
+                                    rows: self.models
+                                };
+                                successCb(response);
+                            } else {
+                                errorCb("Some error!");
+                            }
+                        });
+                } else {
+                    var response={
+                        total: self.models.length+1,
+                        rows: self.slice((param.page-1)*param.rows,(param.page-1)*param.rows+param.rows)
+                    };
+                    successCb(response);
+                }
                 return true;
             };
-
-            this.setSession = function(session) {
-                sessionModel=session;
-                this.listenTo(sessionModel,'statusChanged',function() {
-                    if(sessionModel.isLoggedIn())
-                        this.trigger('refresh');
-                });
-            }
         }
     });
 

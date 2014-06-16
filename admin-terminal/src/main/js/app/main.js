@@ -1,20 +1,21 @@
 define([
         'models/SessionModel',
         'models/TicketsModel',
-        'models/Ticket',
-        'models/Customer',
         'widgets/LoginForm',
         'widgets/TicketsGrid',
-        'widgets/TicketForm',
         'widgets/UserInfoPanel',
+        'widgets/TicketForm',
+        'backbone',
+        'underscore',
         'jquery',
         'easyui',
         'localization'
     ],
-
-    function(SessionModel, TicketsModel, Ticket, Customer, LoginForm, TicketsView, TicketForm, LoggedUserInfoView, $) {
+    function(session, TicketsModel, LoginForm, TicketsView, LoggedUserInfoView, TicketForm, Backbone, _, $) {
+    //var mainRouter = new Router;
+    //Backbone.history.start();
         $.parser.parse();
-        var session = new SessionModel;
+
         session.on('loginError',function(msg) {
             $.messager.alert(msg.title,msg.text,'error');
         });
@@ -27,9 +28,9 @@ define([
             loginForm.render();
         });
 
-        session.on('statusChanged', function() {
+        /*session.on('statusChanged', function() {
            if(session.isLoggedIn() === true) {
-               /*var customer = new Customer(
+               var customer = new Customer(
                    {
                        session: session,
                        name: 'Петров Гена'
@@ -67,13 +68,12 @@ define([
                    pestType: {name:'crap'},
                    problemDescription: 'AAAAA!',
                    comment: '111111111111111'
-               });*/
+               });
                //ticket.save();
            }
-        });
+        });*/
 
         var md = new TicketsModel;
-        md.setSession(session);
 
         var tv = new TicketsView({
             el: $('#ticketsView')[0],
@@ -82,10 +82,25 @@ define([
         tv.setToolbar('#ticketsToolbar');
         tv.setIdField('ticketid');
         tv.render();
-        tv.on('createRequest', function(){
+        tv.on('createTicket', function(){
             var form = new TicketForm({el: $('#tabs'), session: session});
             form.render();
+            form.on('requestRegistrationError',function(msg) {
+                $.messager.alert(msg.title,msg.text,'error');
+            });
+            form.on('customerUpdateError',function(msg) {
+                $.messager.alert(msg.title,msg.text,'error');
+            });
+            form.on('registered',function(ticket){
+                md.add(ticket);
+            });
         });
+
+        tv.on('editTicket', function(ticket){
+            var form = new TicketForm({el: $('#tabs'), session: session, ticket: ticket});
+            form.render();
+        });
+
         var userInfoView = new LoggedUserInfoView({
             el: $('.user-info-container'),
             model: session

@@ -3,6 +3,8 @@ define(['underscore','backbone','jquery','easyui'], function( _ , Backbone, $) {
         template: _.template($('#user-info-panel-template').html()),
         initialize: function() {
             var self=this;
+            var rendered = false;
+
             function onSessionStatusChanged() {
                 if(self.model.isLoggedIn()) {
                     self.$('.lbl-text').html('Вы вошли как:');
@@ -19,12 +21,14 @@ define(['underscore','backbone','jquery','easyui'], function( _ , Backbone, $) {
             this.listenTo(this.model,"statusChanged",onSessionStatusChanged);
 
             this.render = function() {
+                if(rendered) return this;
                 this.$el.html(this.template({lblExit: 'Выйти'}));
                 $.parser.parse(this.$el);
                 onSessionStatusChanged();
                 this.$('.logout-button').click(function() {
                     self.model.logout();
                 });
+                rendered = true;
                 return this;
             }
         }
