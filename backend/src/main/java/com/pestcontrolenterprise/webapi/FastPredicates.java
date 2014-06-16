@@ -26,8 +26,38 @@ public class FastPredicates {
     public static Predicate<Task> taskByStatus (ReadonlyTask.Status status) { return new TaskByStatusPredicate(status); }
     public static Predicate<Customer> customerByName (String name) { return new CustomerByNamePredicate(name); }
     public static Predicate<Customer> customerAutocomplete (String search) { return new CustomerAutocompletePredicate(search); }
+    public static Predicate<Object> paging(int offset, int count) { return new PagingPredicate(offset, count); }
 
     private FastPredicates() {}
+
+    public static class PagingPredicate implements HibernatePredicate<Object> {
+        protected final int offset;
+        protected final int count;
+
+        private PagingPredicate(int offset, int count) {
+            this.offset = offset;
+            this.count = count;
+        }
+
+        @Override
+        public Criteria describeItself(Criteria criteria) {
+            criteria = criteria.setFirstResult(offset);
+            criteria = criteria.setMaxResults(count);
+            return criteria;
+        }
+
+        @Override
+        public boolean test(Object t) {
+            throw new UnsupportedOperationException();
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+        public int getCount() {
+            return count;
+        }
+    }
 
     public static class CustomerAutocompletePredicate implements HibernatePredicate<Customer> {
 

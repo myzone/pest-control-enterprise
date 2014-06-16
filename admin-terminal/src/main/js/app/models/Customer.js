@@ -1,7 +1,7 @@
 define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , requester){
     var customer = Backbone.Model.extend({
         defaults: {
-            name: '',
+            name: null,
             address: {
                 representation: '',
                 latitude: null,
@@ -56,8 +56,9 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
                     requester.editCustomer(model.get('session'),model,
                         function(response){
                             if(response !==null && response.result!== undefined) {
-                                options.success(response.result);
+                                model.set(response.result);
                                 model.set('id',model.get('name'));
+                                options.success(response.result);
                             } else {
                                 options.error(response);
                             }
@@ -68,6 +69,15 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
 
             var originalSet = this.set;
 
+            /*this.set = function() {
+                var result = originalSet.apply(this,arguments);
+                var name = this.get('name');
+                if(name) {
+                    originalSet.call(this,'id',name);
+                    this.id = name;
+                }
+                return result;
+            };*/
             this.toJSON = function() {
                 return _.omit(this.attributes, 'id','session');
             };

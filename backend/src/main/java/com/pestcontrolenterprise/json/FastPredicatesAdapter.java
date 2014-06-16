@@ -10,11 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import static com.pestcontrolenterprise.webapi.FastPredicates.UserByNamePredicate;
-import static com.pestcontrolenterprise.webapi.FastPredicates.TaskByIdPredicate;
-import static com.pestcontrolenterprise.webapi.FastPredicates.TaskByStatusPredicate;
-import static com.pestcontrolenterprise.webapi.FastPredicates.CustomerByNamePredicate;
-import static com.pestcontrolenterprise.webapi.FastPredicates.CustomerAutocompletePredicate;
+import static com.pestcontrolenterprise.webapi.FastPredicates.*;
 
 
 /**
@@ -65,6 +61,13 @@ public class FastPredicatesAdapter implements JsonSerializer<Predicate<?>>, Json
 
                 return jsonObject;
             })
+            .put(PagingPredicate.class, (src, typeOfSrc, context) -> {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.add("name", context.serialize("paging", String.class));
+                jsonObject.add("offset", context.serialize(((PagingPredicate) src).getOffset(), Integer.TYPE));
+                jsonObject.add("count", context.serialize(((PagingPredicate) src).getCount(), Integer.TYPE));
+                return jsonObject;
+            })
             .build();
 
     Map<String, JsonDeserializer<Predicate<?>>> deserializers = ImmutableMap
@@ -93,6 +96,13 @@ public class FastPredicatesAdapter implements JsonSerializer<Predicate<?>>, Json
                 JsonObject jsonObject = (JsonObject) json;
 
                 return FastPredicates.customerAutocomplete(context.deserialize(jsonObject.get("search"), String.class));
+            })
+            .put("paging", (json, typeOfT, context) -> {
+                JsonObject jsonObject = (JsonObject) json;
+                return paging(
+                    context.deserialize(jsonObject.get("offset"), Integer.TYPE),
+                    context.deserialize(jsonObject.get("count"), Integer.TYPE)
+                );
             })
             .build();
 

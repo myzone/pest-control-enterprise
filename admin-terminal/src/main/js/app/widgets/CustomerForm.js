@@ -22,6 +22,7 @@ function(Backbone, _ , literals, requester, Customer, $) {
            this.$el = options.el;
 
            function onSelectCustomer(record) {
+               customer.set('id',record.name);
                customer.set(record);
            }
 
@@ -31,29 +32,31 @@ function(Backbone, _ , literals, requester, Customer, $) {
 
            customer.on('change',function(){
                //if(this.isValid()) {
-                   self.$('#address').combobox('setValue', _.escape(this.get('address').representation));
+                   self.$('.address').combobox('setValue', _.escape(this.get('address').representation));
                    //self.$('#address').combobox('validate');
 
-                   self.$('#email').attr('value', _.escape(this.get('email')));
-                   self.$('#email').validatebox('validate');
+                   self.$('.email').attr('value', _.escape(this.get('email')));
+                   self.$('.email').validatebox('validate');
 
-                   self.$('#cellPhone').attr('value', _.escape(this.get('cellPhone')));
-                   self.$('#cellPhone').validatebox('validate');
+                   self.$('.cellPhone').attr('value', _.escape(this.get('cellPhone')));
+                   self.$('.cellPhone').validatebox('validate');
                //}
            });
 
            this.submit = function(callback, onerror) {
                 if(customer.has('address')) {
                     var addr = customer.get('address');
-                    addr.representation =  _.escape(self.$('#address').combobox('getValue'));
+                    addr.representation =  _.escape(self.$('.address').combobox('getValue'));
                     customer.set('address',addr,{silent: true});
                 }
                 customer.set({
-                    name: _.escape(self.$('#customerName').combobox('getValue')),
-                    email: _.escape(self.$('#email').val()),
-                    cellPhone: _.escape(self.$('#cellPhone').val())
+                    name: _.escape(self.$('.customerName').combobox('getValue')),
+                    email: _.escape(self.$('.email').val()),
+                    cellPhone: _.escape(self.$('.cellPhone').val())
                 },{silent:true});
-
+                if(customer.get('id')!==customer.get('name')) {
+                    customer.unset('id');
+                }
                 customer.save({},{
                     success: callback,
                     error: onerror
@@ -67,7 +70,7 @@ function(Backbone, _ , literals, requester, Customer, $) {
            this.render = function() {
                $.parser.parse(this.$el.append(this.template(literals.customerForm)));
 
-               this.$('#customerName').combobox({
+               this.$('.customerName').combobox({
                    valueField: 'name',
                    textField: 'name',
                    mode: 'remote',
@@ -99,7 +102,7 @@ function(Backbone, _ , literals, requester, Customer, $) {
                    }
                });
 
-               this.$('#address').combobox({
+               this.$('.address').combobox({
                    valueField: 'representation',
                    textField: 'representation',
                    mode: 'remote',

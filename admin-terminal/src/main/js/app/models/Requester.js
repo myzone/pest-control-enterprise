@@ -127,5 +127,7 @@ define(['underscore'], function( _ ) {
         return this;
     }
 
+    Requester = _.once(Requester);
+
     return Requester("http://127.0.0.1:9292/");
 });

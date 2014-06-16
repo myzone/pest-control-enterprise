@@ -1,23 +1,23 @@
-define(['models/Requester','backbone', 'literals', 'underscore'], function(requester, Backbone, literals, _){
+define(['models/Requester','models/SessionModel','backbone', 'literals', 'underscore'], function(requester, session, Backbone, literals, _){
     var Ticket = Backbone.Model.extend({
         defaults: {
-            session: null,
+            session: session,
             id: null,
             status: 'OPEN', // need to validate
-            worker: null,
+            executor: null,
             availabilityTime: [], // format?
             customer: null, // required field. need to register new customer or use existing customer (by name)
             pestType: null, // required field {name: 'key'}
+            taskHistory: null,
             problemDescription: null, //need to escape
             comment: '' // need to escape
         },
 
         constructor: function(session) {
-            var allowedStatuses = ['OPEN','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED','CANCELED'];
+            var allowedStatuses = literals.statusClasses;
             var needValidation = ['session','status','customer','pestType','problemDescription'];
-            var editableFields = ['session','id','status','availabilityTime','customer','pestType','problemDescription','comment'];
+            var editableFields = ['session','id','status','availabilityTime','customer','pestType','problemDescription','comment','taskHistory','executor'];
             var lastModifiedAttrs = [];
-            var ticketHistory = null;
 
             this.validate = function(attributes, options) {
                 if(_.indexOf(allowedStatuses, this.attributes['status']) === -1) {
@@ -41,17 +41,11 @@ define(['models/Requester','backbone', 'literals', 'underscore'], function(reque
                 attrs = _.pick(attrs,editableFields);
                 lastModifiedAttrs = _.union(lastModifiedAttrs, _.keys(attrs));
                 this.attributes = _.extend(this.attributes,attrs);
+                if(this.attributes.id) {
+                    this.id = this.attributes.id;
+                }
                 this.trigger('change', this);
                 return this;
-            };
-
-            this.parse = function(response, options) {
-                ticketHistory = response.taskHistory;
-                return response;
-            };
-
-            this.getTicketHistory = function() {
-                return ticketHistory;
             };
 
             function syncCreate(model, options) {

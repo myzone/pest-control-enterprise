@@ -1,4 +1,4 @@
-define(['models/Requester','backbone', 'literals'], function(requester, Backbone, literals){
+define(['models/Requester','backbone', 'underscore', 'literals'], function(requester, Backbone, _ , literals){
 
     var SessionModel = Backbone.Model.extend({
         set: function() {},
@@ -12,13 +12,14 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
             var isActiveSession = false;
             var userName = '';
             var sessionId = null;
+            var isStorageAvail = isSessionStorageAvailable();
 
             this.toJSON = function() {
                 return {id: sessionId};
             };
 
             //try to load session from sessionStorage
-            if(isSessionStorageAvailable()) {
+            if(isStorageAvail) {
                 var session = JSON.parse(sessionStorage.getItem('session'));
                 if(session !== null) {
                     sessionId = session.id;
@@ -60,7 +61,7 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
                     isActiveSession = true;
                     userName = response.result.login;
                     sessionId = response.result.id;
-                    if(isSessionStorageAvailable()) {
+                    if(isStorageAvail) {
                         sessionStorage.setItem('session',JSON.stringify({id:sessionId,user:userName}));
                     }
                     self.trigger('statusChanged');
@@ -90,7 +91,7 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
                 if(!isActiveSession) {
                     return;
                 }
-                if(isSessionStorageAvailable()) {
+                if(isStorageAvail) {
                     sessionStorage.removeItem('session');
                 }
                 requester.endSession(this,logoutCallback);
@@ -106,9 +107,13 @@ define(['models/Requester','backbone', 'literals'], function(requester, Backbone
 
             this.login = function(login, pass) {
                 requester.beginSession(login, pass, loginCallback);
-            }
+            };
         }
     });
 
-    return SessionModel;
+    var getInstance = _.once(function() {
+         return new SessionModel;
+    });
+
+    return getInstance();
 });

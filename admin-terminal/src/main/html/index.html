@@ -8,13 +8,21 @@
         <link rel="stylesheet" type="text/css" href="themes/icon.css">
         <link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.10.4.custom.css">
         <link rel="stylesheet" type="text/css" href="styles.css">
+        <script type="text/template" id="color-status-template">
+            <div class='color-status <%= status %>'></div>
+        </script>
+        <script type="text/template" id="ticket-type-template">
+            <b><%= pest %></b>
+            <br>
+            <%= descr %>
+        </script>
         <script type="text/template" id="customer-form-template">
             <tr>
                 <td colspan="2"><b><%= lblCustomerName %>:</b></td>
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input id="customerName" name="customerName" style="width:250px" class="easyui-combobox validable" type="text"
+                <td><input name="customerName" style="width:250px" class="customerName easyui-combobox validable" type="text"
                            data-options="required:true,validType:'length[1,100]',hasDownArrow:false"/></td>
             </tr>
             <tr>
@@ -22,7 +30,7 @@
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input id="address" name="address" style="width:250px" class="easyui-combobox validable" type="text"
+                <td><input name="address" style="width:250px" class="address easyui-combobox validable" type="text"
                            data-options="required:true,validType:'length[1,200]',hasDownArrow:false"/></td>
             </tr>
             <tr>
@@ -30,7 +38,7 @@
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input id="email" name="email" class="easyui-validatebox validable" type="email"
+                <td><input name="email" class="email easyui-validatebox validable" type="email"
                            data-options="required:true,validType:'email'"/></td>
             </tr>
             <tr>
@@ -38,7 +46,7 @@
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input id="cellPhone" name="cellPhone" class="easyui-validatebox validable" type="text"
+                <td><input name="cellPhone" class="cellPhone easyui-validatebox validable" type="text"
                            data-options="required:true,validType:'length[1,100]'"/></td>
             </tr>
         </script>
@@ -47,33 +55,31 @@
                 <br/>
                 <h2><%= lblTitle %></h2>
                 <table border="0" cellpadding="2" cellspacing="2">
+                    <tr class="editTicket">
+                        <td colspan="2"><b><%= lblStatus %>:</b></td>
+                    </tr>
+                    <tr class="editTicket">
+                        <td class="placeholder">&nbsp;</td>
+                        <td>
+                            <select name="status" style="width:250px" class="status easyui-combobox validable"
+                                    data-options="
+                                        valueField: 'status',
+                                        textField: 'text',
+                                        required: true">
+                            </select>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="2"><b><%= lblPestType %>:</b></td>
                     </tr>
                     <tr>
                         <td class="placeholder">&nbsp;</td>
                         <td>
-                            <select id="pestType" name="pestType" style="width:250px" class="easyui-combobox validable"
+                            <select name="pestType" style="width:250px" class="pestType easyui-combobox validable"
                                     data-options="
                                         valueField: 'id',
                                         textField: 'text',
                                         required: true">
-                                <!--<option value=" "><%= lblSelectPestType %></option>
-                                <option value="I">Ants</option>
-                                <option value="A">Bedbugs (Inspection only)</option>
-                                <option value="R">Carpet beetle</option>
-                                <option value="B">Cockroaches</option>
-                                <option value="T">Earwigs</option>
-                                <option value="C">Fleas</option>
-                                <option value="P">Flies</option>
-                                <option value="J">Hornets</option>
-                                <option value="D">Mice</option>
-                                <option value="S">Plaster beetle</option>
-                                <option value="Z">Psoccids and other stored food pests</option>
-                                <option value="E">Rats</option>
-                                <option value="Q">Silverfish</option>
-                                <option value="K">Wasps</option>
-                                <option value="U">Woodlouse</option>-->
                             </select>
                         </td>
                     </tr>
@@ -83,11 +89,21 @@
                     <tr>
                         <td class="placeholder">&nbsp;</td>
                         <td>
-                            <textarea id="problemDescription" name="problemDescription" class="easyui-validatebox validable"
+                            <textarea name="problemDescription" class="problemDescription easyui-validatebox validable"
                                     data-options="required:true,validType:'length[1,2048]'" rows="5"></textarea>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="editTicket">
+                        <td colspan="2"><b><%= lblComment %>:</b></td>
+                    </tr>
+                    <tr class="editTicket">
+                        <td class="placeholder">&nbsp;</td>
+                        <td>
+                            <textarea name="comment" class="comment easyui-validatebox validable"
+                                      data-options="required:true,validType:'length[1,2048]'" rows="5"></textarea>
+                        </td>
+                    </tr>
+                    <!--<tr>
                         <td colspan="2"><b><%= lblPreferredDay %>:</b></td>
                     </tr>
                     <tr>
@@ -95,7 +111,7 @@
                         <td>
                             <input id="availabilityTime" style="width:250px" class="easyui-datebox validable" required="required">
                         </td>
-                    </tr>
+                    </tr>-->
 
                 </table>
                 <div id="new-ticket-buttons">
@@ -164,11 +180,13 @@
                     <div class="easyui-tabs" id="tabs" data-options="fit:true">
                         <div title="Заявки" >
                             <div id="ticketsToolbar">
-                                <a href="#" id="createRequest" class="easyui-linkbutton"
+                                <a href="#" id="reloadData" class="easyui-linkbutton"
+                                   data-options="iconCls:'icon-reload',plain:true">Обновить</a>
+                                <a href="#" id="createTicket" class="easyui-linkbutton"
                                    data-options="iconCls:'icon-call',plain:true">Добавить заявку</a>
-                                <a href="#" id="editRequest" class="easyui-linkbutton"
+                                <a href="#" id="editTicket" class="easyui-linkbutton"
                                    data-options="iconCls:'icon-edit',plain:true">Редактировать заявку</a>
-                                <a href="#" id="closeRequest" class="easyui-linkbutton"
+                                <a href="#" id="closeTicket" class="easyui-linkbutton"
                                    data-options="iconCls:'icon-ok',plain:true">Закрыть заявку</a>
                                 <a href="#" id="createReport" class="easyui-linkbutton"
                                    data-options="iconCls:'icon-report',plain:true">Создать отчет</a>
