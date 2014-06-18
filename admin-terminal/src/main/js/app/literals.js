@@ -39,7 +39,8 @@ define(function() {
            lblEmail: 'Email',
            lblPhoneNumber: 'Телефон',
            lblSubmit: 'Сохранить',
-           lblCancel: 'Отмена'
+           lblCancel: 'Отмена',
+           lblHistory: 'История изменений'
        },
        customerForm: {
            lblCustomerName: 'Имя клиента',
@@ -90,6 +91,15 @@ define(function() {
            {field:'lastModified',title:'Последнее изменение'},
            {field:'type',title:'Тип заявки / Описание'},
            {field:'worker',title:'Ответственный сотрудник'}
+       ]],
+       userRoleMap: {
+           Admin: 'Оператор',
+           Worker: 'Сотрудник'
+       },
+       historyGridColumns: [[
+           {field:'time',title:'Время изменения'},
+           {field:'user',title:'Пользователь'},
+           {field:'comment',title:'Комментарий', width:300}
        ]],
        closeTicketDialog: {
            lblCloseTicket: 'Закрыть заявку',

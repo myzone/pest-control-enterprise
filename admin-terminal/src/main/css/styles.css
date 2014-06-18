@@ -1,3 +1,6 @@
+pre {
+    margin: 3px;
+}
 .tasks-info-container table tr td {
     text-align: right;
 }
@@ -10,26 +13,26 @@
 }
 
 #ticket-form {
-    margin-left: 20px;
-    margin-top: 20px;
+    margin-left: 5px;
+    margin-top: 5px;
 }
 
 #ticket-form table tr td.placeholder {
     width:50px;
 }
 
-#edit-ticket-form {
+/*#edit-ticket-form {
     margin-bottom: 20px;
-}
+}*/
 
 #edit-ticket-form table tr td .validable {
     width:250px;
 }
 
-#edit-ticket-form {
+/*#edit-ticket-form {
     margin-left: 20px;
     margin-top: 20px;
-}
+}*/
 
 #edit-ticket-form table tr td.placeholder {
     width:50px;

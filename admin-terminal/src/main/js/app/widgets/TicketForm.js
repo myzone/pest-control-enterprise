@@ -5,11 +5,14 @@ define([
     'models/PestTypes',
     'models/Ticket',
     'models/StatusCollection',
+    'models/History',
     'widgets/ComboBox',
     'widgets/CustomerForm',
     'widgets/Textarea',
+    'widgets/HistoryGrid',
     'jquery',
-    'easyui'], function( literals, _, Backbone, PestTypes, Ticket, statusCollection, ComboBox, CustomerForm, Textarea, $) {
+    'easyui'],
+function( literals, _, Backbone, PestTypes, Ticket, statusCollection, History, ComboBox, CustomerForm, Textarea, HistoryGrid, $) {
 
     var TicketForm = Backbone.View.extend({
         constructor: function(opts) {
@@ -140,7 +143,7 @@ define([
                 textarea.render();
                 controls.problemDescription = textarea;
 
-                customerForm = new CustomerForm({el: this.$('table'), session: session, ticket: ticket});
+                customerForm = new CustomerForm({el: this.$('table:first'), session: session, ticket: ticket});
                 customerForm.render();
                 controls.customer = customerForm;
 
@@ -163,6 +166,13 @@ define([
                     });
                     comment.render();
                     controls.comment = comment;
+
+                    var history = new History(ticket.get('taskHistory'));
+                    var historyGrid = new HistoryGrid({
+                        el:this.$('.historyView'),
+                        collection: history
+                    });
+                    historyGrid.render();
 
                     prepareForm();
                 }
