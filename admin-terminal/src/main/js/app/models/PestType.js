@@ -9,6 +9,7 @@ define(['backbone', 'underscore'], function(Backbone, _ ){
             this.set = function() {
                 originalSet.apply(this,arguments);
                 originalSet.call(this,{id: this.attributes.name});
+                this.id = this.attributes.name;
             };
             this.toJSON = function() {
                 return _.omit(this.attributes, 'id');

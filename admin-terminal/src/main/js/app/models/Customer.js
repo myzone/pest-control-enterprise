@@ -1,7 +1,7 @@
 define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , requester){
     var customer = Backbone.Model.extend({
         defaults: {
-            name: null,
+            name: '',
             address: {
                 representation: '',
                 latitude: null,
@@ -69,15 +69,15 @@ define(['backbone', 'underscore', 'models/Requester'], function(Backbone, _ , re
 
             var originalSet = this.set;
 
-            /*this.set = function() {
+            this.set = function() {
                 var result = originalSet.apply(this,arguments);
-                var name = this.get('name');
-                if(name) {
-                    originalSet.call(this,'id',name);
-                    this.id = name;
+                var id = this.get('id');
+                if(id) {
+                    this.id = id;
                 }
                 return result;
-            };*/
+            };
+
             this.toJSON = function() {
                 return _.omit(this.attributes, 'id','session');
             };

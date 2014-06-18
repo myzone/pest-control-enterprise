@@ -8,6 +8,68 @@
         <link rel="stylesheet" type="text/css" href="themes/icon.css">
         <link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.10.4.custom.css">
         <link rel="stylesheet" type="text/css" href="styles.css">
+        <script type="text/template" id="close-ticket-template">
+            <div class="close-ticket easyui-dialog" title="<%= lblCloseTicket %>" style="width:400px;height:200px;overflow: hidden"
+                 data-options="iconCls:'icon-ok',resizable:false,modal:true" buttons="#dlg-buttons">
+                 <b>Комментарий:</b>
+                 <textarea class="comment" style="height: 100px;
+   width: 98%;
+   padding:1%;
+   border:none;"></textarea>
+                 <div id="dlg-buttons">
+                    <table cellpadding="0" cellspacing="0" style="width:100%">
+                        <tr>
+                            <td>
+                                &nbsp;
+                            </td>
+                            <td style="text-align:right">
+                                <a href="#" class="close easyui-linkbutton" iconCls="icon-ok"><%= lblClose %></a>
+                                <a href="#" class="cancel easyui-linkbutton" iconCls="icon-cancel" ><%= lblCancel %></a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </script>
+        <script type="text/template" id="tickets-status-template">
+            <table border="0">
+                <tr>
+                    <td>&NonBreakingSpace;</td>
+                    <td><b><%= lblTotal %>:</b></td>
+                    <td><%= total %></td>
+                </tr>
+                <tr>
+                    <td><div class='color-status open'></div></td>
+                    <td><b><%= lblOpen %>:</b></td>
+                    <td><%= OPEN %></td>
+                </tr>
+                <tr>
+                    <td><div class='color-status assigned'></div></td>
+                    <td><b><%= lblAssigned %>:</b></td>
+                    <td><%= ASSIGNED %></td>
+                </tr>
+                <tr>
+                    <td><div class='color-status in_progress'></div></td>
+                    <td><b><%= lblInProgress %>:</b></td>
+                    <td><%= IN_PROGRESS %></td>
+                </tr>
+                <tr>
+                    <td><div class='color-status resolved'></div></td>
+                    <td><b><%= lblResolved %>:</b></td>
+                    <td><%= RESOLVED %></td>
+                </tr>
+                <tr>
+                    <td><div class='color-status closed'></div></td>
+                    <td><b><%= lblClosed %>:</b></td>
+                    <td><%= CLOSED %></td>
+                </tr>
+                <tr>
+                    <td><div class='color-status canceled'></div></td>
+                    <td><b><%= lblCanceled %>:</b></td>
+                    <td><%= CANCELED %></td>
+                </tr>
+            </table>
+        </script>
         <script type="text/template" id="color-status-template">
             <div class='color-status <%= status %>'></div>
         </script>
@@ -22,51 +84,58 @@
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input name="customerName" style="width:250px" class="customerName easyui-combobox validable" type="text"
-                           data-options="required:true,validType:'length[1,100]',hasDownArrow:false"/></td>
+                <td>
+                    <!--<input name="customerName" style="width:250px" class="customerName easyui-combobox validable" type="text"
+                           data-options="required:true,validType:'length[1,100]',hasDownArrow:false"/>-->
+                    <input name="name" style="width:250px" class="name validable" type="text"/>
+                </td>
             </tr>
             <tr>
                 <td colspan="2"><b><%= lblAddress %>:</b></td>
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input name="address" style="width:250px" class="address easyui-combobox validable" type="text"
-                           data-options="required:true,validType:'length[1,200]',hasDownArrow:false"/></td>
+                <td>
+                    <!--<input name="address" style="width:250px" class="address easyui-combobox validable" type="text"
+                           data-options="required:true,validType:'length[1,200]',hasDownArrow:false"/>-->
+                    <input name="address" style="width:250px" class="address validable" type="text" />
+                </td>
             </tr>
             <tr>
                 <td colspan="2"><b><%= lblEmail %>:</b></td>
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input name="email" class="email easyui-validatebox validable" type="email"
-                           data-options="required:true,validType:'email'"/></td>
+                <td>
+                    <!--<input name="email" class="email easyui-validatebox validable" type="email"
+                           data-options="required:true,validType:'email'"/>-->
+                    <input name="email" class="email validable" type="email" />
+                </td>
             </tr>
             <tr>
                 <td colspan="2"><b><%= lblPhoneNumber %>:</b></td>
             </tr>
             <tr>
                 <td class="placeholder">&nbsp;</td>
-                <td><input name="cellPhone" class="cellPhone easyui-validatebox validable" type="text"
-                           data-options="required:true,validType:'length[1,100]'"/></td>
+                <td>
+                    <!--<input name="cellPhone" class="cellPhone easyui-validatebox validable" type="text"
+                           data-options="required:true,validType:'length[1,100]'"/>-->
+                    <input name="cellPhone" class="cellPhone validable" type="text" />
+                </td>
             </tr>
         </script>
-        <script type="text/template" id="ticket-form-template">
-            <div id="ticket-form">
+        <script type="text/template" id="edit-ticket-form-template">
+            <div id="edit-ticket-form">
                 <br/>
                 <h2><%= lblTitle %></h2>
                 <table border="0" cellpadding="2" cellspacing="2">
-                    <tr class="editTicket">
+                    <tr>
                         <td colspan="2"><b><%= lblStatus %>:</b></td>
                     </tr>
-                    <tr class="editTicket">
+                    <tr>
                         <td class="placeholder">&nbsp;</td>
                         <td>
-                            <select name="status" style="width:250px" class="status easyui-combobox validable"
-                                    data-options="
-                                        valueField: 'status',
-                                        textField: 'text',
-                                        required: true">
-                            </select>
+                            <select name="status" style="width:250px" class="status validable"></select>
                         </td>
                     </tr>
                     <tr>
@@ -75,12 +144,7 @@
                     <tr>
                         <td class="placeholder">&nbsp;</td>
                         <td>
-                            <select name="pestType" style="width:250px" class="pestType easyui-combobox validable"
-                                    data-options="
-                                        valueField: 'id',
-                                        textField: 'text',
-                                        required: true">
-                            </select>
+                            <select name="pestType" style="width:250px" class="pestType validable"></select>
                         </td>
                     </tr>
                     <tr>
@@ -89,30 +153,56 @@
                     <tr>
                         <td class="placeholder">&nbsp;</td>
                         <td>
-                            <textarea name="problemDescription" class="problemDescription easyui-validatebox validable"
-                                    data-options="required:true,validType:'length[1,2048]'" rows="5"></textarea>
+                            <textarea name="problemDescription" class="problemDescription validable" rows="5"></textarea>
                         </td>
                     </tr>
-                    <tr class="editTicket">
+                    <tr>
                         <td colspan="2"><b><%= lblComment %>:</b></td>
-                    </tr>
-                    <tr class="editTicket">
-                        <td class="placeholder">&nbsp;</td>
-                        <td>
-                            <textarea name="comment" class="comment easyui-validatebox validable"
-                                      data-options="required:true,validType:'length[1,2048]'" rows="5"></textarea>
-                        </td>
-                    </tr>
-                    <!--<tr>
-                        <td colspan="2"><b><%= lblPreferredDay %>:</b></td>
                     </tr>
                     <tr>
                         <td class="placeholder">&nbsp;</td>
                         <td>
-                            <input id="availabilityTime" style="width:250px" class="easyui-datebox validable" required="required">
+                            <textarea name="comment" class="comment validable" rows="5"></textarea>
                         </td>
-                    </tr>-->
-
+                    </tr>
+                </table>
+                <div id="edit-ticket-buttons">
+                    <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblSubmit %></a>
+                    <a href="#" class="button-cancel easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
+                </div>
+            </div>
+        </script>
+        <script type="text/template" id="ticket-form-template">
+            <div id="ticket-form">
+                <br/>
+                <h2><%= lblTitle %></h2>
+                <table border="0" cellpadding="2" cellspacing="2">
+                    <tr>
+                        <td colspan="2"><b><%= lblPestType %>:</b></td>
+                    </tr>
+                    <tr>
+                        <td class="placeholder">&nbsp;</td>
+                        <td>
+                            <!--<select name="pestType" style="width:250px" class="pestType easyui-combobox validable"
+                                    data-options="
+                                        valueField: 'id',
+                                        textField: 'text',
+                                        required: true">
+                            </select>-->
+                            <select name="pestType" style="width:250px" class="pestType validable"></select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><b><%= lblBriefDescription %>:</b></td>
+                    </tr>
+                    <tr>
+                        <td class="placeholder">&nbsp;</td>
+                        <td>
+                            <!--<textarea name="problemDescription" class="problemDescription easyui-validatebox validable"
+                                    data-options="required:true,validType:'length[1,2048]'" rows="5"></textarea>-->
+                            <textarea name="problemDescription" class="problemDescription validable" rows="5"></textarea>
+                        </td>
+                    </tr>
                 </table>
                 <div id="new-ticket-buttons">
                     <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblSubmit %></a>
@@ -206,6 +296,7 @@
                 </div>
                 <div class="right-panel" data-options="region:'east',split:true">
                     <div class="easyui-layout" data-options="fit:true">
+
                         <div class="user-info-container"
                              data-options="
                                 region: 'north',
@@ -213,6 +304,15 @@
                                 collapsible: false,
                                 iconCls: 'icon-user'
                              ">
+
+                        </div>
+                        <div class="tasks-info-container"
+                             data-options="
+                                region: 'center',
+                                title: 'Заявки',
+                                collapsible: false,
+                                iconCls: 'icon-call'
+                             " style="height:200px;">
 
                         </div>
                     </div>

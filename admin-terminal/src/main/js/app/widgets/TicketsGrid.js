@@ -10,9 +10,10 @@ define(['backbone','literals','moment','jquery','easyui'],function(Backbone, lit
             moment.lang('ru');
             var defaultView = $.fn.datagrid.defaults.view;
 
-            this.listenTo(this.model,'add', function(ticket){
+
+            /*this.listenTo(this.model, 'add change', function(ticket) {
                 this.$el.datagrid('reload');
-            });
+            });*/
 
             var customView = {
                 render: defaultView.render,
@@ -63,14 +64,20 @@ define(['backbone','literals','moment','jquery','easyui'],function(Backbone, lit
                     var result = {};
                     _.each(fields, function(key){
                         handler[key](result,rowData);
+                        rowData.rowIndex = rowIndex;
                     });
                     return defaultView.renderRow(target, fields, frozen, rowIndex, result);
                 },
                 refreshRow: defaultView.refreshRow,
                 onBeforeRender: defaultView.onBeforeRender,
-                onAfterRender: defaultView.onAfterRender
+                onAfterRender: defaultView.onAfterRender,
+                insertRow: defaultView.insertRow,
+                updateRow: defaultView.updateRow
             };
 
+            this.reload = function() {
+                this.$el.datagrid('reload');
+            };
 
             this.listenTo(this.model,'refresh',function() {
                 this.$el.datagrid('reload');
@@ -111,6 +118,12 @@ define(['backbone','literals','moment','jquery','easyui'],function(Backbone, lit
                     var ticket = self.$el.datagrid('getSelected');
                     if(ticket) {
                         self.trigger('editTicket',ticket);
+                    }
+                });
+                $('#closeTicket').click(function() {
+                    var ticket = self.$el.datagrid('getSelected');
+                    if(ticket) {
+                        self.trigger('closeTicket',ticket);
                     }
                 });
                 rendered = true;

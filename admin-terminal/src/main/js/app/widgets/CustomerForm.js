@@ -3,16 +3,23 @@ define(
         'backbone',
         'underscore',
         'literals',
+        'widgets/ComboBox',
+        'widgets/Textarea',
         'models/Requester',
         'models/Customer',
+        'models/CustomersAutocomplete',
+        'models/AddressAutocomplete',
         'jquery',
         'easyui'],
 
-function(Backbone, _ , literals, requester, Customer, $) {
+function(Backbone, _ , literals, ComboBox, Textarea, requester, Customer, customersAutocomplete, addressAutocomplete, $) {
+
    var customerForm = Backbone.View.extend({
        constructor: function(opts) {
            var options = opts;
            var self = this;
+           var ticket = opts.ticket;
+           var controls = {};
 
            var customer = new Customer({
                 session: options.session
@@ -22,29 +29,35 @@ function(Backbone, _ , literals, requester, Customer, $) {
            this.$el = options.el;
 
            function onSelectCustomer(record) {
-               customer.set('id',record.name);
+               if(!record) return;
+               if(record.name) {
+                   record.id = record.name;
+                   customer.id = record.name
+               }
                customer.set(record);
            }
 
            function onSelectAddress(record) {
+               if(!record) return;
                customer.set('address',record);
            }
 
-           customer.on('change',function(){
-               //if(this.isValid()) {
-                   self.$('.address').combobox('setValue', _.escape(this.get('address').representation));
-                   //self.$('#address').combobox('validate');
-
-                   self.$('.email').attr('value', _.escape(this.get('email')));
-                   self.$('.email').validatebox('validate');
-
-                   self.$('.cellPhone').attr('value', _.escape(this.get('cellPhone')));
-                   self.$('.cellPhone').validatebox('validate');
-               //}
-           });
-
            this.submit = function(callback, onerror) {
-                if(customer.has('address')) {
+               if(!this.isValid()) {
+                   self.trigger('invalid',literals.requiredFieldsError);
+                   return false;
+               }
+               var fields = {};
+               for(var key in controls) {
+                   if(key === 'address') {
+                       fields[key] = customer.get(key);
+                       fields[key].representation = controls[key].getValue();
+                       continue;
+                   }
+                   fields[key] = controls[key].getValue();
+               }
+               customer.set(fields,{silent:true});
+                /*if(customer.has('address')) {
                     var addr = customer.get('address');
                     addr.representation =  _.escape(self.$('.address').combobox('getValue'));
                     customer.set('address',addr,{silent: true});
@@ -53,7 +66,8 @@ function(Backbone, _ , literals, requester, Customer, $) {
                     name: _.escape(self.$('.customerName').combobox('getValue')),
                     email: _.escape(self.$('.email').val()),
                     cellPhone: _.escape(self.$('.cellPhone').val())
-                },{silent:true});
+                },{silent:true});*/
+
                 if(customer.get('id')!==customer.get('name')) {
                     customer.unset('id');
                 }
@@ -64,46 +78,39 @@ function(Backbone, _ , literals, requester, Customer, $) {
            };
 
            this.getValue = function() {
-                return {customer: {name: customer.get('name')}};
+                return {name: customer.get('name')};
            };
+
+           this.isValid = function() {
+               for(var key in controls) {
+                   if(!controls[key].isValid()) return false;
+               }
+               return true;
+           };
+
+           this.setValue = function() {};
 
            this.render = function() {
                $.parser.parse(this.$el.append(this.template(literals.customerForm)));
-
-               this.$('.customerName').combobox({
+               var customerField = new ComboBox({
+                   el:  this.$('.name'),
                    valueField: 'name',
                    textField: 'name',
                    mode: 'remote',
                    editable: true,
                    required:true,
-                   validType:'length[1,100]',
+                   validType:['customerName','length[1,100]'],
                    hasDownArrow:false,
                    onSelect: onSelectCustomer,
-                   loader: function(param, success, error) {
-                       if(param.q) {
-                           requester.getCustomers(
-                               options.session,
-                               [{
-                                   name: 'customerAutocomplete',
-                                   search: '%' + _.escape(param.q) + '%'
-                               }],
-                               function(response) {
-                                   if(response !==null && response.result!== undefined) {
-                                        success(response.result.data);
-                                   } else {
-                                       error('customer loader failed');
-                                   }
-                               }
-                           )
-                       } else {
-                           return false;
-                       }
-                       return true;
-                   }
+                   collection: customersAutocomplete
                });
+               customerField.render();
+               customerField.map(customer,'name');
+               controls.name = customerField;
 
-               this.$('.address').combobox({
-                   valueField: 'representation',
+               var address = new ComboBox({
+                   el:this.$('.address'),
+                   collection: addressAutocomplete,
                    textField: 'representation',
                    mode: 'remote',
                    editable: true,
@@ -111,26 +118,39 @@ function(Backbone, _ , literals, requester, Customer, $) {
                    validType:'length[1,200]',
                    hasDownArrow:false,
                    onSelect: onSelectAddress,
-                   loader: function(param, success, error) {
-                       if(param.q) {
-                           $.getJSON('http://nominatim.openstreetmap.org/search?format=json&q='+ _.escape(param.q),function(data){
-                              var results = [];
-                              for(var i=0;i<data.length;i++) {
-                                  results.push({
-                                     representation: data[i].display_name,
-                                     longitude: data[i].lon,
-                                     latitude: data[i].lat
-                                  });
-                              }
-                              success(results);
-                           });
-                       } else {
-                           return false;
-                       }
-                       return true;
-                   }
+                   getter: function(address) {return address.representation;}
                });
+               address.render();
+               address.map(customer,'address');
+               controls.address = address;
 
+               var email = new Textarea({
+                   el: this.$('.email'),
+                   required:true,
+                   validType:['email','length[1,100]']
+               });
+               email.render();
+               email.map(customer,'email');
+               controls.email = email;
+
+               var cellPhone = new Textarea({
+                   el: this.$('.cellPhone'),
+                   required:true,
+                   validType:['phone','length[4,40]']
+               });
+               cellPhone.render();
+               cellPhone.map(customer,'cellPhone');
+               controls.cellPhone = cellPhone;
+
+               if(ticket) {
+                   customer.set({
+                       id: ticket.get('customer').name,
+                       name: ticket.get('customer').name
+                   });
+               }
+               if(ticket) {
+                   customer.fetch();
+               }
            };
 
            Backbone.View.apply(this,arguments);

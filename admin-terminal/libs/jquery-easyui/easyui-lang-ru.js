@@ -17,8 +17,26 @@ if ($.fn.validatebox){
 	$.fn.validatebox.defaults.missingMessage = 'Это поле необходимо.';
 	$.fn.validatebox.defaults.rules.email.message = 'Пожалуйста введите корректный e-mail адрес.';
 	$.fn.validatebox.defaults.rules.url.message = 'Пожалуйста введите корректный URL.';
-	$.fn.validatebox.defaults.rules.length.message = 'Пожалуйста введите зачение между {0} и {1}.';
+	$.fn.validatebox.defaults.rules.length.message = 'Пожалуйста введите зачение длиной от {0} до {1}.';
 	$.fn.validatebox.defaults.rules.remote.message = 'Пожалуйста исправте это поле.';
+
+    $.extend($.fn.validatebox.defaults.rules, {
+        phone: {
+            validator: function(value,param){
+                var regexp = /^[+]?[0-9]+$/ig;
+                return regexp.test(value);
+            },
+            message: 'Пожалуйста введите корректный номер телефона'
+        },
+        customerName: {
+            validator: function(value,param){
+                var regexp = /^[A-ZА-Я][A-Za-zА-Яа-я-\.\'\s]+$/g;
+                return regexp.test(value);
+            },
+            message: 'Пожалуйста введите корректное имя клиента'
+        }
+    });
+
 }
 if ($.fn.numberbox){
 	$.fn.numberbox.defaults.missingMessage = 'Это поле необходимо.';
