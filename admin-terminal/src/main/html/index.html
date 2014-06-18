@@ -76,7 +76,7 @@
         <script type="text/template" id="ticket-type-template">
             <b><%= pest %></b>
             <br>
-            <%= descr %>
+            <pre><%= descr %></pre>
         </script>
         <script type="text/template" id="customer-form-template">
             <tr>
@@ -125,50 +125,55 @@
             </tr>
         </script>
         <script type="text/template" id="edit-ticket-form-template">
-            <div id="edit-ticket-form">
-                <br/>
-                <h2><%= lblTitle %></h2>
-                <table border="0" cellpadding="2" cellspacing="2">
-                    <tr>
-                        <td colspan="2"><b><%= lblStatus %>:</b></td>
-                    </tr>
-                    <tr>
-                        <td class="placeholder">&nbsp;</td>
-                        <td>
-                            <select name="status" style="width:250px" class="status validable"></select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"><b><%= lblPestType %>:</b></td>
-                    </tr>
-                    <tr>
-                        <td class="placeholder">&nbsp;</td>
-                        <td>
-                            <select name="pestType" style="width:250px" class="pestType validable"></select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"><b><%= lblBriefDescription %>:</b></td>
-                    </tr>
-                    <tr>
-                        <td class="placeholder">&nbsp;</td>
-                        <td>
-                            <textarea name="problemDescription" class="problemDescription validable" rows="5"></textarea>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"><b><%= lblComment %>:</b></td>
-                    </tr>
-                    <tr>
-                        <td class="placeholder">&nbsp;</td>
-                        <td>
-                            <textarea name="comment" class="comment validable" rows="5"></textarea>
-                        </td>
-                    </tr>
-                </table>
-                <div id="edit-ticket-buttons">
-                    <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblSubmit %></a>
-                    <a href="#" class="button-cancel easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
+            <div class="easyui-layout" data-options="fit:true">
+                <div id="edit-ticket-form" data-options="region:'center'" style="padding:5px;">
+                    <br/>
+                    <h2><%= lblTitle %></h2>
+                    <table border="0" cellpadding="2" cellspacing="2">
+                        <tr>
+                            <td colspan="2"><b><%= lblStatus %>:</b></td>
+                        </tr>
+                        <tr>
+                            <td class="placeholder">&nbsp;</td>
+                            <td>
+                                <select name="status" style="width:250px" class="status validable"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><b><%= lblPestType %>:</b></td>
+                        </tr>
+                        <tr>
+                            <td class="placeholder">&nbsp;</td>
+                            <td>
+                                <select name="pestType" style="width:250px" class="pestType validable"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><b><%= lblBriefDescription %>:</b></td>
+                        </tr>
+                        <tr>
+                            <td class="placeholder">&nbsp;</td>
+                            <td>
+                                <textarea name="problemDescription" class="problemDescription validable" rows="5"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><b><%= lblComment %>:</b></td>
+                        </tr>
+                        <tr>
+                            <td class="placeholder">&nbsp;</td>
+                            <td>
+                                <textarea name="comment" class="comment validable" rows="5"></textarea>
+                            </td>
+                        </tr>
+                    </table>
+                    <div id="edit-ticket-buttons">
+                        <a href="#" class="button-ok easyui-linkbutton" icon="icon-ok"><%= lblSubmit %></a>
+                        <a href="#" class="button-cancel easyui-linkbutton" icon="icon-cancel"><%= lblCancel %></a>
+                    </div>
+                </div>
+                <div data-options="region:'east',title:'<%= lblHistory %>',split:true" style="width:500px;">
+                    <table class="historyView"></table>
                 </div>
             </div>
         </script>
