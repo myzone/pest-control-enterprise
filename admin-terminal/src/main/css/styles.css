@@ -1,9 +1,12 @@
+.tasks-info-container table tr td {
+    text-align: right;
+}
 #ticket-form table tr td .validable {
     width:250px;
 }
 
-.editTicket {
-    display: none;
+#ticket-form table {
+    margin-bottom: 20px;
 }
 
 #ticket-form {
@@ -14,6 +17,24 @@
 #ticket-form table tr td.placeholder {
     width:50px;
 }
+
+#edit-ticket-form {
+    margin-bottom: 20px;
+}
+
+#edit-ticket-form table tr td .validable {
+    width:250px;
+}
+
+#edit-ticket-form {
+    margin-left: 20px;
+    margin-top: 20px;
+}
+
+#edit-ticket-form table tr td.placeholder {
+    width:50px;
+}
+
 .header
 {
     height:80px;
@@ -66,11 +87,11 @@
 
 .color-status.open
 {
-    background-color: green;
+    background-color: greenyellow;
 }
 .color-status.assigned
 {
-    background-color: greenyellow;
+    background-color: yellow;
 }
 .color-status.in_progress
 {
@@ -87,7 +108,7 @@
 
 .color-status.canceled
 {
-    background-color: #aaaaaa;
+    background-color: #000000;
 }
 
 *{

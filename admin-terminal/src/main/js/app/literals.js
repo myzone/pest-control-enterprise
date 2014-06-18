@@ -10,9 +10,6 @@ define(function() {
        },
        validationError: 'Validation error',
        ticketForm: {
-           lblStatus: 'Стутс заявки',
-           lblComment: 'Комментарий',
-           lblCustomer: 'Информация о клиенте',
            lblTitle: 'Добавить заявку',
            lblPestType: 'Тип вредителя',
            lblSelectPestType: 'Пожалуйста, выберите тип вредителя...',
@@ -25,6 +22,23 @@ define(function() {
            lblEmail: 'Email',
            lblPhoneNumber: 'Телефон',
            lblSubmit: 'Создать',
+           lblCancel: 'Отмена'
+       },
+       editTicketForm: {
+           lblStatus: 'Статус заявки',
+           lblComment: 'Комментарий',
+           lblTitle: 'Редактировать заявку',
+           lblPestType: 'Тип вредителя',
+           lblSelectPestType: 'Пожалуйста, выберите тип вредителя...',
+           lblBriefDescription: 'Краткое описание проблемы',
+           lblCustomerName: 'Имя клиента',
+           lblHouseNumber: 'Номер/Название дома',
+           lblStreet: 'Улица',
+           lblTown: 'Город/Населенный пункт',
+           lblPreferredDay: 'Предпочитаемая дата приезда специалиста',
+           lblEmail: 'Email',
+           lblPhoneNumber: 'Телефон',
+           lblSubmit: 'Сохранить',
            lblCancel: 'Отмена'
        },
        customerForm: {
@@ -41,6 +55,14 @@ define(function() {
            title: 'Ошибка регистрации клиента',
            text: 'Возникла ошибка при регистрации / обновлении клиента. Обратитесь к системному администратору.'
        },
+       ticketCloseError: {
+           title: 'Ошибка закрытия заявки',
+           text: 'Возникла ошибка при закрытии заявки. Обратитесь к системному администратору.'
+       },
+       requiredFieldsError: {
+           title: 'Ошибка',
+           text: 'Пожалуйста, заполните все необходимые поля.'
+       },
        statusClasses: ['OPEN','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED','CANCELED'],
        statusDescriptions: {
            'OPEN': 'Открыта',
@@ -49,6 +71,15 @@ define(function() {
            'RESOLVED': 'Завершена',
            'CLOSED': 'Закрыта',
            'CANCELED': 'Отменена'
+       },
+       statusInfo: {
+           'lblTotal': 'Всего',
+           'lblOpen': 'Открыто',
+           'lblAssigned': 'Назначено',
+           'lblInProgress': 'Исполняется',
+           'lblResolved': 'Завершено',
+           'lblClosed': 'Закрыто',
+           'lblCanceled': 'Отменено'
        },
        ticketsGridColumns: [[
            {field:'colorStatus',title:''},
@@ -59,7 +90,12 @@ define(function() {
            {field:'lastModified',title:'Последнее изменение'},
            {field:'type',title:'Тип заявки / Описание'},
            {field:'worker',title:'Ответственный сотрудник'}
-       ]]
+       ]],
+       closeTicketDialog: {
+           lblCloseTicket: 'Закрыть заявку',
+           lblClose: 'Закрыть',
+           lblCancel: 'Отмена'
+       }
 
    };
    return strings;

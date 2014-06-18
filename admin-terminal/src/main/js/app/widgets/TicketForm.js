@@ -4,50 +4,80 @@ define([
     'backbone',
     'models/PestTypes',
     'models/Ticket',
+    'models/StatusCollection',
     'widgets/ComboBox',
     'widgets/CustomerForm',
+    'widgets/Textarea',
     'jquery',
-    'easyui'], function( literals, _, Backbone, PestTypes, Ticket, ComboBox, CustomerForm, $) {
+    'easyui'], function( literals, _, Backbone, PestTypes, Ticket, statusCollection, ComboBox, CustomerForm, Textarea, $) {
 
     var TicketForm = Backbone.View.extend({
-        template: _.template($('#ticket-form-template').html()),
         constructor: function(opts) {
-
+            var oldRemove = this.remove;
             var options = opts;
             var self = this;
             var pestTypes = new PestTypes;
-            var comboPestTypes = null;
-            var customerForm = null;
             var session = options.session;
             var ticket = options.ticket;
+
+            var customerForm = null;
             var panel = null;
             var tabsContainer = null;
             var tabIndex = null;
-            var oldCloseCallback = null;
+            var literalsType = null;
+            var controls = {};
 
             this.$el = options.el;
 
-            function submit() {
+            if(ticket) {
+                this.template = _.template($('#edit-ticket-form-template').html());
+                literalsType = 'editTicketForm';
+            } else {
+                this.template = _.template($('#ticket-form-template').html());
+                literalsType = 'ticketForm';
+            }
+
+            function prepareForm() {
+                var control = null;
+                for(var key in controls) {
+                    control = controls[key];
+                    control.setValue(ticket.get(key));
+                }
+            }
+
+            function submitTicket() {
                 var fields = {
-                    pestType: {name: self.$('.pestType').combobox('getValue')},
-                    problemDescription: self.$('.problemDescription').val(),
-                    availabilityTime: []//[new Date(self.$('#availabilityTime').datebox('getValue')).getTime()]
+                    availabilityTime: []
+                };
+                for(var key in controls) {
+                    if(key === 'pestType') {
+                        fields[key] = {name: controls[key].getValue()};
+                        continue;
+                    }
+                    fields[key] = controls[key].getValue();
+                }
+                if(!ticket) {
+                    ticket = new Ticket({session: session});
+                }
+                ticket.set(fields);
+                ticket.save({},{
+                    success: function() {
+                        self.trigger('registered',ticket);
+                        close();
+                    },
+                    error: function() {
+                        self.trigger('requestRegistrationError',literals.requestRegistrationError);
+                    }
+                });
+            }
+
+            function submit() {
+                if(!self.isValid()) {
+                    self.trigger('invalid',literals.requiredFieldsError);
+                    return false;
                 }
                 customerForm.submit(function() {
-                    _.extend(fields,customerForm.getValue());
-                    if(!ticket) {
-                        ticket = new Ticket({session: session});
-                    }
-                    ticket.set(fields);
-                    ticket.save({},{
-                        success: function() {
-                            self.trigger('registered',ticket);
-                            close();
-                        },
-                        error: function() {
-                            self.trigger('requestRegistrationError',literals.requestRegistrationError);
-                        }
-                    });
+                    submitTicket();
                 }, function() {
                     self.trigger('customerUpdateError',literals.customerUpdateError);
                 });
@@ -56,48 +86,86 @@ define([
             function close() {
                 tabIndex = tabsContainer.tabs('getTabIndex',panel);
                 tabsContainer.tabs('close',tabIndex);
+                self.remove();
             }
+
+            this.isValid = function() {
+                for(var key in controls) {
+                    if(!controls[key].isValid()) return false;
+                }
+                return true;
+            };
+
+            this.remove = function() {
+                for(var key in controls) {
+                    controls[key].remove();
+                }
+                customerForm.remove();
+                oldRemove.apply(this, arguments);
+            };
 
             this.render = function() {
 
                 this.$el.tabs('add', {
-                    title: literals.ticketForm.lblTitle,
+                    title: literals[literalsType].lblTitle,
                     selected: true,
-                    closable: true
+                    closable: false
                 });
 
                 panel = this.$el.tabs('getSelected');
                 tabsContainer = this.$el;
                 tabIndex = tabsContainer.tabs('getTabIndex',panel);
+                $.parser.parse(panel.html(this.template(literals[literalsType])));
 
-                var opts = this.$el.tabs('options');
-                oldCloseCallback = opts.onClose;
-                opts.onClose = function(title,index) {
-                    //if(index === tabIndex) self.off();
-                    opts.onClose = oldCloseCallback;
-                    if(oldCloseCallback) {
-                        oldCloseCallback(title,index);
-                    }
-                };
-
-                $.parser.parse(panel.html(this.template(literals.ticketForm)));
                 this.$el = panel;
 
-                if(ticket) {
-                    this.$('.editTicket').css('display','block');
-                }
-
-                comboPestTypes = new ComboBox({
+                var comboPestTypes = new ComboBox({
                     collection: pestTypes,
                     el: this.$('.pestType'),
                     valueField: 'name',
                     textField: 'name',
-                    dummy: literals.ticketForm.lblSelectPestType
+                    dummy: literals[literalsType].lblSelectPestType,
+                    required: true,
+                    editable: false,
+                    getter: function(value) {return value.name;}
                 });
                 comboPestTypes.render();
+                controls.pestType = comboPestTypes;
 
-                customerForm = new CustomerForm({el: this.$('table'), session: session});
+                var textarea = new Textarea({
+                    el:this.$('.problemDescription'),
+                    required:true,
+                    validType:'length[1,2048]'
+                });
+                textarea.render();
+                controls.problemDescription = textarea;
+
+                customerForm = new CustomerForm({el: this.$('table'), session: session, ticket: ticket});
                 customerForm.render();
+                controls.customer = customerForm;
+
+                if(ticket) {
+                    var statusCombo = new ComboBox({
+                        collection: statusCollection,
+                        el: this.$('.status'),
+                        valueField: 'value',
+                        textField: 'text',
+                        required: true,
+                        editable: false
+                    });
+                    statusCombo.render();
+                    controls.status = statusCombo;
+
+                    var comment = new Textarea({
+                        el:this.$('.comment'),
+                        required:true,
+                        validType:'length[1,2048]'
+                    });
+                    comment.render();
+                    controls.comment = comment;
+
+                    prepareForm();
+                }
 
                 this.$('.button-ok').click(submit);
                 this.$('.button-cancel').click(close);

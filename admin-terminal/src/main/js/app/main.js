@@ -1,17 +1,19 @@
 define([
         'models/SessionModel',
         'models/TicketsModel',
+        'widgets/TicketsInfoView',
         'widgets/LoginForm',
         'widgets/TicketsGrid',
         'widgets/UserInfoPanel',
         'widgets/TicketForm',
+        'widgets/CloseTicketForm',
         'backbone',
         'underscore',
         'jquery',
         'easyui',
         'localization'
     ],
-    function(session, TicketsModel, LoginForm, TicketsView, LoggedUserInfoView, TicketForm, Backbone, _, $) {
+    function(session, TicketsModel, TicketsInfoView, LoginForm, TicketsView, LoggedUserInfoView, TicketForm, CloseTicketForm, Backbone, _, $) {
     //var mainRouter = new Router;
     //Backbone.history.start();
         $.parser.parse();
@@ -74,7 +76,6 @@ define([
         });*/
 
         var md = new TicketsModel;
-
         var tv = new TicketsView({
             el: $('#ticketsView')[0],
             model: md
@@ -82,6 +83,10 @@ define([
         tv.setToolbar('#ticketsToolbar');
         tv.setIdField('ticketid');
         tv.render();
+
+        var ticketsInfoView = new TicketsInfoView({model: md, el: $('.tasks-info-container')});
+        ticketsInfoView.render();
+
         tv.on('createTicket', function(){
             var form = new TicketForm({el: $('#tabs'), session: session});
             form.render();
@@ -91,14 +96,43 @@ define([
             form.on('customerUpdateError',function(msg) {
                 $.messager.alert(msg.title,msg.text,'error');
             });
+            form.on('invalid',function(msg){
+                $.messager.alert(msg.title,msg.text,'error');
+            });
             form.on('registered',function(ticket){
                 md.add(ticket);
+                tv.reload();
             });
         });
 
         tv.on('editTicket', function(ticket){
             var form = new TicketForm({el: $('#tabs'), session: session, ticket: ticket});
             form.render();
+            form.on('requestRegistrationError',function(msg) {
+                $.messager.alert(msg.title,msg.text,'error');
+            });
+            form.on('customerUpdateError',function(msg) {
+                $.messager.alert(msg.title,msg.text,'error');
+            });
+            form.on('registered',function(ticket){
+                md.set(ticket);
+                tv.reload();
+            });
+            form.on('invalid',function(msg){
+                $.messager.alert(msg.title,msg.text,'error');
+            });
+        });
+
+        tv.on('closeTicket', function(ticket) {
+            var closeTicketForm = new CloseTicketForm({el:$('body'), ticket: ticket});
+            closeTicketForm.render();
+            closeTicketForm.on('closed', function(ticket) {
+                md.set(ticket);
+                tv.reload();
+            });
+            closeTicketForm.on('ticketCloseError', function(msg) {
+                $.messager.alert(msg.title,msg.text,'error');
+            });
         });
 
         var userInfoView = new LoggedUserInfoView({
@@ -106,4 +140,5 @@ define([
             model: session
         });
         userInfoView.render();
+
 });

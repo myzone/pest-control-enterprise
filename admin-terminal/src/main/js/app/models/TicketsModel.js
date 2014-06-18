@@ -48,7 +48,8 @@ define(
                         sessionModel, filters,
                         function(response) {
                             if(response !==null && response.result!== undefined) {
-                                self.set(response.result.data,{silent:true});
+                                self.set(response.result.data, {silent:true});
+                                self.trigger('sync2',self);
                                 var totalField = self.models.length;
                                 if(response.result.data.length === count) {
                                     totalField++;

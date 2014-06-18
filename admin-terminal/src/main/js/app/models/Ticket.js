@@ -18,6 +18,7 @@ define(['models/Requester','models/SessionModel','backbone', 'literals', 'unders
             var needValidation = ['session','status','customer','pestType','problemDescription'];
             var editableFields = ['session','id','status','availabilityTime','customer','pestType','problemDescription','comment','taskHistory','executor'];
             var lastModifiedAttrs = [];
+            var oldSet = this.set;
 
             this.validate = function(attributes, options) {
                 if(_.indexOf(allowedStatuses, this.attributes['status']) === -1) {
@@ -30,29 +31,23 @@ define(['models/Requester','models/SessionModel','backbone', 'literals', 'unders
             };
 
             this.set = function (key, val) {
-                var attrs;
-                if (key == null) return this;
-                // Handle both `"key", value` and `{key: value}` -style arguments.
-                if (typeof key === 'object') {
-                    attrs = key;
-                } else {
-                    (attrs = {})[key] = val;
+                var result = oldSet.apply(this,arguments);
+                if(this.has('id')) {
+                    this.id = this.get('id');
                 }
-                attrs = _.pick(attrs,editableFields);
-                lastModifiedAttrs = _.union(lastModifiedAttrs, _.keys(attrs));
-                this.attributes = _.extend(this.attributes,attrs);
-                if(this.attributes.id) {
-                    this.id = this.attributes.id;
-                }
-                this.trigger('change', this);
-                return this;
+                return result;
             };
 
             function syncCreate(model, options) {
                 delete model.attributes.id;
                 requester.allocateTask(model.attributes, function(response) {
-                    options.success(response.result);
-                    lastModifiedAttrs.length=0;
+                    if(response !== null && response.result) {
+                        model.unset('comment');
+                        options.success(response.result);
+                    } else {
+                        options.error('Create ticket failed');
+                    }
+
                 });
                 return true;
             }
@@ -67,9 +62,11 @@ define(['models/Requester','models/SessionModel','backbone', 'literals', 'unders
                     function(response) {
                         if(response !== null && response.result) {
                             response = response.result.data[0];
+                            model.unset('comment');
+                            options.success(response);
+                        } else {
+                            options.error('Ticket read failed.');
                         }
-                        options.success(response);
-                        lastModifiedAttrs.length=0;
                     }
                 );
             }
@@ -78,15 +75,19 @@ define(['models/Requester','models/SessionModel','backbone', 'literals', 'unders
                 var changes = {
                     task: {id: model.get('id')}
                 }
-                var keys = _.keys(model.attributes);
+                var keys = _.keys(_.omit(model.attributes,'id'));
                 var values = Array.apply(null, new Array(keys.length))
                     .map(function(){ return null; });
                 var partialChanges = _.object(keys, values);
                 partialChanges = _.extend(partialChanges, changes,
-                    _.pick(model.attributes, lastModifiedAttrs, 'session'));
+                    _.omit(model.attributes, 'taskHistory','id','executor','customer'));
                 requester.editTask(partialChanges, function(response) {
-                    options.success(response.result);
-                    lastModifiedAttrs.length=0;
+                    if(response !== null && response.result) {
+                        model.unset('comment');
+                        options.success(response.result);
+                    } else {
+                        options.error('Ticket update failed');
+                    }
                 });
             }
 
@@ -105,13 +106,7 @@ define(['models/Requester','models/SessionModel','backbone', 'literals', 'unders
         initialize: function() {
 
             var self = this;
-
-
             var defaults = this.defaults;
-
-            this.unset = function() {
-               // restricted
-            };
 
             this.clear = function() {
                 this.attributes = _.extend(this.attributes,defaults);

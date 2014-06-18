@@ -1,4 +1,16 @@
 define(['underscore'], function( _ ) {
+
+    String.prototype.escapeSpecialChars = function() {
+        return this.replace(/\\n/g, "\\n")
+            .replace(/\\'/g, "\\'")
+            .replace(/\\"/g, '\\"')
+            .replace(/\\&/g, "\\&")
+            .replace(/\\r/g, "\\r")
+            .replace(/\\t/g, "\\t")
+            .replace(/\\b/g, "\\b")
+            .replace(/\\f/g, "\\f");
+    };
+
     function Requester(host) {
         var guid = (function() {
             function s4() {
@@ -26,11 +38,12 @@ define(['underscore'], function( _ ) {
 
             };
             xhr.onerror = function(data) {
+                console.log(data);
                 cb(null);
             };
             xhr.open("POST", host, true);
-            console.log(JSON.stringify(request));
-            xhr.send(JSON.stringify(request));
+            console.log(JSON.stringify(request).escapeSpecialChars());
+            xhr.send(JSON.stringify(request).escapeSpecialChars());
         }
 
         this.beginSession = function(login, password, callback) {
