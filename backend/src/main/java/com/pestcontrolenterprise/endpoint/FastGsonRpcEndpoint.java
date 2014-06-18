@@ -1,7 +1,6 @@
-package com.pestcontrolenterprise.endpoint.netty;
+package com.pestcontrolenterprise.endpoint;
 
 import com.google.gson.GsonBuilder;
-import com.pestcontrolenterprise.endpoint.RpcEndpoint;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -11,16 +10,16 @@ import java.util.function.Supplier;
 import static java.util.Collections.unmodifiableMap;
 
 /**
- * @author myzone
- * @date 4/27/14
- */
-public class FastNettyRpcEndpoint<P extends Enum<P>> extends NettyRpcEndpoint<P> implements RpcEndpoint<P> {
+* @author myzone
+* @date 4/27/14
+*/
+public class FastGsonRpcEndpoint<P extends Enum<P>> extends GsonRpcEndpoint<P> {
 
-    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected FastGsonRpcEndpoint(Class<P> procedureTypeClass, Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
         super(procedureTypeClass, asMap(procedureTypeClass, handlerPairs), idSupplier, gsonBuilder);
     }
 
-    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected FastGsonRpcEndpoint(Class<P> procedureTypeClass, Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
         super(procedureTypeClass, handlerPairsMap, idSupplier, gsonBuilder);
     }
 
@@ -44,8 +43,8 @@ public class FastNettyRpcEndpoint<P extends Enum<P>> extends NettyRpcEndpoint<P>
             super(procedureTypeClass);
         }
 
-        public FastNettyRpcEndpoint<P> build() {
-            return new FastNettyRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder);
+        public FastGsonRpcEndpoint<P> build() {
+            return new FastGsonRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder);
         }
 
     }

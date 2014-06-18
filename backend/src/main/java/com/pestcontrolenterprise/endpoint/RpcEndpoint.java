@@ -10,10 +10,7 @@ import java.util.function.Consumer;
  * @author myzone
  * @date 4/27/14
  */
-public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, RpcEndpoint.RemoteResult<P, ?, ?>> {
-
-    @Override
-    RpcClient<P> client(final String host, final short port);
+public interface RpcEndpoint<P, EI, EO> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, RpcEndpoint.RemoteResult<P, ?, ?>, EI, EO> {
 
     interface RemoteCall<P, A> {
 
@@ -39,7 +36,7 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
 
     }
 
-    interface RpcClient<P> extends Client<RemoteCall<P, ?>, RemoteResult<P, ?, ?>> {
+    interface RpcClient<P, EI, EO, E extends Client.Engine<EI, EO>> extends Client<RemoteCall<P, ?>, RemoteResult<P, ?, ?>, EI, EO, E> {
 
         <A, R, E extends Throwable> void call(Procedure<P, A, R, E> procedure, A arg, Consumer<PartialSupplier<R, E>> consumer);
 
@@ -108,8 +105,16 @@ public interface RpcEndpoint<P> extends Endpoint<RpcEndpoint.RemoteCall<P, ?>, R
             return new Procedure<>(procedureType, argumentType, returnType, exceptionType);
         }
 
-        public static <P, A, R> Procedure<P, A, R, RuntimeException> of(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
-            return new Procedure<>(procedureType, argumentType, returnType, new TypeToken<RuntimeException>() {});
+        public static <P, A, R> Procedure<P, A, R, NoException> of(P procedureType, TypeToken<A> argumentType, TypeToken<R> returnType) {
+            return new Procedure<>(procedureType, argumentType, returnType, new TypeToken<NoException>() {});
+        }
+
+        public static final class NoException extends Exception {
+
+            private NoException() {
+                throw new Error();
+            }
+
         }
 
     }

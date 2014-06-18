@@ -1,4 +1,4 @@
-package com.pestcontrolenterprise.endpoint.netty;
+package com.pestcontrolenterprise.endpoint.util;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;

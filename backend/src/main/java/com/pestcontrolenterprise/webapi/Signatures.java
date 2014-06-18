@@ -17,6 +17,7 @@ import static com.pestcontrolenterprise.api.Admin.AdminSession;
 import static com.pestcontrolenterprise.api.ReadonlyWorker.WorkerSession;
 import static com.pestcontrolenterprise.api.User.UserSession;
 import static com.pestcontrolenterprise.endpoint.RpcEndpoint.Procedure;
+import static com.pestcontrolenterprise.endpoint.RpcEndpoint.Procedure.NoException;
 import static java.util.Collections.emptySet;
 import static java.util.Map.Entry;
 
@@ -27,12 +28,12 @@ import static java.util.Map.Entry;
 public interface Signatures {
 
     // test
-    Procedure<String, List<Integer>, Integer, RuntimeException> plus = Procedure.of("plus", new TypeToken<List<Integer>>() {}, new TypeToken<Integer>() {});
+    Procedure<String, List<Integer>, Integer, NoException> plus = Procedure.of("plus", new TypeToken<List<Integer>>() {}, new TypeToken<Integer>() {});
 
     // common
-    Procedure<String, GetRequest<User>, GetResponse<User>, RuntimeException> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, GetRequest<PestType>, GetResponse<PestType>, RuntimeException> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {}, new TypeToken<RuntimeException>() {});
-    Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>, RuntimeException> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {}, new TypeToken<RuntimeException>() {});
+    Procedure<String, GetRequest<User>, GetResponse<User>, NoException> getUsers = Procedure.of("getUsers", new TypeToken<GetRequest<User>>() {}, new TypeToken<GetResponse<User>>() {});
+    Procedure<String, GetRequest<PestType>, GetResponse<PestType>, NoException> getPestTypes = Procedure.of("getPestTypes", new TypeToken<GetRequest<PestType>>() {}, new TypeToken<GetResponse<PestType>>() {});
+    Procedure<String, PestType, Set<Entry<EquipmentType, Integer>>, NoException> getRequiredEquipment = Procedure.of("getRequiredEquipment", new TypeToken<PestType>() {}, new TypeToken<Set<Entry<EquipmentType, Integer>>>() {});
 
     Procedure<String, BeginSessionRequest, UserSession, InvalidStateException> beginSession = Procedure.of("beginSession", new TypeToken<BeginSessionRequest>() {}, new TypeToken<UserSession>() {}, new TypeToken<InvalidStateException>() {});
     Procedure<String, UserSession, Void, InvalidStateException> endSession = Procedure.of("endSession", new TypeToken<UserSession>() {}, new TypeToken<Void>() {}, new TypeToken<InvalidStateException>() {});

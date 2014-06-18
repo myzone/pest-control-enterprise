@@ -1,0 +1,62 @@
+//package com.pestcontrolenterprise.endpoint.netty;
+//
+//import com.pestcontrolenterprise.endpoint.GsonRpcEndpoint;
+//import com.pestcontrolenterprise.endpoint.RpcEndpointTest;
+//import org.junit.After;
+//import org.junit.Before;
+//
+//import java.util.concurrent.atomic.AtomicReference;
+//
+//import static com.pestcontrolenterprise.endpoint.Endpoint.Host;
+//import static com.pestcontrolenterprise.endpoint.RpcEndpoint.RemoteCall;
+//import static com.pestcontrolenterprise.endpoint.RpcEndpoint.RemoteResult;
+//import static com.pestcontrolenterprise.endpoint.GsonRpcEndpoint.HandlerPair;
+//
+///**
+// * @author myzone
+// * @date 4/27/14
+// */
+//public class FastGsonRpcEndpointTest extends RpcEndpointTest {
+//
+//    private static final short PORT = 8083;
+//
+//    private Host<RemoteCall<ServiceSignature.MethodType, ?>, RemoteResult<ServiceSignature.MethodType, ?, ?>> host;
+//    private GsonRpcEndpoint<ServiceSignature.MethodType> rpcEndpoint;
+//
+//    @Before
+//    public void setUp() throws Exception {
+//        final AtomicReference<String> atomicReference = new AtomicReference<String>();
+//
+//        rpcEndpoint = FastNettyRpcEndpoint
+//                .fastBuilder(ServiceSignature.MethodType.class)
+//                .withHandlerPair(HandlerPair.of(ServiceSignature.SET, s -> {
+//                    atomicReference.set(s);
+//
+//                    return null;
+//                }))
+//                .withHandlerPair(HandlerPair.of(ServiceSignature.GET, none -> atomicReference.get()))
+//                .build();
+//
+//        host = rpcEndpoint.bind(PORT);
+//    }
+//
+//    @After
+//    public void tearDown() throws Exception {
+//        if (host != null) {
+//            host.close();
+//
+//            host = null;
+//        }
+//    }
+//
+//    @Override
+//    protected GsonRpcEndpoint<ServiceSignature.MethodType> getRpcEndpoint() {
+//        return rpcEndpoint;
+//    }
+//
+//    @Override
+//    protected short getPort() {
+//        return PORT;
+//    }
+//
+//}

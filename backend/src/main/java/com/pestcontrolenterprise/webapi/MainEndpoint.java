@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.pestcontrolenterprise.ApplicationContext;
 import com.pestcontrolenterprise.api.*;
-import com.pestcontrolenterprise.endpoint.netty.NettyRpcEndpoint;
 import com.pestcontrolenterprise.json.*;
 import com.pestcontrolenterprise.persistent.*;
 import com.pestcontrolenterprise.service.AssignerService;
@@ -61,39 +60,39 @@ public class MainEndpoint {
                 PersistentTask.MergeableTaskHistoryEntry.class
         ));
 
-        NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder = NettyRpcEndpoint.builder(String.class);
+//        NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder = NettyRpcEndpoint.builder(String.class);
+//
+//        populateDbWithTestData(applicationContext);
+//        runServices(applicationContext);
+//        configureJson(endpointBuilder, applicationContext);
+//        configureHandlers(endpointBuilder, applicationContext);
 
-        populateDbWithTestData(applicationContext);
-        runServices(applicationContext);
-        configureJson(endpointBuilder, applicationContext);
-        configureHandlers(endpointBuilder, applicationContext);
-
-        endpointBuilder
-                .build()
-                .bind(port);
+//        endpointBuilder
+//                .build()
+//                .bind(port);
     }
 
-    private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
-        endpointBuilder.withGsonBuilder((gsonBuilder) -> gsonBuilder
-                        .registerTypeAdapterFactory(new RequiredFieldsEnsurerFactory())
-                        .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
-                        .registerTypeHierarchyAdapter(Throwable.class, new ThrowableJsonAdapter<>())
-                        .registerTypeHierarchyAdapter(Map.Entry.class, new EntryJsonAdapter())
-                        .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
-                        .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
-                        .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
-                        .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
-                        .registerTypeHierarchyAdapter(ReadonlyCustomer.class, new CustomerJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
-                        .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
-                        .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
-                        .setPrettyPrinting()
-        );
-    }
+//    private static void configureJson(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder, ApplicationContext applicationContext) {
+//        endpointBuilder.withGsonBuilder((gsonBuilder) -> gsonBuilder
+//                        .registerTypeAdapterFactory(new RequiredFieldsEnsurerFactory())
+//                        .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
+//                        .registerTypeHierarchyAdapter(Throwable.class, new ThrowableJsonAdapter<>())
+//                        .registerTypeHierarchyAdapter(Map.Entry.class, new EntryJsonAdapter())
+//                        .registerTypeHierarchyAdapter(Predicate.class, new FastPredicatesAdapter())
+//                        .registerTypeHierarchyAdapter(Stream.class, new StreamJsonAdapter<>())
+//                        .registerTypeHierarchyAdapter(ReadonlyTask.class, new TaskJsonAdapter(applicationContext))
+//                        .registerTypeHierarchyAdapter(ReadonlyTask.TaskHistoryEntry.class, TaskJsonAdapter.TaskHistoryEntryJsonAdapter.INSTANCE)
+//                        .registerTypeHierarchyAdapter(ReadonlyTask.DataChangeTaskHistoryEntry.class, TaskJsonAdapter.DataChangeTaskHistoryEntryJsonAdapter.INSTANCE)
+//                        .registerTypeHierarchyAdapter(ReadonlyCustomer.class, new CustomerJsonAdapter(applicationContext))
+//                        .registerTypeHierarchyAdapter(Address.class, new AddressJsonAdapter())
+//                        .registerTypeHierarchyAdapter(User.class, new UserJsonAdapter(applicationContext))
+//                        .registerTypeHierarchyAdapter(ReadonlyWorker.class, new WorkerJsonAdapter(applicationContext))
+//                        .registerTypeHierarchyAdapter(UserSession.class, new UserSessionJsonAdapter(applicationContext))
+//                        .registerTypeHierarchyAdapter(EquipmentType.class, new EquipmentTypeJsonAdapter(applicationContext))
+//                        .registerTypeHierarchyAdapter(PestType.class, new PestTypeJsonAdapter(applicationContext))
+//                        .setPrettyPrinting()
+//        );
+//    }
 
     private static PersistentApplicationContext buildApplicationContext(Configuration configuration) {
         SessionFactory sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build());
@@ -136,92 +135,92 @@ public class MainEndpoint {
         adminSession.close();
     }
 
-    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) throws InvalidStateException {
-        PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationContext);
-
-        endpointBuilder
-                .withHandlerPair(plus, integers -> integers.stream().reduce(Math::addExact).orElse(0))
-                .withHandlerPair(getUsers, request -> applyFilters(persistentPestControlEnterprise.getUsers(), request.getFilters()))
-                .withHandlerPair(getPestTypes, request -> applyFilters(persistentPestControlEnterprise.getPestTypes(), request.getFilters()))
-                .withHandlerPair(getRequiredEquipment, pestType -> persistentPestControlEnterprise.getRequiredEquipment(pestType).entrySet())
-                .withHandlerPair(beginSession, beginSessionRequest -> beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword()))
-                .withHandlerPair(endSession, userSession -> {
-                    userSession.close();
-
-                    return null;
-                })
-                .withHandlerPair(getAssignedTasks, request -> applyFilters(request.getSession().getAssignedTasks(), request.getFilters()))
-                .withHandlerPair(getCurrentTasks, request -> applyFilters(request.getSession().getCurrentTasks(), request.getFilters()))
-                .withHandlerPair(discardTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().discardTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
-
-                    return null;
-                })
-                .withHandlerPair(startTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
-
-                    return null;
-                })
-                .withHandlerPair(finishTask, modifyTaskRequest -> {
-                    modifyTaskRequest.getWorkerSession().finishTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
-
-                    return null;
-                })
-                .withHandlerPair(allocateTask, allocateTaskRequest -> allocateTaskRequest.getSession().allocateTask(
-                        allocateTaskRequest.getStatus(),
-                        allocateTaskRequest.getWorker(),
-                        ImmutableSet.copyOf(allocateTaskRequest.getAvailabilityTime()),
-                        allocateTaskRequest.getCustomer(),
-                        allocateTaskRequest.getPestType(),
-                        allocateTaskRequest.getProblemDescription(),
-                        allocateTaskRequest.getComment()
-                ))
-                .withHandlerPair(editTask, editTaskRequest -> editTaskRequest.getSession().editTask(
-                        editTaskRequest.getTask(),
-                        editTaskRequest.getStatus(),
-                        editTaskRequest.getWorker(),
-                        editTaskRequest.getAvailabilityTime().map(ImmutableSet::copyOf),
-                        editTaskRequest.getCustomer(),
-                        editTaskRequest.getPestType(),
-                        editTaskRequest.getProblemDescription(),
-                        editTaskRequest.getComment()))
-                .withHandlerPair(getTasks, adminSessionTaskAuthorizedGetRequest -> applyFilters(
-                        adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
-                        adminSessionTaskAuthorizedGetRequest.getFilters()
-                ))
-                .withHandlerPair(registerCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().registerCustomer(
-                        registerCustomerRequest.getName(),
-                        registerCustomerRequest.getAddress(),
-                        registerCustomerRequest.getCellPhone(),
-                        registerCustomerRequest.getEmail()
-                ))
-                .withHandlerPair(editCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().editCustomer(
-                        registerCustomerRequest.getCustomer(),
-                        registerCustomerRequest.getAddress(),
-                        registerCustomerRequest.getCellPhone(),
-                        registerCustomerRequest.getEmail()
-                ))
-                .withHandlerPair(getCustomers, adminSessionCustomerAuthorizedGetRequest -> applyFilters(
-                        adminSessionCustomerAuthorizedGetRequest.getSession().getCustomers(),
-                        adminSessionCustomerAuthorizedGetRequest.getFilters()
-                ))
-                .withHandlerPair(registerWorker, registerWorkerRequest -> registerWorkerRequest.getSession().registerWorker(
-                        registerWorkerRequest.getLogin(),
-                        registerWorkerRequest.getName(),
-                        registerWorkerRequest.getPassword(),
-                        registerWorkerRequest.getWorkablePestTypes()
-                ))
-                .withHandlerPair(editWorker, registerWorkerRequest -> registerWorkerRequest.getSession().editWorker(
-                        registerWorkerRequest.getWorker(),
-                        registerWorkerRequest.getName(),
-                        registerWorkerRequest.getPassword(),
-                        registerWorkerRequest.getWorkablePestTypes()
-                ))
-                .withHandlerPair(getWorkers, adminSessionWorkerAuthorizedGetRequest -> applyFilters(
-                        adminSessionWorkerAuthorizedGetRequest.getSession().getWorkers(),
-                        adminSessionWorkerAuthorizedGetRequest.getFilters()
-                ));
-    }
+//    private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) throws InvalidStateException {
+//        PersistentPestControlEnterprise persistentPestControlEnterprise = new PersistentPestControlEnterprise(applicationContext);
+//
+//        endpointBuilder
+//                .withHandlerPair(plus, integers -> integers.stream().reduce(Math::addExact).orElse(0))
+//                .withHandlerPair(getUsers, request -> applyFilters(persistentPestControlEnterprise.getUsers(), request.getFilters()))
+//                .withHandlerPair(getPestTypes, request -> applyFilters(persistentPestControlEnterprise.getPestTypes(), request.getFilters()))
+//                .withHandlerPair(getRequiredEquipment, pestType -> persistentPestControlEnterprise.getRequiredEquipment(pestType).entrySet())
+//                .withHandlerPair(beginSession, beginSessionRequest -> beginSessionRequest.getUser().beginSession(beginSessionRequest.getPassword()))
+//                .withHandlerPair(endSession, userSession -> {
+//                    userSession.close();
+//
+//                    return null;
+//                })
+//                .withHandlerPair(getAssignedTasks, request -> applyFilters(request.getSession().getAssignedTasks(), request.getFilters()))
+//                .withHandlerPair(getCurrentTasks, request -> applyFilters(request.getSession().getCurrentTasks(), request.getFilters()))
+//                .withHandlerPair(discardTask, modifyTaskRequest -> {
+//                    modifyTaskRequest.getWorkerSession().discardTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+//
+//                    return null;
+//                })
+//                .withHandlerPair(startTask, modifyTaskRequest -> {
+//                    modifyTaskRequest.getWorkerSession().startTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+//
+//                    return null;
+//                })
+//                .withHandlerPair(finishTask, modifyTaskRequest -> {
+//                    modifyTaskRequest.getWorkerSession().finishTask(modifyTaskRequest.getTask(), modifyTaskRequest.getComment());
+//
+//                    return null;
+//                })
+//                .withHandlerPair(allocateTask, allocateTaskRequest -> allocateTaskRequest.getSession().allocateTask(
+//                        allocateTaskRequest.getStatus(),
+//                        allocateTaskRequest.getWorker(),
+//                        ImmutableSet.copyOf(allocateTaskRequest.getAvailabilityTime()),
+//                        allocateTaskRequest.getCustomer(),
+//                        allocateTaskRequest.getPestType(),
+//                        allocateTaskRequest.getProblemDescription(),
+//                        allocateTaskRequest.getComment()
+//                ))
+//                .withHandlerPair(editTask, editTaskRequest -> editTaskRequest.getSession().editTask(
+//                        editTaskRequest.getTask(),
+//                        editTaskRequest.getStatus(),
+//                        editTaskRequest.getWorker(),
+//                        editTaskRequest.getAvailabilityTime().map(ImmutableSet::copyOf),
+//                        editTaskRequest.getCustomer(),
+//                        editTaskRequest.getPestType(),
+//                        editTaskRequest.getProblemDescription(),
+//                        editTaskRequest.getComment()))
+//                .withHandlerPair(getTasks, adminSessionTaskAuthorizedGetRequest -> applyFilters(
+//                        adminSessionTaskAuthorizedGetRequest.getSession().getTasks(),
+//                        adminSessionTaskAuthorizedGetRequest.getFilters()
+//                ))
+//                .withHandlerPair(registerCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().registerCustomer(
+//                        registerCustomerRequest.getName(),
+//                        registerCustomerRequest.getAddress(),
+//                        registerCustomerRequest.getCellPhone(),
+//                        registerCustomerRequest.getEmail()
+//                ))
+//                .withHandlerPair(editCustomer, registerCustomerRequest -> registerCustomerRequest.getSession().editCustomer(
+//                        registerCustomerRequest.getCustomer(),
+//                        registerCustomerRequest.getAddress(),
+//                        registerCustomerRequest.getCellPhone(),
+//                        registerCustomerRequest.getEmail()
+//                ))
+//                .withHandlerPair(getCustomers, adminSessionCustomerAuthorizedGetRequest -> applyFilters(
+//                        adminSessionCustomerAuthorizedGetRequest.getSession().getCustomers(),
+//                        adminSessionCustomerAuthorizedGetRequest.getFilters()
+//                ))
+//                .withHandlerPair(registerWorker, registerWorkerRequest -> registerWorkerRequest.getSession().registerWorker(
+//                        registerWorkerRequest.getLogin(),
+//                        registerWorkerRequest.getName(),
+//                        registerWorkerRequest.getPassword(),
+//                        registerWorkerRequest.getWorkablePestTypes()
+//                ))
+//                .withHandlerPair(editWorker, registerWorkerRequest -> registerWorkerRequest.getSession().editWorker(
+//                        registerWorkerRequest.getWorker(),
+//                        registerWorkerRequest.getName(),
+//                        registerWorkerRequest.getPassword(),
+//                        registerWorkerRequest.getWorkablePestTypes()
+//                ))
+//                .withHandlerPair(getWorkers, adminSessionWorkerAuthorizedGetRequest -> applyFilters(
+//                        adminSessionWorkerAuthorizedGetRequest.getSession().getWorkers(),
+//                        adminSessionWorkerAuthorizedGetRequest.getFilters()
+//                ));
+//    }
 
     private static void runServices(ApplicationContext applicationContext) {
         Session persistenceSession = applicationContext.getPersistenceSession();

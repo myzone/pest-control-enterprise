@@ -1,4 +1,4 @@
-package com.pestcontrolenterprise.endpoint.netty;
+package com.pestcontrolenterprise.endpoint;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
@@ -7,7 +7,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
-import com.pestcontrolenterprise.endpoint.RpcEndpoint;
 import com.pestcontrolenterprise.util.PartialFunction;
 import com.pestcontrolenterprise.util.PartialSupplier;
 import io.netty.bootstrap.Bootstrap;
@@ -42,21 +41,21 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
- * @author myzone
- * @date 4/25/14
- */
-public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteResult<P, ?, ?>> implements RpcEndpoint<P> {
+* @author myzone
+* @date 4/25/14
+*/
+public class GsonRpcEndpoint<P> extends GsonEndpoint<RemoteCall<P, ?>, RemoteResult<P, ?, ?>> implements RpcEndpoint<P, String, String> {
 
     protected static final Supplier<String> DEFAULT_ID_SUPPLIER = () -> UUID.randomUUID().toString();
 
     protected final Supplier<String> idSupplier;
 
-    protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected GsonRpcEndpoint(final Class<P> procedureTypeClass, final Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
         this(procedureTypeClass, asMap(handlerPairs), idSupplier, gsonBuilder);
     }
 
     @SuppressWarnings("unchecked")
-    protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected GsonRpcEndpoint(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
         super(remoteCall -> {
             HandlerPair<P, ?, ?, ?> handlerPair = handlerPairsMap.get(remoteCall.getProcedureType());
 
@@ -75,7 +74,7 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                         throwable
                 );
             }
-        }, new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?, ?>>(){}, createGsonBuilder(procedureTypeClass, handlerPairsMap, gsonBuilder.serializeNulls()));
+        }, createGsonBuilder(procedureTypeClass, handlerPairsMap, gsonBuilder.serializeNulls()), new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?, ?>>(){});
 
         this.idSupplier = idSupplier;
     }
@@ -161,83 +160,83 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
 
         return gsonBuilder;
     }
-
-    @Override
-    public RpcClient<P> client(final String host, final short port) {
-        final Map<String, Consumer<RemoteResult<P, ?, ?>>> consumersMap = new ConcurrentHashMap<String, Consumer<RemoteResult<P, ?, ?>>>();
-
-        final EventLoopGroup workerGroup = new NioEventLoopGroup();
-        final Bootstrap bootstrap = new Bootstrap()
-                .group(workerGroup)
-                .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast("encoder", new HttpClientCodec());
-                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<HttpContent>() {
-                                    @Override
-                                    protected void messageReceived(ChannelHandlerContext channelHandlerContext, HttpContent httpResponse) throws Exception {
-                                        RemoteResult<P, ?, ?> result = gson.<RemoteResult<P, ?, ?>>fromJson(new InputStreamReader(new ByteBufInputStream(httpResponse.content())), outputType.getType());
-
-                                        consumersMap.getOrDefault(result.getIdentifier(), remoteResult -> {
-                                            // just do noting here
-                                        }).accept(result);
-                                    }
-                                }
-                        );
-                    }
-                });
-
-
-        return new RpcClient<P>() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public final <A, R, E extends Throwable> void call(Procedure<P, A, R, E> procedure, A arg, Consumer<PartialSupplier<R, E>> consumer) {
-                request(ImmutableRemoteCall.of(idSupplier.get(), procedure.getProcedureType(), arg), remoteResult -> {
-                    if(remoteResult.isSucceeded()) {
-                        consumer.accept(() -> {
-                            return (R) remoteResult.getReturnedResult();
-                        });
-                    } else {
-                        consumer.accept(() -> {
-                            throw (E) remoteResult.getThrownException();
-                        });
-                    }
-                });
-            }
-
-            @Override
-            public String getHost() {
-                return host;
-            }
-
-            @Override
-            public short getPort() {
-                return port;
-            }
-
-            @Override
-            public void request(RemoteCall<P, ?> call, Consumer<RemoteResult<P, ?, ?>> consumer) {
-                consumersMap.put(call.getIdentifier(), consumer);
-
-                String content = gson.toJson(call, inputType.getType());
-
-                DefaultFullHttpRequest request = new DefaultFullHttpRequest(HTTP_1_1, HttpMethod.POST, "http://" + getHost() + ":" + getPort(), Unpooled.wrappedBuffer(content.getBytes()));
-                request.headers().set(CONTENT_TYPE, "application/json");
-                request.headers().set(CONTENT_LENGTH, request.content().readableBytes());
-
-                bootstrap.connect(host, port)
-                        .syncUninterruptibly()
-                        .channel()
-                        .writeAndFlush(request);
-            }
-
-            @Override
-            public void close() {
-                workerGroup.shutdownGracefully();
-            }
-        };
-    }
+//
+//    @Override
+//    public RpcClient<P, String, String> client(final String host, final short port) {
+//        final Map<String, Consumer<RemoteResult<P, ?, ?>>> consumersMap = new ConcurrentHashMap<String, Consumer<RemoteResult<P, ?, ?>>>();
+//
+//        final EventLoopGroup workerGroup = new NioEventLoopGroup();
+//        final Bootstrap bootstrap = new Bootstrap()
+//                .group(workerGroup)
+//                .channel(NioSocketChannel.class)
+//                .handler(new ChannelInitializer<SocketChannel>() {
+//                    @Override
+//                    public void initChannel(SocketChannel ch) throws Exception {
+//                        ch.pipeline().addLast("encoder", new HttpClientCodec());
+//                        ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<HttpContent>() {
+//                                    @Override
+//                                    protected void messageReceived(ChannelHandlerContext channelHandlerContext, HttpContent httpResponse) throws Exception {
+//                                        RemoteResult<P, ?, ?> result = gson.<RemoteResult<P, ?, ?>>fromJson(new InputStreamReader(new ByteBufInputStream(httpResponse.content())), outputType.getType());
+//
+//                                        consumersMap.getOrDefault(result.getIdentifier(), remoteResult -> {
+//                                            // just do noting here
+//                                        }).accept(result);
+//                                    }
+//                                }
+//                        );
+//                    }
+//                });
+//
+//
+//        return new RpcClient<P>() {
+//            @SuppressWarnings("unchecked")
+//            @Override
+//            public final <A, R, E extends Throwable> void call(Procedure<P, A, R, E> procedure, A arg, Consumer<PartialSupplier<R, E>> consumer) {
+//                request(ImmutableRemoteCall.of(idSupplier.get(), procedure.getProcedureType(), arg), remoteResult -> {
+//                    if(remoteResult.isSucceeded()) {
+//                        consumer.accept(() -> {
+//                            return (R) remoteResult.getReturnedResult();
+//                        });
+//                    } else {
+//                        consumer.accept(() -> {
+//                            throw (E) remoteResult.getThrownException();
+//                        });
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public String getHost() {
+//                return host;
+//            }
+//
+//            @Override
+//            public short getEngine() {
+//                return port;
+//            }
+//
+//            @Override
+//            public void request(RemoteCall<P, ?> call, Consumer<RemoteResult<P, ?, ?>> consumer) {
+//                consumersMap.put(call.getIdentifier(), consumer);
+//
+//                String content = gson.toJson(call, inputType.getType());
+//
+//                DefaultFullHttpRequest request = new DefaultFullHttpRequest(HTTP_1_1, HttpMethod.POST, "http://" + getHost() + ":" + getEngine(), Unpooled.wrappedBuffer(content.getBytes()));
+//                request.headers().set(CONTENT_TYPE, "application/json");
+//                request.headers().set(CONTENT_LENGTH, request.content().readableBytes());
+//
+//                bootstrap.connect(host, port)
+//                        .syncUninterruptibly()
+//                        .channel()
+//                        .writeAndFlush(request);
+//            }
+//
+//            @Override
+//            public void close() {
+//                workerGroup.shutdownGracefully();
+//            }
+//        };
+//    }
 
     protected static <K, V> V getOrCompute(Map<K, V> map, K key, Function<K, V> function) {
         return map.containsKey(key) ? map.get(key) : function.apply(key);
@@ -247,7 +246,7 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
 
         protected final Class<P> procedureTypeClass;
 
-        protected final Set<NettyRpcEndpoint.HandlerPair<P, ?, ?, ?>> handlerPairs;
+        protected final Set<GsonRpcEndpoint.HandlerPair<P, ?, ?, ?>> handlerPairs;
         protected Supplier<String> idSupplier;
         protected GsonBuilder gsonBuilder;
 
@@ -260,13 +259,13 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                     .serializeNulls();
         }
 
-        public NettyRpcEndpointBuilder<P> withHandlerPairs(Set<NettyRpcEndpoint.HandlerPair<P, ?, ?, ?>> handlerPairs) {
+        public NettyRpcEndpointBuilder<P> withHandlerPairs(Set<GsonRpcEndpoint.HandlerPair<P, ?, ?, ?>> handlerPairs) {
             this.handlerPairs.addAll(handlerPairs);
 
             return this;
         }
 
-        public NettyRpcEndpointBuilder<P> withHandlerPair(NettyRpcEndpoint.HandlerPair<P, ?, ?, ?> handlerPair) {
+        public NettyRpcEndpointBuilder<P> withHandlerPair(GsonRpcEndpoint.HandlerPair<P, ?, ?, ?> handlerPair) {
             this.handlerPairs.add(handlerPair);
 
             return this;
@@ -290,8 +289,8 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
             return this;
         }
 
-        public NettyRpcEndpoint<P> build() {
-            return new NettyRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder);
+        public GsonRpcEndpoint<P> build() {
+            return new GsonRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder);
         }
 
     }
