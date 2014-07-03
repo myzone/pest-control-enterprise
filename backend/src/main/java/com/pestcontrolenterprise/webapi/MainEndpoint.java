@@ -69,8 +69,14 @@ public class MainEndpoint {
         configureHandlers(endpointBuilder, applicationContext);
 
         endpointBuilder
-                .withOnConnectionOpenedHook(applicationContext::onConnectionOpened)
-                .withOnConnectionClosedHook(applicationContext::onConnectionClosed)
+                .withOnConnectionOpenedHook(() -> {
+                    System.out.println("onConnectionOpened @" + Thread.currentThread());
+                    applicationContext.onConnectionOpened();
+                })
+                .withOnConnectionClosedHook(() -> {
+                    System.out.println("onConnectionClosed @" + Thread.currentThread());
+                    applicationContext.onConnectionClosed();
+                })
                 .build()
                 .bind(port);
     }

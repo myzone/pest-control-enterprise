@@ -54,6 +54,7 @@ public class FastPredicates {
         public int getOffset() {
             return offset;
         }
+
         public int getCount() {
             return count;
         }
@@ -69,12 +70,12 @@ public class FastPredicates {
 
         @Override
         public boolean test(Customer customer) {
-            return true;//customer.getName().toUpperCase().indexOf(search) !=-1;
+            return customer.getName().startsWith(search);
         }
 
         @Override
         public Criteria describeItself(Criteria criteria) {
-            return criteria.add(ilike("name", getSearch()));
+            return criteria.add(ilike("name", search));
         }
 
     }
@@ -150,8 +151,8 @@ public class FastPredicates {
         }
 
         @Override
-        public void describeItself(Criteria criteria) {
-            criteria.add(eq("name", getUsername()));
+        public Criteria describeItself(Criteria criteria) {
+            return criteria.add(eq("name", getUsername()));
         }
 
     }

@@ -60,7 +60,6 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
     protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder, Runnable onConnectionOpenedHook, Runnable onConnectionClosedHook) {
         super(remoteCall -> {
             HandlerPair<P, ?, ?, ?> handlerPair = handlerPairsMap.get(remoteCall.getProcedureType());
-            onConnectionOpenedHook.run();
 
             try {
                 return ImmutableRemoteResult.of(
@@ -76,10 +75,8 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                         null,
                         throwable
                 );
-            } finally {
-                onConnectionClosedHook.run();
             }
-        }, new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?, ?>>(){}, createGsonBuilder(procedureTypeClass, handlerPairsMap, gsonBuilder.serializeNulls()));
+        }, new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?, ?>>(){}, createGsonBuilder(procedureTypeClass, handlerPairsMap, gsonBuilder.serializeNulls()), onConnectionOpenedHook, onConnectionClosedHook);
 
         this.idSupplier = idSupplier;
     }

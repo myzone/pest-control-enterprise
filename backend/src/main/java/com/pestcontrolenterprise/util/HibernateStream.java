@@ -241,7 +241,7 @@ public class HibernateStream<T> implements Stream<T> {
 
     public interface HibernatePredicate<T> extends Predicate<T> {
 
-        void describeItself(Criteria criteria);
+        Criteria describeItself(Criteria criteria);
 
     }
 

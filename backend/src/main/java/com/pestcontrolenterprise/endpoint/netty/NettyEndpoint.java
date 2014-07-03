@@ -38,6 +38,8 @@ public class NettyEndpoint<I, O> implements Endpoint<I, O> {
 
     protected final TypeToken<I> inputType;
     protected final TypeToken<O> outputType;
+    protected final Runnable onConnectionOpenedHook;
+    protected final Runnable onConnectionClosedHook;
 
     protected final Gson gson;
 
@@ -45,12 +47,16 @@ public class NettyEndpoint<I, O> implements Endpoint<I, O> {
             Function<I, O> function,
             TypeToken<I> inputType,
             TypeToken<O> outputType,
-            GsonBuilder gsonBuilder
+            GsonBuilder gsonBuilder,
+            Runnable onConnectionOpenedHook,
+            Runnable onConnectionClosedHook
     ) {
         this.function = function;
 
         this.inputType = inputType;
         this.outputType = outputType;
+        this.onConnectionOpenedHook = onConnectionOpenedHook;
+        this.onConnectionClosedHook = onConnectionClosedHook;
 
         gson = gsonBuilder
                 .create();
@@ -70,6 +76,8 @@ public class NettyEndpoint<I, O> implements Endpoint<I, O> {
                         ch.pipeline().addLast("handler", new SimpleChannelInboundHandler<HttpContent>() {
                             @Override
                             protected void messageReceived(ChannelHandlerContext channelHandlerContext, HttpContent httpRequest) {
+                                onConnectionOpenedHook.run();
+
                                 ByteBuf byteBuf = Unpooled.wrappedBuffer(httpRequest.content());
                                 final byte[] bytes = new byte[byteBuf.readableBytes()];
                                 byteBuf.readBytes(bytes);
@@ -98,8 +106,15 @@ public class NettyEndpoint<I, O> implements Endpoint<I, O> {
                                     StringWriter stringWriter = new StringWriter();
                                     e.printStackTrace(new PrintWriter(stringWriter));
 
+                                    /**
+                                     * @todo replace this logging with some external logging, it's just temp solution for debugging related stuff
+                                     */
+                                    System.out.println("<<< " + stringWriter.toString());
+
                                     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.wrappedBuffer(stringWriter.getBuffer().toString().getBytes()));
                                     channelHandlerContext.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+                                } finally {
+                                    onConnectionClosedHook.run();
                                 }
                             }
                         });
@@ -194,7 +209,7 @@ public class NettyEndpoint<I, O> implements Endpoint<I, O> {
             TypeToken<O> outputType,
             GsonBuilder gsonBuilder
     ) {
-        return new NettyEndpoint<I, O>(function, inputType, outputType, gsonBuilder);
+        return new NettyEndpoint<I, O>(function, inputType, outputType, gsonBuilder, () -> {}, () -> {});
     }
 
     public static <I, O> NettyEndpoint<I, O> of(
