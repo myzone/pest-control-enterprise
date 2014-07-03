@@ -41,7 +41,7 @@ public class MainEndpoint {
     private static final short port = 9292;
 
     public static void main(String[] args) throws Exception {
-        ApplicationContext applicationContext = buildApplicationContext(buildConfiguration(
+        PersistentApplicationContext applicationContext = buildApplicationContext(buildConfiguration(
 //                "file:~/test123.db",
                 "mem:db1",
                 PersistentObject.class,
@@ -69,6 +69,8 @@ public class MainEndpoint {
         configureHandlers(endpointBuilder, applicationContext);
 
         endpointBuilder
+                .withOnConnectionOpenedHook(applicationContext::onConnectionOpened)
+                .withOnConnectionClosedHook(applicationContext::onConnectionClosed)
                 .build()
                 .bind(port);
     }
@@ -117,7 +119,9 @@ public class MainEndpoint {
         return configuration;
     }
 
-    private static void populateDbWithTestData(ApplicationContext applicationContext) throws InvalidStateException {
+    private static void populateDbWithTestData(PersistentApplicationContext applicationContext) throws InvalidStateException {
+        applicationContext.onConnectionOpened();
+
         PersistentEquipmentType trowel = new PersistentEquipmentType(applicationContext, "smth");
         PersistentPestType crap = new PersistentPestType(applicationContext, "Тараканы", "", ImmutableMap.of(trowel, 2));
         PersistentPestType shit = new PersistentPestType(applicationContext, "Прусаки", "", ImmutableMap.of(trowel, 1));
@@ -134,6 +138,8 @@ public class MainEndpoint {
         adminSession.allocateTask(ASSIGNED, Optional.of(worker), ImmutableSet.of(), customer1, shit, "asd", "fuck");
         adminSession.allocateTask(ASSIGNED, Optional.of(worker), ImmutableSet.of(), customer2, crap, "asd", "fuck");
         adminSession.close();
+
+        applicationContext.onConnectionClosed();
     }
 
     private static void configureHandlers(NettyRpcEndpoint.NettyRpcEndpointBuilder<String> endpointBuilder,  ApplicationContext applicationContext) throws InvalidStateException {
@@ -223,7 +229,9 @@ public class MainEndpoint {
                 ));
     }
 
-    private static void runServices(ApplicationContext applicationContext) {
+    private static void runServices(PersistentApplicationContext applicationContext) {
+        applicationContext.onConnectionOpened();
+
         Session persistenceSession = applicationContext.getPersistenceSession();
         String currentServicePassword = UUID.randomUUID().toString();
 
@@ -245,6 +253,8 @@ public class MainEndpoint {
                 }
             }, (session) -> "Just assigned by AssignerService during the " + session));
         }, 0, 10, TimeUnit.MINUTES);
+
+        applicationContext.onConnectionClosed();
     }
 
     public static <T> GetResponse<T> applyFilters(Stream<T> stream, Set<Predicate<T>> predicates) {

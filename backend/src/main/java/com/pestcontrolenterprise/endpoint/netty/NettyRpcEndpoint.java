@@ -7,6 +7,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
+import com.pestcontrolenterprise.endpoint.Endpoint;
 import com.pestcontrolenterprise.endpoint.RpcEndpoint;
 import com.pestcontrolenterprise.util.PartialFunction;
 import com.pestcontrolenterprise.util.PartialSupplier;
@@ -51,14 +52,15 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
 
     protected final Supplier<String> idSupplier;
 
-    protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
-        this(procedureTypeClass, asMap(handlerPairs), idSupplier, gsonBuilder);
+    protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder, Runnable onConnectionOpenedHook, Runnable onConnectionClosedHook) {
+        this(procedureTypeClass, asMap(handlerPairs), idSupplier, gsonBuilder, onConnectionOpenedHook, onConnectionClosedHook);
     }
 
     @SuppressWarnings("unchecked")
-    protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
+    protected NettyRpcEndpoint(final Class<P> procedureTypeClass, final Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder, Runnable onConnectionOpenedHook, Runnable onConnectionClosedHook) {
         super(remoteCall -> {
             HandlerPair<P, ?, ?, ?> handlerPair = handlerPairsMap.get(remoteCall.getProcedureType());
+            onConnectionOpenedHook.run();
 
             try {
                 return ImmutableRemoteResult.of(
@@ -74,13 +76,15 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
                         null,
                         throwable
                 );
+            } finally {
+                onConnectionClosedHook.run();
             }
         }, new TypeToken<RemoteCall<P, ?>>(){}, new TypeToken<RemoteResult<P, ?, ?>>(){}, createGsonBuilder(procedureTypeClass, handlerPairsMap, gsonBuilder.serializeNulls()));
 
         this.idSupplier = idSupplier;
     }
 
-    public static  <P> NettyRpcEndpointBuilder<P> builder(Class<P> procedureTypeClass) {
+    public static <P> NettyRpcEndpointBuilder<P> builder(Class<P> procedureTypeClass) {
         return new NettyRpcEndpointBuilder<P>(procedureTypeClass);
     }
 
@@ -251,6 +255,9 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
         protected Supplier<String> idSupplier;
         protected GsonBuilder gsonBuilder;
 
+        protected Runnable onConnectionOpenedHook;
+        protected Runnable onConnectionClosedHook;
+
         protected NettyRpcEndpointBuilder(Class<P> procedureTypeClass) {
             this.procedureTypeClass = procedureTypeClass;
 
@@ -258,7 +265,25 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
             idSupplier = DEFAULT_ID_SUPPLIER;
             gsonBuilder = new GsonBuilder()
                     .serializeNulls();
+
+            onConnectionOpenedHook = () -> {
+            };
+            onConnectionClosedHook = () -> {
+            };
         }
+
+        public NettyRpcEndpointBuilder<P> withOnConnectionOpenedHook(Runnable onConnectionOpenedHook) {
+            this.onConnectionOpenedHook = onConnectionOpenedHook;
+
+            return this;
+        }
+
+        public NettyRpcEndpointBuilder<P> withOnConnectionClosedHook(Runnable onConnectionClosedHook) {
+            this.onConnectionClosedHook = onConnectionClosedHook;
+
+            return this;
+        }
+
 
         public NettyRpcEndpointBuilder<P> withHandlerPairs(Set<NettyRpcEndpoint.HandlerPair<P, ?, ?, ?>> handlerPairs) {
             this.handlerPairs.addAll(handlerPairs);
@@ -291,7 +316,14 @@ public class NettyRpcEndpoint<P> extends NettyEndpoint<RemoteCall<P, ?>, RemoteR
         }
 
         public NettyRpcEndpoint<P> build() {
-            return new NettyRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder);
+            return new NettyRpcEndpoint<P>(
+                    procedureTypeClass,
+                    handlerPairs,
+                    idSupplier,
+                    gsonBuilder,
+                    onConnectionOpenedHook,
+                    onConnectionClosedHook
+            );
         }
 
     }

@@ -25,24 +25,16 @@ public class PersistentApplicationContext implements ApplicationContext {
 
     @Transient
     private final ThreadLocal<Session> threadLocalPersistenceSession;
-
+    @Transient
+    private final SessionFactory sessionFactory;
     @Transient
     private final Supplier<Clock> clockSupplier;
 
     public PersistentApplicationContext(SessionFactory sessionFactory, Supplier<Clock> clockSupplier) {
+        this.sessionFactory = sessionFactory;
         this.clockSupplier = clockSupplier;
-        threadLocalPersistenceSession = ThreadLocal.withInitial(() -> {
-            Session persistenceSession = sessionFactory.openSession();
 
-
-            Transaction transaction = persistenceSession.beginTransaction();
-            persistenceSession.saveOrUpdate(this);
-            transaction.commit();
-            persistenceSession.flush();
-
-            return persistenceSession;
-        });
-
+        threadLocalPersistenceSession = new ThreadLocal<>();
     }
 
     @Override
@@ -53,6 +45,22 @@ public class PersistentApplicationContext implements ApplicationContext {
     @Override
     public Clock getClock() {
         return clockSupplier.get();
+    }
+
+    public void onConnectionOpened() {
+        Session persistenceSession = sessionFactory.openSession();
+
+        Transaction transaction = persistenceSession.beginTransaction();
+        persistenceSession.saveOrUpdate(this);
+        transaction.commit();
+        persistenceSession.flush();
+
+        threadLocalPersistenceSession.set(persistenceSession);
+    }
+
+    public void onConnectionClosed() {
+        threadLocalPersistenceSession.get().close();
+        threadLocalPersistenceSession.set(null);
     }
 
 }

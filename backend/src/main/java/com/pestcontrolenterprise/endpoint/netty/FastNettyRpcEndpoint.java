@@ -16,12 +16,12 @@ import static java.util.Collections.unmodifiableMap;
  */
 public class FastNettyRpcEndpoint<P extends Enum<P>> extends NettyRpcEndpoint<P> implements RpcEndpoint<P> {
 
-    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
-        super(procedureTypeClass, asMap(procedureTypeClass, handlerPairs), idSupplier, gsonBuilder);
+    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Set<HandlerPair<P, ?, ?, ?>> handlerPairs, Supplier<String> idSupplier, GsonBuilder gsonBuilder, Runnable onConnectionOpenedHook, Runnable onConnectionClosedHook) {
+        super(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder, onConnectionOpenedHook, onConnectionClosedHook);
     }
 
-    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder) {
-        super(procedureTypeClass, handlerPairsMap, idSupplier, gsonBuilder);
+    protected FastNettyRpcEndpoint(Class<P> procedureTypeClass, Map<P, HandlerPair<P, ?, ?, ?>> handlerPairsMap, Supplier<String> idSupplier, GsonBuilder gsonBuilder, Runnable onConnectionOpenedHook, Runnable onConnectionClosedHook) {
+        super(procedureTypeClass, handlerPairsMap, idSupplier, gsonBuilder, onConnectionOpenedHook, onConnectionClosedHook);
     }
 
     public static <P extends Enum<P>> FastNettyRpcEndpointBuilder<P> fastBuilder(Class<P> procedureTypeClass) {
@@ -45,7 +45,7 @@ public class FastNettyRpcEndpoint<P extends Enum<P>> extends NettyRpcEndpoint<P>
         }
 
         public FastNettyRpcEndpoint<P> build() {
-            return new FastNettyRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder);
+            return new FastNettyRpcEndpoint<P>(procedureTypeClass, handlerPairs, idSupplier, gsonBuilder, onConnectionOpenedHook, onConnectionClosedHook);
         }
 
     }
